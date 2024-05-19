@@ -1,53 +1,23 @@
 from django.shortcuts import render
 # from helps.decorators.decorator import CommonDecorator as deco
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
-# from customuser.models import *
-# from django.contrib.auth.models import User
-# from customuser.serializer.serializers import *
-# from rest_framework.response import Response
-# from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from user import models
+from user.serializer import serializers as SRLZER_U
+from rest_framework.response import Response
+from rest_framework import status
 # from helps.common.generic import Generichelps as ghelp
 # from django.core.paginator import Paginator
 
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# # @deco.get_permission(['Get Permission list Details', 'all'])
-# def getPermissions(request):
-#     page = request.GET.get('page')
-#     limit = request.GET.get('limit')
-#     if page == None and limit == None:
-#         permissions = Permission.objects.all()
-#         permissionserializer=PermissionSerializer(permissions, many=True)
-#         return Response(permissionserializer.data, status=status.HTTP_200_OK)
-#     else:
-#         allpermissions = Permission.objects.all().order_by('id')
-#         limit = int(limit) if limit is not None else 10
-#         page = int(page) if page is not None else 1
 
-#         paginator = Paginator(allpermissions, limit)
-#         permissions = paginator.get_page(page)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
+def getemployee(request):
+    users = models.User.objects.all()
+    userserializers = SRLZER_U.Userserializer(users, many=True)
+    return Response(userserializers.data, status=status.HTTP_200_OK)
 
-#         pages = paginator.num_pages
-
-#         permissionserializer=PermissionSerializer(permissions, many=True)
-#         return Response({
-#             'item_count': paginator.count,
-#             'per_page_limit': limit,
-#             'num_pages': pages,
-#             'next': f'http://127.0.0.1:8000/api/customuser/get-permissions?page={page+1}&limit={limit}' if permissions.has_next() else 'N/A',
-#             'previous': f'http://127.0.0.1:8000/api/customuser/get-permissions?page={page-1}&limit={limit}' if permissions.has_previous() else 'N/A',
-#             'result': permissionserializer.data}, status=status.HTTP_200_OK)
-
-
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# # @deco.get_permission(['Get Single Permission Details', 'all'])
-# def filterPermissions(request):
-#     extra_conditions = {'name': 'icontains'}
-#     permissions = ghelp().filterClass(Permission, request, extra_conditions)
-#     permissionserializer=PermissionSerializer(permissions, many=True)
-#     return Response(permissionserializer.data, status=status.HTTP_200_OK)
 
 
 # @api_view(['GET'])
