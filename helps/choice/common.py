@@ -27,7 +27,6 @@ MARITAL_STATUS = (
     ('Married', 'Married'),
     ('Widowed', 'Widowed'),
     ('Divorced', 'Divorced'),
-    ('Divorced', 'Divorced'),
     ('Separated ', 'Separated')
 )
 BLOOD_GROUP = (
