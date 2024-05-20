@@ -121,3 +121,11 @@ class Nanohelps(Picohelps):
         offday = Offday.objects.filter(day=self.convert_y_m_d_STR_day(date), is_active=True)
 
         return offday.first() if offday.exists() else None
+    
+    def removedoublequotation(self, string):
+        if string:
+            if string[0] == '"':
+                if string[len(string)-1] == '"':
+                    string = string[1:len(string)]
+                    string = string[0:len(string)-1]
+        return string 

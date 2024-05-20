@@ -84,8 +84,8 @@ class Shift(Basic):
     out_time = models.TimeField()
     late_tolerance_time = models.IntegerField(validators=[MinValueValidator(0)], default=0)
 
-    created_by = models.IntegerField()
-    updated_by = models.IntegerField()
+    created_by = models.IntegerField(blank=True, null=True)
+    updated_by = models.IntegerField(blank=True, null=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['in_time', 'out_time'], name='Shift_in_time_out_time')]

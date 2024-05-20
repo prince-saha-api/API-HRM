@@ -30,6 +30,7 @@ class Bankaccount(Basic):
     account_no = models.CharField(max_length=50, blank=True, null=True)
     routing_no = models.CharField(max_length=50, blank=True, null=True)
     swift_bic = models.CharField(max_length=50, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
+    address = models.ForeignKey(Address, on_delete=models.SET_NULL, blank=True, null=True)
     def __str__(self):
         return f'{self.bank_name} -- {self.address}'
+
