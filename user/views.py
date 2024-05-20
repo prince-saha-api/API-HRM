@@ -20,18 +20,24 @@ def getresponsibilitys(request):
     responsibilityserializers = SRLZER_U.Responsibilityserializer(responsibilitys, many=True)
     return Response(responsibilityserializers.data, status=status.HTTP_200_OK)
 
+# @api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# def addresponsibility(request):
+#     title = request.data.get('title')
+#     if title:
+#         if not MODELS_U.Responsibility.objects.filter(title=title).exists():
+#             responsibilityserializers = SRLZER_U.Responsibilityserializer(data=request.data, many=False)
+#             if responsibilityserializers.is_valid():
+#                 responsibilityserializers.save()
+#                 return Response({'data': responsibilityserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_201_CREATED)
+#         else: return Response({'data': {}, 'message': 'this title already exist!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+#     else: return Response({'data': {}, 'message': 'title is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addresponsibility(request):
-    title = request.data.get('title')
-    if title:
-        if not MODELS_U.Responsibility.objects.filter(title=title).exists():
-            responsibilityserializers = SRLZER_U.Responsibilityserializer(data=request.data, many=False)
-            if responsibilityserializers.is_valid():
-                responsibilityserializers.save()
-                return Response({'data': responsibilityserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_201_CREATED)
-        else: return Response({'data': {}, 'message': 'this title already exist!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': 'title is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_U.Responsibility, SRLZER_U.Responsibilityserializer, request.data, 'title')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -44,15 +50,8 @@ def getrequiredskills(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addrequiredskill(request):
-    title = request.data.get('title')
-    if title:
-        if not MODELS_U.Requiredskill.objects.filter(title=title).exists():
-            requiredskillserializers = SRLZER_U.Requiredskillserializer(data=request.data, many=False)
-            if requiredskillserializers.is_valid():
-                requiredskillserializers.save()
-                return Response({'data': requiredskillserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_201_CREATED)
-        else: return Response({'data': {}, 'message': 'this title already exist!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': 'title is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_U.Requiredskill, SRLZER_U.Requiredskillserializer, request.data, 'title')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -65,15 +64,8 @@ def getdsignations(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def adddsignation(request):
-    name = request.data.get('name')
-    if name:
-        if not MODELS_U.Designation.objects.filter(name=name).exists():
-            designationserializers = SRLZER_U.Designationserializer(data=request.data, many=False)
-            if designationserializers.is_valid():
-                designationserializers.save()
-                return Response({'data': designationserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_201_CREATED)
-        else: return Response({'data': {}, 'message': 'this title already exist!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': 'title is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_U.Designation, SRLZER_U.Designationserializer, request.data, 'name')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -86,10 +78,8 @@ def getgrades(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addgrade(request):
-    gradeserializers = SRLZER_U.Gradeserializer(data=request.data, many=False)
-    if gradeserializers.is_valid():
-        gradeserializers.save()
-        return Response({'data': gradeserializers.data}, status=status.HTTP_201_CREATED)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_U.Grade, SRLZER_U.Gradeserializer, request.data, 'name')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -102,12 +92,22 @@ def getshifts(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addshift(request):
-    shiftserializers = SRLZER_U.Shiftserializer(data=request.data, many=False)
-    if shiftserializers.is_valid():
-        shiftserializers.save()
-        return Response({'data': shiftserializers.data}, status=status.HTTP_201_CREATED)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_U.Shift, SRLZER_U.Shiftserializer, request.data, 'name')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
+def getreligions(request):
+    religions = MODELS_U.Religion.objects.all()
+    religionserializers = SRLZER_U.Religionserializer(religions, many=True)
+    return Response(religionserializers.data, status=status.HTTP_200_OK)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def addreligion(request):
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_U.Religion, SRLZER_U.Religionserializer, request.data, 'name')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

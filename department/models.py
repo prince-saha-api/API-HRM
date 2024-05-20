@@ -11,7 +11,6 @@ class Department(Basic):
     location = models.TextField(blank=True, null=True)
     email = models.EmailField(unique=True, blank=True, null=True)
     phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
-    display_image = models.URLField(max_length=200, unique=True, blank=True, null=True)
     manager = models.ManyToManyField(User)
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, blank=True, null=True)
 
