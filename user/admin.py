@@ -6,7 +6,7 @@ admin.site.register([
     models.Requiredskill,
     models.Designation,
     models.Permission,
-    models.Role,
+    models.Rolepermission,
     models.Grade,
     models.Religion,
     models.Shift,
@@ -20,10 +20,7 @@ admin.site.register([
     models.Shiftchangelog,
     models.Shiftchangerequest,
     models.Salaryallocation,
-    models.Perdaysalary,
-    models.Salary,
     models.Employeeincrementrecord,
-    models.Paymentrecord,
     models.Bonus,
     models.Mobilenumber
 ])

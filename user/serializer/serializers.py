@@ -31,4 +31,9 @@ class Shiftserializer(serializers.ModelSerializer):
         model = models.Shift
         fields = '__all__'
 
+class Religionserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Religion
+        fields = '__all__'
+
 

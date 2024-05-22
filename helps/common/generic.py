@@ -180,4 +180,7 @@ class Generichelps(Minihelps):
             'buffer_time_minutes': bufferdetails['buffer_time_minutes'],
             'total_minutes': total_minutes,
             'office_off_day': offday
-        } 
+        }
+    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves):
+        details = self.getuserdetails(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves)
+        return self.createuserinstance(classOBJpackage['User'], details)

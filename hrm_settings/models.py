@@ -13,7 +13,7 @@ class Fiscalyear(Basic):
     to_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.from_date} - {self.to_date}'
+        return f'{self.id} - {self.from_date} - {self.to_date}'
     def save(self, *args, **kwargs):
         year = self.from_date.year
         self.to_date = self.from_date + timedelta(366 if calendar.isleap(year) else 365)
