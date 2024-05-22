@@ -36,4 +36,19 @@ class Religionserializer(serializers.ModelSerializer):
         model = models.Religion
         fields = '__all__'
 
+class Permissionserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Permission
+        fields = '__all__'
+
+class Rolepermissionserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Rolepermission
+        fields = '__all__'
+
+class Ethnicgroupserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Ethnicgroup
+        fields = '__all__'
+
 

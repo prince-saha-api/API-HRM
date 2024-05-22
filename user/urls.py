@@ -13,6 +13,11 @@ urlpatterns = [
     path('add-shift/', views.addshift, name='add-shift'),
     path('get-religion/', views.getreligions, name='get-religion'),
     path('add-religion/', views.addreligion, name='add-religion'),
+    path('get-permission/', views.getpermissions, name='get-permission'),
+    path('get-rolepermission/', views.getrolepermissions, name='get-rolepermission'),
+    path('get-ethnicgroup/', views.getethnicgroups, name='get-ethnicgroup'),
+
     path('get-employee/', views.getemployee, name='get-employee'),
     path('add-employee/', views.addemployee, name='add-employee'),
+    
 ]

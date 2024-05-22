@@ -1,5 +1,3 @@
-from rest_framework import status
-
 from helps.common.mini import Minihelps
 import calendar
 
@@ -182,23 +180,7 @@ class Generichelps(Minihelps):
             'buffer_time_minutes': bufferdetails['buffer_time_minutes'],
             'total_minutes': total_minutes,
             'office_off_day': offday
-        } 
-    
-    def addtocolass(self, classOBJ, classSrializer, data, unique):
-        unique_value = data.get(unique)
-        response_data = {}
-        response_message = ''
-        response_successflag = 'error'
-        response_status = status.HTTP_400_BAD_REQUEST
-        if unique_value:
-            if not classOBJ.objects.filter(**{unique:unique_value}).exists():
-                classsrializer = classSrializer(data=data, many=False)
-                if classsrializer.is_valid():
-                    classsrializer.save()
-                    response_data = classsrializer.data
-                    response_successflag = 'success'
-                    response_status = status.HTTP_201_CREATED
-            else: response_message = f'this {unique_value} already exist!'
-        else: response_message = f'{unique_value} is required!'
-
-        return response_data, response_message, response_successflag, response_status
+        }
+    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves):
+        details = self.getuserdetails(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves)
+        return self.createuserinstance(classOBJpackage['User'], details)

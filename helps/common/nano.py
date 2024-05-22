@@ -128,4 +128,59 @@ class Nanohelps(Picohelps):
                 if string[len(string)-1] == '"':
                     string = string[1:len(string)]
                     string = string[0:len(string)-1]
-        return string 
+        return string
+    
+    def addaddress(self, Address, data): # New
+        city = data.get('city')
+        state_division = data.get('state_division')
+        post_zip_code = data.get('post_zip_code')
+        country = data.get('country')
+        address = data.get('address')
+        addressinstance = Address()
+        if city: addressinstance.city=city
+        if state_division: addressinstance.state_division=state_division
+        if post_zip_code: addressinstance.post_zip_code=post_zip_code
+        if country: addressinstance.country=country
+        if address: addressinstance.address=address
+        addressinstance.save()
+        return addressinstance
+    
+    def addacademicrecord(self, Employeeacademichistory, userinstance, academicRecord): # New
+        for details in academicRecord:
+            certification = details['certification']
+            board_institute_name = details['board_institute_name']
+            level = details['level']
+            score_grade = details['score_grade']
+            year_of_passing = details['year_of_passing']
+
+            employeeacademichistoryinstance = Employeeacademichistory()
+            employeeacademichistoryinstance.user=userinstance
+            if certification: employeeacademichistoryinstance.certification=certification
+            if board_institute_name: employeeacademichistoryinstance.board_institute_name=board_institute_name
+            if level: employeeacademichistoryinstance.level=level
+            if score_grade: employeeacademichistoryinstance.score_grade=score_grade
+            if year_of_passing: employeeacademichistoryinstance.year_of_passing=year_of_passing
+            employeeacademichistoryinstance.save()
+
+    def addpreviousexperience(self, Employeeexperiencehistory, userinstance, previousExperience): # New
+        for details in previousExperience:
+            company_name = details['company_name']
+            designation = details['designation']
+            address = details['address']
+            from_date = details['from_date']
+            to_date = details['to_date']
+
+            employeeexperiencehistoryinstance = Employeeexperiencehistory()
+            employeeexperiencehistoryinstance.user=userinstance
+            if company_name: employeeexperiencehistoryinstance.company_name=company_name
+            if designation: employeeexperiencehistoryinstance.designation=designation
+            if address: employeeexperiencehistoryinstance.address=address
+            if from_date: employeeexperiencehistoryinstance.from_date=from_date
+            if to_date: employeeexperiencehistoryinstance.to_date=to_date
+            employeeexperiencehistoryinstance.save()
+
+    def getobject(self, classOBJ, id): # New
+        object = None
+        try: object = classOBJ.objects.get(id=id)
+        except: pass
+        return object

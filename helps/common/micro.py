@@ -1,3 +1,5 @@
+from rest_framework import status
+
 from helps.common.nano import Nanohelps
 import datetime
 
@@ -61,4 +63,62 @@ class Microhelps(Nanohelps):
                 if isinstance(percentage, float):
                     OnePortionOfSalary = (percentage*salary)/100
         return OnePortionOfSalary
-        
+    
+    def addtocolass(self, classOBJ, classSrializer, data, unique): # New
+        unique_value = data.get(unique)
+        response_data = {}
+        response_message = ''
+        response_successflag = 'error'
+        response_status = status.HTTP_400_BAD_REQUEST
+        if unique_value:
+            if not classOBJ.objects.filter(**{unique:unique_value}).exists():
+                classsrializer = classSrializer(data=data, many=False)
+                if classsrializer.is_valid():
+                    classsrializer.save()
+                    response_data = classsrializer.data
+                    response_successflag = 'success'
+                    response_status = status.HTTP_201_CREATED
+            else: response_message = f'this {unique_value} already exist!'
+        else: response_message = f'{unique_value} is required!'
+
+        return response_data, response_message, response_successflag, response_status
+    
+    def addemergencycontact(self, Employeecontact, Address, userinstance, emergencyContact): # New
+        for details in emergencyContact:
+            name = details.get('name')
+            age = details.get('age')
+            phone_no = details.get('phone_no')
+            email = details.get('email')
+            relation = details.get('relation')
+            addressinstance = self.addaddress(Address, details['address'])
+
+            employeecontactinstance = Employeecontact()
+            employeecontactinstance.user=userinstance
+            if name: employeecontactinstance.name=name
+            if age: employeecontactinstance.age=age
+            if phone_no: employeecontactinstance.phone_no=phone_no
+            if email: employeecontactinstance.email=email
+            if relation: employeecontactinstance.relation=relation
+            if addressinstance: employeecontactinstance.address=addressinstance
+            employeecontactinstance.save()
+
+    def addbankaccount(self, classOBJpackage, data): # New
+        print(classOBJpackage)
+        bank_name = data.get('bank_name')
+        branch_name = data.get('branch_name')
+        account_type = self.getobject(classOBJpackage['Bankaccounttype'], data.get('account_type'))
+        account_no = data.get('account_no')
+        routing_no = data.get('routing_no')
+        swift_bic = data.get('swift_bic')
+        address = self.addaddress(classOBJpackage['Address'], data.get('address'))
+
+        bankaccountinstance = classOBJpackage['Bankaccount']()
+        if bank_name: bankaccountinstance.bank_name=bank_name
+        if branch_name: bankaccountinstance.branch_name=branch_name
+        if account_type: bankaccountinstance.account_type=account_type
+        if account_no: bankaccountinstance.account_no=account_no
+        if routing_no: bankaccountinstance.routing_no=routing_no
+        if swift_bic: bankaccountinstance.swift_bic=swift_bic
+        if address: bankaccountinstance.address=address
+        bankaccountinstance.save()
+        return bankaccountinstance

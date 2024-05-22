@@ -1,3 +1,4 @@
+import random
 from helps.common.micro import Microhelps
 
 class Minihelps(Microhelps):
@@ -161,3 +162,91 @@ class Minihelps(Microhelps):
                 if custom_user.active:
                     info = custom_user.id
         return info
+    
+    def ifallrecordsexistornot(self, classOBJ, idlist): # New
+        flag = True
+        if idlist:
+            for id in idlist:
+                object = self.getobject(classOBJ, id)
+                if object == None: flag = False
+        return flag
+    
+    def getuserdetails(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves): # New
+        return {
+            'first_name_personalDetails': personalDetails.get('first_name'),
+            'last_name_personalDetails': personalDetails.get('last_name'),
+            'gender_personalDetails': personalDetails.get('gender'),
+            'dob_personalDetails': personalDetails.get('dob'),
+            'blood_group_personalDetails': personalDetails.get('blood_group'),
+            'fathers_name_personalDetails': personalDetails.get('fathers_name'),
+            'mothers_name_personalDetails': personalDetails.get('mothers_name'),
+            'marital_status_personalDetails': personalDetails.get('marital_status'),
+            'spouse_name_personalDetails': personalDetails.get('spouse_name'),
+            'nationality_personalDetails': personalDetails.get('nationality'),
+            'religion_personalDetails': self.getobject(classOBJpackage['Religion'], personalDetails.get('religion')),
+            'personal_email_personalDetails': personalDetails.get('personal_email'),
+            'personal_phone_personalDetails': personalDetails.get('personal_phone'),
+            'nid_passport_no_personalDetails': personalDetails.get('nid_passport_no'),
+            'tin_no_personalDetails': personalDetails.get('tin_no'),
+            'present_address_personalDetails': self.addaddress(classOBJpackage['Address'], personalDetails.get('present_address')),
+            'permanent_address_personalDetails': self.addaddress(classOBJpackage['Address'], personalDetails.get('permanent_address')),
+            'official_id_officialDetails': officialDetails.get('official_id'),
+            'official_email_officialDetails': officialDetails.get('official_email'),
+            'official_phone_officialDetails': officialDetails.get('official_phone'),
+            'password_officialDetails': officialDetails.get('password'),
+            'employee_type_officialDetails': officialDetails.get('employee_type'),
+            'designation_officialDetails': self.getobject(classOBJpackage['Designation'], officialDetails.get('designation')),
+            'shift_officialDetails': self.getobject(classOBJpackage['Shift'], officialDetails.get('shift')),
+            'grade_officialDetails': self.getobject(classOBJpackage['Grade'], officialDetails.get('grade')),
+            'official_note_officialDetails': officialDetails.get('official_note'),
+            'joining_date_officialDetails': officialDetails.get('joining_date'),
+            'supervisor_officialDetails': self.getobject(classOBJpackage['User'], officialDetails.get('supervisor')),
+            'expense_approver_officialDetails': self.getobject(classOBJpackage['User'], officialDetails.get('expense_approver')),
+            'leave_approver_officialDetails': self.getobject(classOBJpackage['User'], officialDetails.get('leave_approver')),
+            'shift_request_approver_officialDetails': self.getobject(classOBJpackage['User'], officialDetails.get('shift_request_approver')),
+            'payment_in_salaryAndLeaves': salaryAndLeaves.get('payment_in'),
+            'bank_account_salaryAndLeaves': self.addbankaccount(classOBJpackage, salaryAndLeaves.get('bank_account')),
+            'gross_salary_salaryAndLeaves': salaryAndLeaves.get('gross_salary')
+        }
+    
+    def createuserinstance(self, User, details): # New
+        userinstance = User()
+        userinstance.username=details['official_id_officialDetails']
+        if details['first_name_personalDetails']: userinstance.first_name=details['first_name_personalDetails']
+        if details['last_name_personalDetails']: userinstance.last_name=details['last_name_personalDetails']
+        if details['gender_personalDetails']: userinstance.gender=details['gender_personalDetails']
+        if details['dob_personalDetails']: userinstance.dob=details['dob_personalDetails']
+        if details['blood_group_personalDetails']: userinstance.blood_group=details['blood_group_personalDetails']
+        if details['fathers_name_personalDetails']: userinstance.fathers_name=details['fathers_name_personalDetails']
+        if details['mothers_name_personalDetails']: userinstance.mothers_name=details['mothers_name_personalDetails']
+        if details['marital_status_personalDetails']: userinstance.marital_status=details['marital_status_personalDetails']
+        if details['spouse_name_personalDetails']: userinstance.spouse_name=details['spouse_name_personalDetails']
+        if details['nationality_personalDetails']: userinstance.nationality=details['nationality_personalDetails']
+        if details['religion_personalDetails']: userinstance.religion=details['religion_personalDetails']
+        if details['personal_email_personalDetails']: userinstance.personal_email=details['personal_email_personalDetails']
+        if details['personal_phone_personalDetails']: userinstance.personal_phone=details['personal_phone_personalDetails']
+        if details['nid_passport_no_personalDetails']: userinstance.nid_passport_no=details['nid_passport_no_personalDetails']
+        if details['tin_no_personalDetails']: userinstance.tin_no=details['tin_no_personalDetails']
+        if details['present_address_personalDetails']: userinstance.present_address=details['present_address_personalDetails']
+        if details['permanent_address_personalDetails']: userinstance.permanent_address=details['permanent_address_personalDetails']
+        userinstance.dummy_salary=random.randint(5000,300000)
+        if details['official_id_officialDetails']: userinstance.official_id=details['official_id_officialDetails']
+        if details['official_email_officialDetails']: userinstance.official_email=details['official_email_officialDetails']
+        if details['official_phone_officialDetails']: userinstance.official_phone=details['official_phone_officialDetails']
+        if details['password_officialDetails']: userinstance.password=details['password_officialDetails']
+        if details['employee_type_officialDetails']: userinstance.employee_type=details['employee_type_officialDetails']
+        if details['designation_officialDetails']: userinstance.designation=details['designation_officialDetails']
+        if details['shift_officialDetails']: userinstance.shift=details['shift_officialDetails']
+        if details['grade_officialDetails']: userinstance.grade=details['grade_officialDetails']
+        if details['official_note_officialDetails']: userinstance.official_note=details['official_note_officialDetails']
+        if details['joining_date_officialDetails']: userinstance.joining_date=details['joining_date_officialDetails']
+        if details['supervisor_officialDetails']: userinstance.supervisor=details['supervisor_officialDetails']
+        if details['expense_approver_officialDetails']: userinstance.expense_approver=details['expense_approver_officialDetails']
+        if details['leave_approver_officialDetails']: userinstance.leave_approver=details['leave_approver_officialDetails']
+        if details['shift_request_approver_officialDetails']: userinstance.shift_request_approver=details['shift_request_approver_officialDetails']
+        if details['payment_in_salaryAndLeaves']: userinstance.payment_in=details['payment_in_salaryAndLeaves']
+        if details['bank_account_salaryAndLeaves']: userinstance.bank_account=details['bank_account_salaryAndLeaves']
+        if details['gross_salary_salaryAndLeaves']: userinstance.gross_salary=details['gross_salary_salaryAndLeaves']
+        userinstance.save()
+
+        return userinstance
