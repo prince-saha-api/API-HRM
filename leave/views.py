@@ -231,3 +231,9 @@ def getleavepolicys(request):
     leavepolicys = MODELS_LEAV.Leavepolicy.objects.all()
     leavepolicyserializers = SRLZER_LEAV.Leavepolicyserializer(leavepolicys, many=True)
     return Response(leavepolicyserializers.data, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+def addleavepolicy(request):
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_LEAV.Leavepolicy, SRLZER_LEAV.Leavepolicyserializer, request.data, 'name')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

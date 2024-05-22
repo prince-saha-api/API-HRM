@@ -14,8 +14,11 @@ urlpatterns = [
     path('get-religion/', views.getreligions, name='get-religion'),
     path('add-religion/', views.addreligion, name='add-religion'),
     path('get-permission/', views.getpermissions, name='get-permission'),
+    path('add-permission/', views.addpermission, name='add-permission'),
     path('get-rolepermission/', views.getrolepermissions, name='get-rolepermission'),
+    path('add-rolepermission/', views.addrolepermission, name='add-rolepermission'),
     path('get-ethnicgroup/', views.getethnicgroups, name='get-ethnicgroup'),
+    path('add-ethnicgroup/', views.addethnicgroup, name='add-ethnicgroup'),
 
     path('get-employee/', views.getemployee, name='get-employee'),
     path('add-employee/', views.addemployee, name='add-employee'),

@@ -120,6 +120,13 @@ def getpermissions(request):
     permissionserializers = SRLZER_USER.Permissionserializer(permissions, many=True)
     return Response(permissionserializers.data, status=status.HTTP_200_OK)
 
+@api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+def addpermission(request):
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Permission, SRLZER_USER.Permissionserializer, request.data, 'name')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
@@ -128,6 +135,13 @@ def getrolepermissions(request):
     rolepermissionserializers = SRLZER_USER.Rolepermissionserializer(rolepermissions, many=True)
     return Response(rolepermissionserializers.data, status=status.HTTP_200_OK)
 
+@api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+def addrolepermission(request):
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Rolepermission, SRLZER_USER.Rolepermissionserializer, request.data, 'name')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
@@ -135,6 +149,13 @@ def getethnicgroups(request):
     ethnicgroups = MODELS_USER.Ethnicgroup.objects.all()
     ethnicgroupserializers = SRLZER_USER.Ethnicgroupserializer(ethnicgroups, many=True)
     return Response(ethnicgroupserializers.data, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+def addethnicgroup(request):
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Ethnicgroup, SRLZER_USER.Ethnicgroupserializer, request.data, 'name')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
