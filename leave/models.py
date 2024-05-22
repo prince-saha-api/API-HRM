@@ -67,7 +67,7 @@ class Leavepolicyassign(Basic):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['user', 'leavepolicy'], name='Leavepolicyassign_user_leavepolicy')]
     
-class Leaveallocation(Basic):
+class Approvedleave(Basic):
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leaveallocationone')
     date = models.DateField()
@@ -92,7 +92,17 @@ class Leavesummary(Basic):
         return f'{self.total_left} - {self.user.username} - { self.leavepolicy.name}'
     class Meta:
         constraints = [models.UniqueConstraint(fields=['user', 'leavepolicy'], name='Leavesummary_user_leavepolicy')]
-    
+
+class Leaveallocationrequest(Basic):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
+    no_of_days = models.IntegerField()
+    reason = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
+
+    def __str__(self):
+        return f'{self.user.username} - {self.leavepolicy.name} - {self.status}'
+
 class Leaverequest(Basic):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leaverequestone')
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)

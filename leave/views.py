@@ -203,7 +203,7 @@ def approveleaverequest(request, leaverequest=None):
             if leaveallocation.exists(): return Response({'status': 'error', 'message': 'already exist in leaveallocation!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
 
         for date in leaverequest.first().valid_leave_dates:
-            MODELS_LEAV.Leaveallocation.objects.create(
+            MODELS_LEAV.Approvedleave.objects.create(
                 leavepolicy=leaverequest.first().leavepolicy,
                 user=leaverequest.first().user,
                 date=date,

@@ -5,7 +5,8 @@ admin.site.register([
     models.Holiday,
     models.Leavepolicy,
     models.Leavepolicyassign,
-    models.Leaveallocation,
+    models.Approvedleave,
     models.Leavesummary,
+    models.Leaveallocationrequest,
     models.Leaverequest
 ])
