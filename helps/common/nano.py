@@ -131,11 +131,32 @@ class Nanohelps(Picohelps):
         return string
     
     def addaddress(self, Address, data): # New
+        response = {
+            'flag': False,
+            'message': ''
+        }
+        # city = data.get('name')
+        # if city == None:
+        #     response['message'] = 'name is required!'
+        #     return response
         city = data.get('city')
+        if city == None:
+            response['message'] = 'city is required!'
+            return response
         state_division = data.get('state_division')
+        if state_division == None:
+            response['message'] = 'state_division is required!'
+            return response
         post_zip_code = data.get('post_zip_code')
         country = data.get('country')
+        if country == None:
+            response['message'] = 'country is required!'
+            return response
         address = data.get('address')
+        if address == None:
+            response['message'] = 'address is required!'
+            return response
+
         addressinstance = Address()
         if city: addressinstance.city=city
         if state_division: addressinstance.state_division=state_division
@@ -143,7 +164,9 @@ class Nanohelps(Picohelps):
         if country: addressinstance.country=country
         if address: addressinstance.address=address
         addressinstance.save()
-        return addressinstance
+        response['flag'] = True
+        response.update({'addressinstance': addressinstance})
+        return response
     
     def addacademicrecord(self, Employeeacademichistory, userinstance, academicRecord): # New
         for details in academicRecord:
@@ -181,6 +204,7 @@ class Nanohelps(Picohelps):
 
     def getobject(self, classOBJ, id): # New
         object = None
-        try: object = classOBJ.objects.get(id=id)
-        except: pass
+        if id != None:
+            try: object = classOBJ.objects.get(id=id)
+            except: pass
         return object

@@ -173,42 +173,68 @@ class Minihelps(Microhelps):
         return flag
     
     def getuserdetails(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves): # New
-        return {
-            'first_name': personalDetails.get('first_name'),
-            'last_name': personalDetails.get('last_name'),
-            'gender': personalDetails.get('gender'),
-            'dob': personalDetails.get('dob'),
-            'blood_group': personalDetails.get('blood_group'),
-            'fathers_name': personalDetails.get('fathers_name'),
-            'mothers_name': personalDetails.get('mothers_name'),
-            'marital_status': personalDetails.get('marital_status'),
-            'spouse_name': personalDetails.get('spouse_name'),
-            'nationality': personalDetails.get('nationality'),
-            'religion': self.getobject(classOBJpackage['Religion'], personalDetails.get('religion')),
-            'personal_email': personalDetails.get('personal_email'),
-            'personal_phone': personalDetails.get('personal_phone'),
-            'nid_passport_no': personalDetails.get('nid_passport_no'),
-            'tin_no': personalDetails.get('tin_no'),
-            'present_address': self.addaddress(classOBJpackage['Address'], personalDetails.get('present_address')),
-            'permanent_address': self.addaddress(classOBJpackage['Address'], personalDetails.get('permanent_address')),
-            'official_id': officialDetails.get('official_id'),
-            'official_email': officialDetails.get('official_email'),
-            'official_phone': officialDetails.get('official_phone'),
-            'password': make_password(officialDetails.get('password')),
-            'employee_type': officialDetails.get('employee_type'),
-            'designation': self.getobject(classOBJpackage['Designation'], officialDetails.get('designation')),
-            'shift': self.getobject(classOBJpackage['Shift'], officialDetails.get('shift')),
-            'grade': self.getobject(classOBJpackage['Grade'], officialDetails.get('grade')),
-            'official_note': officialDetails.get('official_note'),
-            'joining_date': officialDetails.get('joining_date'),
-            'supervisor': self.getobject(classOBJpackage['User'], officialDetails.get('supervisor')),
-            'expense_approver': self.getobject(classOBJpackage['User'], officialDetails.get('expense_approver')),
-            'leave_approver': self.getobject(classOBJpackage['User'], officialDetails.get('leave_approver')),
-            'shift_request_approver': self.getobject(classOBJpackage['User'], officialDetails.get('shift_request_approver')),
-            'payment_in': salaryAndLeaves.get('payment_in'),
-            'bank_account': self.addbankaccount(classOBJpackage, salaryAndLeaves.get('bank_account')),
-            'gross_salary': salaryAndLeaves.get('gross_salary')
+        response = {
+            'flag': False,
+            'message': ''
         }
+        addbankaccountdetails=self.addbankaccount(classOBJpackage, salaryAndLeaves.get('bank_account'))
+        print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+        print(addbankaccountdetails)
+        print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+        if not addbankaccountdetails['flag']:
+            response['message'] = f"bankaccount - {addbankaccountdetails['message']}"
+            return response
+        
+        presentaddressdetails=self.addaddress(classOBJpackage['Address'], personalDetails.get('present_address'))
+        if not presentaddressdetails['flag']:
+            response['message'] = f"present - {presentaddressdetails['message']}"
+            return response
+        
+        permanentaddressdetails=self.addaddress(classOBJpackage['Address'], personalDetails.get('permanent_address'))
+        if not permanentaddressdetails['flag']:
+            response['message'] = f"permanet - {permanentaddressdetails['message']}"
+            return response
+        
+        response.update({'data':
+                                {
+                                    'first_name': personalDetails.get('first_name'),
+                                    'last_name': personalDetails.get('last_name'),
+                                    'gender': personalDetails.get('gender'),
+                                    'dob': personalDetails.get('dob'),
+                                    'blood_group': personalDetails.get('blood_group'),
+                                    'fathers_name': personalDetails.get('fathers_name'),
+                                    'mothers_name': personalDetails.get('mothers_name'),
+                                    'marital_status': personalDetails.get('marital_status'),
+                                    'spouse_name': personalDetails.get('spouse_name'),
+                                    'nationality': personalDetails.get('nationality'),
+                                    'religion': self.getobject(classOBJpackage['Religion'], personalDetails.get('religion')),
+                                    'personal_email': personalDetails.get('personal_email'),
+                                    'personal_phone': personalDetails.get('personal_phone'),
+                                    'nid_passport_no': personalDetails.get('nid_passport_no'),
+                                    'tin_no': personalDetails.get('tin_no'),
+                                    'present_address': presentaddressdetails['addressinstance'],
+                                    'permanent_address': permanentaddressdetails['addressinstance'],
+                                    'official_id': officialDetails.get('official_id'),
+                                    'official_email': officialDetails.get('official_email'),
+                                    'official_phone': officialDetails.get('official_phone'),
+                                    'password': make_password(officialDetails.get('password')),
+                                    'employee_type': officialDetails.get('employee_type'),
+                                    'designation': self.getobject(classOBJpackage['Designation'], officialDetails.get('designation')),
+                                    'shift': self.getobject(classOBJpackage['Shift'], officialDetails.get('shift')),
+                                    'grade': self.getobject(classOBJpackage['Grade'], officialDetails.get('grade')),
+                                    'official_note': officialDetails.get('official_note'),
+                                    'joining_date': officialDetails.get('joining_date'),
+                                    'supervisor': self.getobject(classOBJpackage['User'], officialDetails.get('supervisor')),
+                                    'expense_approver': self.getobject(classOBJpackage['User'], officialDetails.get('expense_approver')),
+                                    'leave_approver': self.getobject(classOBJpackage['User'], officialDetails.get('leave_approver')),
+                                    'shift_request_approver': self.getobject(classOBJpackage['User'], officialDetails.get('shift_request_approver')),
+                                    'payment_in': salaryAndLeaves.get('payment_in'),
+                                    'bank_account': addbankaccountdetails['bankaccountinstance'],
+                                    'gross_salary': salaryAndLeaves.get('gross_salary')
+                                }
+                            })
+
+        return response
     
     def createuserinstance(self, User, details): # New
         userinstance = User()

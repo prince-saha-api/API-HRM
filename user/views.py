@@ -175,17 +175,50 @@ def addemployee(request):
         'allow_blank': True,
         'allow_empty': False
     }
+    
 
     form = NestedForm(requestdata, **options)
     form.is_nested(raise_exception=True)
-
+    print(form.data)
+    
     personalDetails = form.data.get('personalDetails')
+    ghelp().preparepersonalDetails(personalDetails)
+
     officialDetails = form.data.get('officialDetails')
+    ghelp().prepareofficialDetails(officialDetails)
+    
     salaryAndLeaves = form.data.get('salaryAndLeaves')
+    ghelp().preparesalaryAndLeaves(salaryAndLeaves)
+
     emergencyContact = form.data.get('emergencyContact')
+    ghelp().prepareemergencyContact(emergencyContact)
+    print(emergencyContact)
+
+
     academicRecord = form.data.get('academicRecord')
+    ghelp().prepareacademicRecord(academicRecord)
+
+
     previousExperience = form.data.get('previousExperience')
-    uploadDocuments = form.data.get('uploadDocuments')
+    ghelp().preparepreviousExperience(previousExperience)
+
+    # uploadDocuments = form.data.get('uploadDocuments')
+
+    # print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+    # print(personalDetails)
+    # print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+    # print('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
+    # print(officialDetails)
+    # print('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
+    # print('cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc')
+    # print(salaryAndLeaves)
+    # print('cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc')
+    # print('DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD')
+    # print(emergencyContact)
+    # print('DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD')
+    # print('EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE')
+    # print(academicRecord)
+    # print('EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE')
 
     if ghelp().ifallrecordsexistornot(MODELS_USER.Ethnicgroup, officialDetails.get('ethnic_group')):
         if ghelp().ifallrecordsexistornot(MODELS_LEAV.Leavepolicy, salaryAndLeaves.get('leavepolicy')):

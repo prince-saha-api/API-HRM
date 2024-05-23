@@ -95,26 +95,36 @@ class Microhelps(Nanohelps):
             relation = details.get('relation')
             addressinstance = self.addaddress(Address, details['address'])
 
-            employeecontactinstance = Employeecontact()
-            employeecontactinstance.user=userinstance
-            if name: employeecontactinstance.name=name
-            if age: employeecontactinstance.age=age
-            if phone_no: employeecontactinstance.phone_no=phone_no
-            if email: employeecontactinstance.email=email
-            if relation: employeecontactinstance.relation=relation
-            if addressinstance: employeecontactinstance.address=addressinstance
-            employeecontactinstance.save()
+            if addressinstance['flag']:
+                employeecontactinstance = Employeecontact()
+                employeecontactinstance.user=userinstance
+                if name: employeecontactinstance.name=name
+                if age: employeecontactinstance.age=age
+                if phone_no: employeecontactinstance.phone_no=phone_no
+                if email: employeecontactinstance.email=email
+                if relation: employeecontactinstance.relation=relation
+                if addressinstance: employeecontactinstance.address=addressinstance['addressinstance']
+                employeecontactinstance.save()
 
     def addbankaccount(self, classOBJpackage, data): # New
-        print(classOBJpackage)
+        response = {
+            'flag': False,
+            'message': ''
+        }
         bank_name = data.get('bank_name')
         branch_name = data.get('branch_name')
         account_type = self.getobject(classOBJpackage['Bankaccounttype'], data.get('account_type'))
         account_no = data.get('account_no')
         routing_no = data.get('routing_no')
         swift_bic = data.get('swift_bic')
-        address = self.addaddress(classOBJpackage['Address'], data.get('address'))
 
+        address = self.addaddress(classOBJpackage['Address'], data.get('address'))
+        if not address['flag']:
+            response['message'] = f"address - {address['message']}"
+            return response
+        if account_type == None:
+            response['message'] = 'Invalid account type!'
+            return response
         bankaccountinstance = classOBJpackage['Bankaccount']()
         if bank_name: bankaccountinstance.bank_name=bank_name
         if branch_name: bankaccountinstance.branch_name=branch_name
@@ -122,6 +132,9 @@ class Microhelps(Nanohelps):
         if account_no: bankaccountinstance.account_no=account_no
         if routing_no: bankaccountinstance.routing_no=routing_no
         if swift_bic: bankaccountinstance.swift_bic=swift_bic
-        if address: bankaccountinstance.address=address
+        if address:bankaccountinstance.address=address['addressinstance']
         bankaccountinstance.save()
-        return bankaccountinstance
+
+        response['flag'] = True
+        response.update({'bankaccountinstance': bankaccountinstance})
+        return response
