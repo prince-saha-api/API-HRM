@@ -13,6 +13,7 @@ from rest_framework import status
 from helps.common.generic import Generichelps as ghelp
 # from helps.common.generic import Generichelps as ghelp
 # from django.core.paginator import Paginator
+from drf_nested_forms.utils import NestedForm
 import json
 
 @api_view(['GET'])
@@ -169,13 +170,22 @@ def getemployee(request):
 # @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def addemployee(request):
-    personalDetails = request.data.get('personalDetails')
-    officialDetails = request.data.get('officialDetails')
-    salaryAndLeaves = request.data.get('salaryAndLeaves')
-    emergencyContact = request.data.get('emergencyContact')
-    academicRecord = request.data.get('academicRecord')
-    previousExperience = request.data.get('previousExperience')
-    uploadDocuments = request.data.get('uploadDocuments')
+    requestdata = dict(request.data)
+    options = {
+        'allow_blank': True,
+        'allow_empty': False
+    }
+
+    form = NestedForm(requestdata, **options)
+    form.is_nested(raise_exception=True)
+
+    personalDetails = form.data.get('personalDetails')
+    officialDetails = form.data.get('officialDetails')
+    salaryAndLeaves = form.data.get('salaryAndLeaves')
+    emergencyContact = form.data.get('emergencyContact')
+    academicRecord = form.data.get('academicRecord')
+    previousExperience = form.data.get('previousExperience')
+    uploadDocuments = form.data.get('uploadDocuments')
 
     if ghelp().ifallrecordsexistornot(MODELS_USER.Ethnicgroup, officialDetails.get('ethnic_group')):
         if ghelp().ifallrecordsexistornot(MODELS_LEAV.Leavepolicy, salaryAndLeaves.get('leavepolicy')):
@@ -205,9 +215,12 @@ def addemployee(request):
                             'Bankaccounttype': MODELS_CONT.Bankaccounttype,
                             'Religion': MODELS_USER.Religion,
 
+                        
                         }
-                        userinstance = ghelp().createuser(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves)
-
+                        checkuniquefields = ['personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_phone', 'rfid']
+                        response = ghelp().createuser(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, checkuniquefields)
+                        if not response['flag']: return Response({'data': {}, 'message': response['message'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+                        userinstance = response['userinstance']
 
                         if officialDetails.get('role_permission'):
                             for id in officialDetails.get('role_permission'):

@@ -181,6 +181,48 @@ class Generichelps(Minihelps):
             'total_minutes': total_minutes,
             'office_off_day': offday
         }
-    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves):
+    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, checkuniquefields):
+        response = {
+            'flag': False,
+            'message': ''
+        }
         details = self.getuserdetails(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves)
-        return self.createuserinstance(classOBJpackage['User'], details)
+
+        for checkuniquefield in checkuniquefields:
+            if checkuniquefield in details:
+                if not classOBJpackage['User'].objects.filter({checkuniquefield: details[checkuniquefield]}).exists():
+                    response.update({'userinstance': self.createuserinstance(classOBJpackage['User'], details)})
+                    response['flag'] = True
+                else:
+                    response['message'] = f'{checkuniquefield} is already exist!'
+                    break
+        return response
+    
+    def generateuserobject(self, data):
+        datakeys = data.keys()
+        userdetails = {
+            'personalDetails': {},
+            'officialDetails': {},
+            'salaryAndLeaves': {},
+            'emergencyContact': {},
+            'academicRecord': {},
+            'previousExperience': {},
+            'uploadDocuments': {}
+        }
+        for key in datakeys:
+            if 'personalDetails' in key:
+                userdetails['personalDetails'].update({key.replace('personalDetails', ''): data[key]})
+            elif 'officialDetails' in key:
+                userdetails['officialDetails'].update({key.replace('officialDetails', ''): data[key]})
+            elif 'salaryAndLeaves' in key:
+                userdetails['salaryAndLeaves'].update({key.replace('salaryAndLeaves', ''): data[key]})
+            elif 'emergencyContact' in key:
+                userdetails['emergencyContact'].update({key.replace('emergencyContact', ''): data[key]})
+            elif 'academicRecord' in key:
+                userdetails['academicRecord'].update({key.replace('academicRecord', ''): data[key]})
+            elif 'previousExperience' in key:
+                userdetails['previousExperience'].update({key.replace('previousExperience', ''): data[key]})
+            elif 'uploadDocuments' in key:
+                userdetails['uploadDocuments'].update({key.replace('uploadDocuments', ''): data[key]})
+
+        return userdetails
