@@ -1,4 +1,3 @@
-from datetime import timedelta
 from django.db import models
 from officialoffday.models import Offday
 from user.models import Grade, User, Ethnicgroup
@@ -33,6 +32,9 @@ class Holiday(Basic):
     is_recuring = models.BooleanField(default=True)
     employee_grade = models.ForeignKey(Grade, on_delete=models.SET_NULL, blank=True, null=True)
 
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='holidayone')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='holidaytwo')
+
     class Meta:
         constraints = [models.UniqueConstraint(fields=['title', 'date'], name='Holiday_title_date')]
 
@@ -55,12 +57,18 @@ class Leavepolicy(Basic):
     is_optional = models.BooleanField(default=False)
     is_calendar_day = models.BooleanField(default=False) # done
 
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicyone')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicytwo')
+
     def __str__(self):
         return f'{self.name}'
     
 class Leavepolicyassign(Basic):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leavepolicyassignone')
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
+
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicyassigntwo')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicyassignthree')
 
     def __str__(self):
         return f'{self.user.username} - {self.leavepolicy.name}'
@@ -94,11 +102,13 @@ class Leavesummary(Basic):
         constraints = [models.UniqueConstraint(fields=['user', 'leavepolicy'], name='Leavesummary_user_leavepolicy')]
 
 class Leaveallocationrequest(Basic):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leaveallocationrequestone')
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
     no_of_days = models.IntegerField()
     reason = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
+
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leaveallocationrequesttwo')
 
     def __str__(self):
         return f'{self.user.username} - {self.leavepolicy.name} - {self.status}'

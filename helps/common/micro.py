@@ -65,6 +65,9 @@ class Microhelps(Nanohelps):
         return OnePortionOfSalary
     
     def addtocolass(self, classOBJ, classSrializer, data, unique): # New
+        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+        print(data)
+        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
         unique_value = data.get(unique)
         response_data = {}
         response_message = ''

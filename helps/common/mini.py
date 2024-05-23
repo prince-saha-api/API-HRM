@@ -1,4 +1,5 @@
 import random
+from django.contrib.auth.hashers import make_password
 from helps.common.micro import Microhelps
 
 class Minihelps(Microhelps):
@@ -193,7 +194,7 @@ class Minihelps(Microhelps):
             'official_id_officialDetails': officialDetails.get('official_id'),
             'official_email_officialDetails': officialDetails.get('official_email'),
             'official_phone_officialDetails': officialDetails.get('official_phone'),
-            'password_officialDetails': officialDetails.get('password'),
+            'password_officialDetails': make_password(officialDetails.get('password')),
             'employee_type_officialDetails': officialDetails.get('employee_type'),
             'designation_officialDetails': self.getobject(classOBJpackage['Designation'], officialDetails.get('designation')),
             'shift_officialDetails': self.getobject(classOBJpackage['Shift'], officialDetails.get('shift')),
