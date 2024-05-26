@@ -134,158 +134,258 @@ class Picohelps:
     def getUniqueCodePattern(self):
         return f"{datetime.now().strftime('%Y%m%d%H%M%S%f')}"[:18]
     
-    def prepareuserobject(self):
+    def requestdata(self):
         return {
-                    "personalDetails":{
-                        "first_name": None,
-                        "last_name": None,
-                        "gender": None,
-                        "dob": None,
-                        "blood_group": None,
-                        "fathers_name": None,
-                        "mothers_name": None,
-                        "marital_status": None,
-                        "spouse_name": None,
-                        "nationality": None,
-                        "religion": None,
-                        "personal_email": None,
-                        "personal_phone": None,
-                        "nid_passport_no": None,
-                        "tin_no": None,
-                        "present_address":{
-                            "city": None,
-                            "state_division": None,
-                            "post_zip_code": None,
-                            "country": None,
-                            "address": None
-                        },
-                        "permanent_address":{
-                            "city": None,
-                            "state_division": None,
-                            "post_zip_code": None,
-                            "country": None,
-                            "address": None
-                        }
-                },
-                "officialDetails":{
-                    "official_id": None,
-                    "official_email": None,
-                    "official_phone": None,
-                    "password": None,
-                    "employee_type": None,
-                    "company": None,
-                    "branch": None,
-                    "department": None,
-                    "designation": None,
-                    "shift": None,
-                    "grade": None,
-                    "role_permission": None,
-                    "official_note": None,
-                    "ethnic_group": None,
-                    "joining_date": None,
-                    "supervisor": None,
-                    "expense_approver": None,
-                    "leave_approver": None,
-                    "shift_request_approver": None
-                },
-                "salaryAndLeaves":{
-                    "payment_in":"Cash",
-                    "bank_account":{
-                        "bank_name":"Prime Bank",
-                        "branch_name":"Banani",
-                        "account_type":1,
-                        "account_no":"126521460000525",
-                        "routing_no":"98541222220540",
-                        "swift_bic":"AAAA-BB-CC-123",
-                        "address":{
-                            "city":"Dhaka",
-                            "state_division":"Dhaka",
-                            "post_zip_code":"1213",
-                            "country":"Bangladesh",
-                            "address":"62 Block - E, Kemal Ataturk Avenue, Banani, Dhaka 1213"
-                        }
-                    },
-                    "gross_salary":10000,
-                    "leavepolicy": [1]
-                },
-                "emergencyContact":[
-                        {
-                            "name":"Joynal Hossain",
-                            "age":50,
-                            "phone_no":"01745625578",
-                            "email":"",
-                            "address":{
-                                "city":"Faridpur",
-                                "state_division":"Dhaka",
-                                "post_zip_code":"5607",
-                                "country":"Bangladesh",
-                                "address":"Kalamridha, Sardar Bari"
-                            },
-                            "relation":"Father"
-                        },
-                        {
-                            "name":"Jakir Hossain",
-                            "age":20,
-                            "phone_no":"01745625588",
-                            "email":"jakir@jakir.com",
-                            "address":{
-                                "city":"Faridpur",
-                                "state_division":"Dhaka",
-                                "post_zip_code":"5607",
-                                "country":"Bangladesh",
-                                "address":"Kalamridha, Sardar Bari"
-                            },
-                            "relation":"Brother"
-                        }
-                ],
-                "academicRecord":[
-                        {
-                            "certification":"Secondary School Certificate",
-                            "board_institute_name":"Faridpur Zila High School",
-                            "level":"SSC",
-                            "score_grade":"5.00",
-                            "year_of_passing":2014
-                        },
-                        {
-                            "certification":"Higher Secondary Certificate",
-                            "board_institute_name":"KM College",
-                            "level":"HSC",
-                            "score_grade":"4.60",
-                            "year_of_passing":2016
-                        },
-                        {
-                            "certification":"Bachelor of Science in Computer Science and Engineering",
-                            "board_institute_name":"Green University",
-                            "level":"B.Sc",
-                            "score_grade":"3.14",
-                            "year_of_passing":2020
-                        }
-                ],
-                "previousExperience":[
-                        {
-                            "company_name":"5 minutes solutions ltd",
-                            "designation":"Intern Frontend Develover",
-                            "address":"Jatrabari, Hujur Bari Gate",
-                            "from_date":"2020-02-01",
-                            "to_date":"2020-05-01"
-                        }
-                ],
-                "uploadDocuments": [
-                        {
-                            "title": "nid",
-                            "attachment": "nid File"
-                        },
-                        {
-                            "title": "cv",
-                            "attachment": "cv File"
-                        },
-                        {
-                            "title": "appointmentLetter",
-                            "attachment": "appointmentLetter File"
-                        },
-                        {
-                            "title": "photo",
-                            "attachment": "photo File"
-                        }
-                ]
-                }
+   "personalDetails[first_name]":[
+      "Nazmul"
+   ],
+   "personalDetails[last_name]":[
+      "Hussain"
+   ],
+   "personalDetails[gender]":[
+      "Female"
+   ],
+   "personalDetails[dob]":[
+      "1995-12-31"
+   ],
+   "personalDetails[blood_group]":[
+      "A-"
+   ],
+   "personalDetails[fathers_name]":[
+      "Md. Nurul Islam"
+   ],
+   "personalDetails[mothers_name]":[
+      "Ramesa Begum"
+   ],
+   "personalDetails[marital_status]":[
+      "Widowed"
+   ],
+   "personalDetails[spouse_name]":[
+      "Shamima Yasmin Eva"
+   ],
+   "personalDetails[nationality]":[
+      "Bangladeshi"
+   ],
+   "personalDetails[religion]":[
+      "5"
+   ],
+   "personalDetails[personal_email]":[
+      "gm@nazmulhussain.com"
+   ],
+   "personalDetails[personal_phone]":[
+      "01551761806"
+   ],
+   "personalDetails[nid_passport_no]":[
+      "4716444002515"
+   ],
+   "personalDetails[tin_no]":[
+      "542515"
+   ],
+   "personalDetails[present_address][city]":[
+      "Dhaka"
+   ],
+   "personalDetails[present_address][state_division]":[
+       "Dhaka"
+   ],
+   "personalDetails[present_address][post_zip_code]":[
+      "1216"
+   ],
+   "personalDetails[present_address][country]":[
+      "Bangladesh"
+   ],
+   "personalDetails[present_address][address]":[
+      "Mirpur 13"
+   ],
+   "personalDetails[permanent_address][city]":[
+      "Khulna"
+   ],
+   "personalDetails[permanent_address][state_division]":[
+      "Khulna"
+   ],
+   "personalDetails[permanent_address][post_zip_code]":[
+      "9280"
+   ],
+   "personalDetails[permanent_address][country]":[
+      "Bangladesh"
+   ],
+   "personalDetails[permanent_address][address]":[
+      "Protapkati, Paikgacha"
+   ],
+   "officialDetails[official_id]":[
+      "API230748"
+   ],
+   "officialDetails[official_email]":[
+      "nazmul.hussain@apisolutionsltd.com"
+   ],
+   "officialDetails[official_phone]":[
+      "01552451426"
+   ],
+   "officialDetails[password]":[
+      "Nazmul@1234"
+   ],
+   "officialDetails[employee_type]":[
+      "Permanent"
+   ],
+   "officialDetails[company]":[
+      "5"
+   ],
+   "officialDetails[branch]":[
+      "1"
+   ],
+   "officialDetails[department]":[
+      "5"
+   ],
+   "officialDetails[designation]":[
+      "1"
+   ],
+   "officialDetails[shift]":[
+      "5"
+   ],
+   "officialDetails[grade]":[
+      "5"
+   ],
+   "officialDetails[role_permission][0]":[
+      "5"
+   ],
+   "officialDetails[role_permission][1]":[
+      "5"
+   ],
+   "officialDetails[official_note]":[
+      ""
+   ],
+   "officialDetails[ethnic_group][0]":[
+      "1"
+   ],
+   "officialDetails[joining_date]":[
+      "2023-07-16"
+   ],
+   "officialDetails[supervisor]":[
+      "API230747"
+   ],
+   "officialDetails[expense_approver]":[
+      "API230747"
+   ],
+   "officialDetails[leave_approver]":[
+      "API230747"
+   ],
+   "officialDetails[shift_request_approver]":[
+      "API230747"
+   ],
+   "salaryAndLeaves[payment_in]":[
+      "Cash"
+   ],
+   "salaryAndLeaves[bank_account][bank_name]":[
+      "Islami Bank Bangladesh PLC"
+   ],
+   "salaryAndLeaves[bank_account][branch_name]":[
+      "Mirpur"
+   ],
+   "salaryAndLeaves[bank_account][account_type]":[
+      "1"
+   ],
+   "salaryAndLeaves[bank_account][account_no]":[
+      "25412523655"
+   ],
+   "salaryAndLeaves[bank_account][routing_no]":[
+      "254152"
+   ],
+   "salaryAndLeaves[bank_account][swift_bic]":[
+      "AAAA-BBBB-CCCC"
+   ],
+   "salaryAndLeaves[bank_account][address][city]":[
+      "Dhaka"
+   ],
+   "salaryAndLeaves[bank_account][address][state_division]":[
+      "Dhaka"
+   ],
+   "salaryAndLeaves[bank_account][address][post_zip_code]":[
+      "1202"
+   ],
+   "salaryAndLeaves[bank_account][address][country]":[
+      "Bangladesh"
+   ],
+   "salaryAndLeaves[bank_account][address][address]":[
+      "Mirpur 10"
+   ],
+   "salaryAndLeaves[gross_salary]":[
+      "25000"
+   ],
+   "salaryAndLeaves[leavepolicy][0]":[
+      "1"
+   ],
+   "emergencyContact[0][name]":[
+      "Nahida Akhter"
+   ],
+   "emergencyContact[0][age]":[
+      "25"
+   ],
+   "emergencyContact[0][phone_no]":[
+      "01552451425"
+   ],
+   "emergencyContact[0][email]":[
+      "nahida.mkt@gmail.com"
+   ],
+   "emergencyContact[0][address][city]":[
+      "Dhaka"
+   ],
+   "emergencyContact[0][address][state_division]":[
+      "Dhaka"
+   ],
+   "emergencyContact[0][address][post_zip_code]":[
+      "1204"
+   ],
+   "emergencyContact[0][address][country]":[
+      "Bangladesh"
+   ],
+   "emergencyContact[0][address][address]":[
+      "Mirpur"
+   ],
+   "emergencyContact[0][relation]":[
+      "Nahida Akhter"
+   ],
+   "academicRecord[0][certification]":[
+      "BSC"
+   ],
+   "academicRecord[0][board_institute_name]":[
+      "Daffodil International University"
+   ],
+   "academicRecord[0][level]":[
+      "Bachelor"
+   ],
+   "academicRecord[0][score_grade]":[
+      "3.75"
+   ],
+   "academicRecord[0][year_of_passing]":[
+      "2020"
+   ],
+   "academicRecord[1][certification]":[
+      "MSC"
+   ],
+   "academicRecord[1][board_institute_name]":[
+      "Daffodil International University"
+   ],
+   "academicRecord[1][level]":[
+      "Bachelor"
+   ],
+   "academicRecord[1][score_grade]":[
+      "3.75"
+   ],
+   "academicRecord[1][year_of_passing]":[
+      "2021"
+   ],
+   "previousExperience[0][company_name]":[
+      "Deeni Info Tech"
+   ],
+   "previousExperience[0][designation]":[
+      "Software Engineer"
+   ],
+   "previousExperience[0][from_date]":[
+      "2020-08-08"
+   ],
+   "previousExperience[0][to_date]":[
+      "2022-08-08"
+   ],
+   "previousExperience[0][address]":[
+      "Dhaka"
+   ]
+}

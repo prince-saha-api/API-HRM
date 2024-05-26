@@ -3,6 +3,5 @@ from workingshift import models
 
 admin.site.register([
     models.Globalbuffertimesettings,
-    models.Globalbuffertime,
-    models.Workingshift
+    models.Globalbuffertime
 ])

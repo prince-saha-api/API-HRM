@@ -294,7 +294,7 @@ class Generichelps(Minihelps):
             if 'account_no' in salaryAndLeaves['bank_account']: salaryAndLeaves['bank_account']['account_no'] = salaryAndLeaves['bank_account']['account_no'][0]
             if 'routing_no' in salaryAndLeaves['bank_account']: salaryAndLeaves['bank_account']['routing_no'] = salaryAndLeaves['bank_account']['routing_no'][0]
             if 'swift_bic' in salaryAndLeaves['bank_account']: salaryAndLeaves['bank_account']['swift_bic'] = salaryAndLeaves['bank_account']['swift_bic'][0]
-            if 'address' in ['bank_account']:
+            if 'address' in salaryAndLeaves['bank_account']:
                 if 'city' in salaryAndLeaves['bank_account']['address']: salaryAndLeaves['bank_account']['address']['city'] = salaryAndLeaves['bank_account']['address']['city'][0]
                 if 'state_division' in salaryAndLeaves['bank_account']['address']: salaryAndLeaves['bank_account']['address']['state_division'] = salaryAndLeaves['bank_account']['address']['state_division'][0]
                 if 'post_zip_code' in salaryAndLeaves['bank_account']['address']: salaryAndLeaves['bank_account']['address']['post_zip_code'] = salaryAndLeaves['bank_account']['address']['post_zip_code'][0]
@@ -315,8 +315,6 @@ class Generichelps(Minihelps):
                         if 'post_zip_code' in each['address']: emergencyContact[index]['address']['post_zip_code'] = each['address']['post_zip_code'][0]
                         if 'country' in each['address']: emergencyContact[index]['address']['country'] = each['address']['country'][0]
                         if 'address' in each['address']: emergencyContact[index]['address']['address'] = each['address']['address'][0]
-            else: emergencyContact = []
-        else: emergencyContact = []
 
     def prepareacademicRecord(self, academicRecord):
         if academicRecord:
@@ -327,8 +325,6 @@ class Generichelps(Minihelps):
                     if 'level' in each: academicRecord[index]['level'] = each['level'][0]
                     if 'score_grade' in each: academicRecord[index]['score_grade'] = each['score_grade'][0]
                     if 'year_of_passing' in each: academicRecord[index]['year_of_passing'] = each['year_of_passing'][0]
-            else: academicRecord = []
-        else: academicRecord = []
 
     def preparepreviousExperience(self, previousExperience):
         if previousExperience:
@@ -339,30 +335,25 @@ class Generichelps(Minihelps):
                     if 'address' in each: previousExperience[index]['address'] = each['address'][0]
                     if 'from_date' in each: previousExperience[index]['from_date'] = each['from_date'][0]
                     if 'to_date' in each: previousExperience[index]['to_date'] = each['to_date'][0]
-            else: previousExperience = []
-        else: previousExperience = []
 
 
-    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, checkuniquefields):
+    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, modelsuniquefields):
         response = {
-            'flag': False,
-            'message': ''
+            'flag': True,
+            'message': []
         }
         details = self.getuserdetails(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves)
-        
         if not details['flag']:
-            response['message'] = f"user - {details['message']}"
-            return response
+            response['message'].extend([f'user - {each}' for each in details['message']])
+            response['flag'] = False
         
-        for checkuniquefield in checkuniquefields:
-            if checkuniquefield in details:
-                if not classOBJpackage['User'].objects.filter({checkuniquefield: details[checkuniquefield]}).exists():
-                    response['flag'] = True
-                else:
-                    response['flag'] = False
-                    response['message'] = f'{checkuniquefield} is already exist!'
-                    break
-        if response['flag']: response.update({'userinstance': self.createuserinstance(classOBJpackage['User'], details)})
+        uniquefiels = self.isuniquefielsexist(classOBJpackage['User'], details['data'], modelsuniquefields)
+        if uniquefiels['flag']:
+            response['message'].extend(uniquefiels['message'])
+            response['flag'] = False
+
+        if response['flag']: response.update({'userinstance': self.createuserinstance(classOBJpackage['User'], details['data'])})
+
         return response
     
     def generateuserobject(self, data):

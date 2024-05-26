@@ -132,75 +132,145 @@ class Nanohelps(Picohelps):
     
     def addaddress(self, Address, data): # New
         response = {
-            'flag': False,
-            'message': ''
+            'flag': True,
+            'message': [],
+            'instance': {}
         }
-        # city = data.get('name')
-        # if city == None:
-        #     response['message'] = 'name is required!'
-        #     return response
+        # name = data.get('name')
+        # if name == None:
+        #     response['message'].append('name is required!')
+        #     response['flag'] = False
+
         city = data.get('city')
         if city == None:
-            response['message'] = 'city is required!'
-            return response
+            response['message'].append('city is required!')
+            response['flag'] = False
+
         state_division = data.get('state_division')
         if state_division == None:
-            response['message'] = 'state_division is required!'
-            return response
+            response['message'].append('state_division is required!')
+            response['flag'] = False
+
         post_zip_code = data.get('post_zip_code')
+
         country = data.get('country')
         if country == None:
-            response['message'] = 'country is required!'
-            return response
+            response['message'].append('country is required!')
+            response['flag'] = False
+
         address = data.get('address')
         if address == None:
-            response['message'] = 'address is required!'
-            return response
-
-        addressinstance = Address()
-        if city: addressinstance.city=city
-        if state_division: addressinstance.state_division=state_division
-        if post_zip_code: addressinstance.post_zip_code=post_zip_code
-        if country: addressinstance.country=country
-        if address: addressinstance.address=address
-        addressinstance.save()
-        response['flag'] = True
-        response.update({'addressinstance': addressinstance})
+            response['message'].append('address is required!')
+            response['flag'] = False
+        
+        if response['flag']:
+            addressinstance = Address()
+            if city: addressinstance.city=city
+            if state_division: addressinstance.state_division=state_division
+            if post_zip_code: addressinstance.post_zip_code=post_zip_code
+            if country: addressinstance.country=country
+            if address: addressinstance.address=address
+            addressinstance.save()
+            response['instance'] = addressinstance
         return response
     
     def addacademicrecord(self, Employeeacademichistory, userinstance, academicRecord): # New
-        for details in academicRecord:
-            certification = details['certification']
-            board_institute_name = details['board_institute_name']
-            level = details['level']
-            score_grade = details['score_grade']
-            year_of_passing = details['year_of_passing']
+        response = {
+            'flag': False,
+            'failed': [],
+            'message': ''
+        }
+        if isinstance(academicRecord, list):
+            for details in academicRecord:
+                create_flag = True
+                reasons = []
 
-            employeeacademichistoryinstance = Employeeacademichistory()
-            employeeacademichistoryinstance.user=userinstance
-            if certification: employeeacademichistoryinstance.certification=certification
-            if board_institute_name: employeeacademichistoryinstance.board_institute_name=board_institute_name
-            if level: employeeacademichistoryinstance.level=level
-            if score_grade: employeeacademichistoryinstance.score_grade=score_grade
-            if year_of_passing: employeeacademichistoryinstance.year_of_passing=year_of_passing
-            employeeacademichistoryinstance.save()
+                certification = details.get('certification')
+                if certification == None:
+                    reasons.append('certification field is required!')
+                    create_flag = False
+
+                board_institute_name = details.get('board_institute_name')
+                if board_institute_name == None:
+                    reasons.append('board_institute_name field is required!')
+                    create_flag = False
+
+                level = details.get('level')
+                if level == None:
+                    reasons.append('level field is required!')
+                    create_flag = False
+
+                score_grade = details.get('score_grade')
+                if score_grade == None:
+                    reasons.append('score_grade field is required!')
+                    create_flag = False
+
+                year_of_passing = details.get('year_of_passing')
+                if year_of_passing == None:
+                    reasons.append('year_of_passing field is required!')
+                    create_flag = False
+
+                if create_flag:
+                    response['flag'] = True
+                    employeeacademichistoryinstance = Employeeacademichistory()
+                    employeeacademichistoryinstance.user=userinstance
+                    if certification: employeeacademichistoryinstance.certification=certification
+                    if board_institute_name: employeeacademichistoryinstance.board_institute_name=board_institute_name
+                    if level: employeeacademichistoryinstance.level=level
+                    if score_grade: employeeacademichistoryinstance.score_grade=score_grade
+                    if year_of_passing: employeeacademichistoryinstance.year_of_passing=year_of_passing
+                    employeeacademichistoryinstance.save()
+                else: response['failed'].append({'data': details, 'message': reasons})
+        else: response['message'] = 'academicrecord is not list type!'
+        return response
+
 
     def addpreviousexperience(self, Employeeexperiencehistory, userinstance, previousExperience): # New
-        for details in previousExperience:
-            company_name = details['company_name']
-            designation = details['designation']
-            address = details['address']
-            from_date = details['from_date']
-            to_date = details['to_date']
+        response = {
+            'flag': False,
+            'failed': [],
+            'message': ''
+        }
+        if isinstance(previousExperience, list):
+            for details in previousExperience:
+                create_flag = True
+                reasons = []
 
-            employeeexperiencehistoryinstance = Employeeexperiencehistory()
-            employeeexperiencehistoryinstance.user=userinstance
-            if company_name: employeeexperiencehistoryinstance.company_name=company_name
-            if designation: employeeexperiencehistoryinstance.designation=designation
-            if address: employeeexperiencehistoryinstance.address=address
-            if from_date: employeeexperiencehistoryinstance.from_date=from_date
-            if to_date: employeeexperiencehistoryinstance.to_date=to_date
-            employeeexperiencehistoryinstance.save()
+                company_name = details.get('company_name')
+                if company_name == None:
+                    reasons.append('company_name field is required!')
+                    create_flag = False
+
+                designation = details.get('designation')
+                if designation == None:
+                    reasons.append('designation field is required!')
+                    create_flag = False
+
+                address = details.get('address')
+
+                from_date = details.get('from_date')
+                if from_date == None:
+                    reasons.append('from_date field is required!')
+                    create_flag = False
+
+                to_date = details.get('to_date')
+                if to_date == None:
+                    reasons.append('to_date field is required!')
+                    create_flag = False
+
+                if create_flag:
+                    response['flag'] = True
+                    employeeexperiencehistoryinstance = Employeeexperiencehistory()
+                    employeeexperiencehistoryinstance.user=userinstance
+                    if company_name: employeeexperiencehistoryinstance.company_name=company_name
+                    if designation: employeeexperiencehistoryinstance.designation=designation
+                    if address: employeeexperiencehistoryinstance.address=address
+                    if from_date: employeeexperiencehistoryinstance.from_date=from_date
+                    if to_date: employeeexperiencehistoryinstance.to_date=to_date
+                    employeeexperiencehistoryinstance.save()
+                else: response['failed'].append({'data': details, 'message': reasons})
+        else: response['message'] = 'previousexperience is not list type!'
+        return response
 
     def getobject(self, classOBJ, id): # New
         object = None
