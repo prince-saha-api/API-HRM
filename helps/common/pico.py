@@ -408,5 +408,32 @@ class Picohelps:
                   ],
                   "previousExperience[0][address]":[
                      "Dhaka"
+                  ],
+
+
+                  
+                  "uploadDocuments[0][title]":[
+                     "NID/Passport"
+                  ],
+                  "uploadDocuments[1][title]":[
+                     "Resume"
+                  ],
+                  "uploadDocuments[2][title]":[
+                     "Appointment Letter"
+                  ],
+                  "uploadDocuments[2][attachment]":[
+                     "null"
+                  ],
+                  "uploadDocuments[3][title]":[
+                     "Photo"
+                  ],
+                  "uploadDocuments[0][attachment]":[
+                    "employees.pdf (application/pdf)>"
+                  ],
+                  "uploadDocuments[1][attachment]":[
+                     "employees.pdf (application/pdf)>"
+                  ],
+                  "uploadDocuments[3][attachment]":[
+                     "ananta.jpg (image/jpeg)>"
                   ]
                }

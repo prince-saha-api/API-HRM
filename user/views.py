@@ -232,8 +232,16 @@ def addemployee(request):
                     'Religion': MODELS_USER.Religion,
                 }
                 
+                documents=int(len([key for key in requestdata.keys() if 'uploadDocuments' in key])/2)
+                documentsindex = []
+                photo = None
+                for index in range(documents):
+                    if request.data[f'uploadDocuments[{index}][title]'] == 'photo':
+                        photo = request.FILES.get(f'uploadDocuments[{index}][attachment]')
+                    else: documentsindex.append(index)
+
                 usermodelsuniquefields = ['personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_phone', 'rfid']
-                response = ghelp().createuser(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, usermodelsuniquefields, created_by)
+                response = ghelp().createuser(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, created_by)
                 if not response['flag']: return Response({'data': {}, 'message': response['message'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
                 userinstance = response['userinstance']
 
@@ -271,6 +279,18 @@ def addemployee(request):
                 emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, MODELS_CONT.Address, userinstance, emergencyContact)
                 academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, userinstance, academicRecord)
                 previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, userinstance, previousExperience)
+
+                # upload documents
+                for index in documentsindex:
+                    title=request.data.get(f'uploadDocuments[{index}][title]')
+                    attachment = request.FILES.get(f'uploadDocuments[{index}][attachment]')
+                    employeedocsinstance=MODELS_USER.Employeedocs()
+                    if title and attachment:
+                        employeedocsinstance.user=userinstance
+                        employeedocsinstance.title=title
+                        employeedocsinstance.attachment=attachment
+                        employeedocsinstance.save()
+
 
 
                 department_officialDetails = ghelp().getobject(MODELS_DEPA.Department, {'id': officialDetails.get('department')})

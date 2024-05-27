@@ -240,7 +240,7 @@ class Minihelps(Microhelps):
         }
         return response
     
-    def createuserinstance(self, User, details): # New
+    def createuserinstance(self, User, details, photo): # New
         userinstance = User()
         userinstance.username=details['official_id']
         if details['first_name']: userinstance.first_name=details['first_name']
@@ -280,6 +280,7 @@ class Minihelps(Microhelps):
         if details['gross_salary']: userinstance.gross_salary=details['gross_salary']
         if details['created_by']: userinstance.created_by=details['created_by']
         if details['updated_by']: userinstance.updated_by=details['updated_by']
+        if photo: userinstance.photo=photo
         userinstance.save()
 
         return userinstance
