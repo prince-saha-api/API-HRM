@@ -98,7 +98,7 @@ class Religion(Basic):
 
     def __str__(self):
         return f'{self.name}'
-
+    
 class User(AbstractUser, Timedetailscode):
     designation = models.ForeignKey(Designation, on_delete=models.SET_NULL, blank=True, null=True)
     ###
@@ -106,7 +106,7 @@ class User(AbstractUser, Timedetailscode):
     blood_group = models.CharField(max_length=25, choices=CHOICE.BLOOD_GROUP, blank=True, null=True)
     fathers_name = models.CharField(max_length=150, blank=True, null=True)
     mothers_name = models.CharField(max_length=150, blank=True, null=True)
-    marital_status = models.CharField(max_length=20, choices=CHOICE.MARITAL_STATUS, default=CHOICE.MARITAL_STATUS[0][1])
+    marital_status = models.CharField(max_length=20, choices=CHOICE.MARITAL_STATUS, blank=True, null=True)
     gender = models.CharField(max_length=10, choices=CHOICE.GENDER, blank=True, null=True)
     spouse_name = models.CharField(max_length=150, blank=True, null=True)
     ###
@@ -146,7 +146,7 @@ class User(AbstractUser, Timedetailscode):
     allow_overtime = models.BooleanField(default=False)
     allow_remote_checkin = models.BooleanField(default=False)
     active_dummy_salary = models.BooleanField(default=False)
-    job_status = models.CharField(max_length=30, choices=CHOICE.JOB_STATUS, default=CHOICE.JOB_STATUS[0][1])
+    job_status = models.CharField(max_length=30, choices=CHOICE.JOB_STATUS, blank=True, null=True)
     official_note = models.TextField(blank=True, null=True)
     photo = models.ImageField(upload_to=uploadphoto, blank=True, null=True)
     rfid = models.CharField(max_length=50, unique=True, blank=True, null=True)
