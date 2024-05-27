@@ -182,6 +182,7 @@ def addemployee(request):
     form = NestedForm(requestdata, **options)
     form.is_nested(raise_exception=True)
 
+
     personalDetails = form.data.get('personalDetails')
     ghelp().preparepersonalDetails(personalDetails)
     officialDetails = form.data.get('officialDetails')
@@ -285,8 +286,8 @@ def addemployee(request):
                 for index in documentsindex:
                     title=request.data.get(f'uploadDocuments[{index}][title]')
                     attachment = request.FILES.get(f'uploadDocuments[{index}][attachment]')
-                    employeedocsinstance=MODELS_USER.Employeedocs()
-                    if title and attachment:
+                    if bool(title) and bool(attachment):
+                        employeedocsinstance=MODELS_USER.Employeedocs()
                         employeedocsinstance.user=userinstance
                         employeedocsinstance.title=title
                         employeedocsinstance.attachment=attachment
