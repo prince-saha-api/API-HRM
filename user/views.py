@@ -240,8 +240,9 @@ def addemployee(request):
                         photo = request.FILES.get(f'uploadDocuments[{index}][attachment]')
                     else: documentsindex.append(index)
 
+                required_fields = ['first_name', 'last_name', 'gender', 'personal_phone', 'official_id']
                 usermodelsuniquefields = ['personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_phone', 'rfid']
-                response = ghelp().createuser(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, created_by)
+                response = ghelp().createuser(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, required_fields, created_by)
                 if not response['flag']: return Response({'data': {}, 'message': response['message'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
                 userinstance = response['userinstance']
 

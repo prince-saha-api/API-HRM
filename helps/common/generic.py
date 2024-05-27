@@ -337,7 +337,7 @@ class Generichelps(Minihelps):
                     if 'to_date' in each: previousExperience[index]['to_date'] = each['to_date'][0]
 
 
-    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, created_by):
+    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, required_fields, created_by):
         response = {
             'flag': True,
             'message': []
@@ -346,7 +346,18 @@ class Generichelps(Minihelps):
         if not details['flag']:
             response['message'].extend([f'user - {each}' for each in details['message']])
             response['flag'] = False
+        print(details['data'])
+        # required fields are checking
+        for required_field in required_fields:
+            if required_field in details['data']:
+                if not bool(details['data'][required_field]):
+                    response['message'].append(f'{required_field} field is required!')
+                    response['flag'] = False
+            else:
+                response['message'].append(f'{required_field} field is required!')
+                response['flag'] = False
         
+        # unique fields are checking
         uniquefiels = self.isuniquefielsexist(classOBJpackage['User'], details['data'], usermodelsuniquefields)
         if uniquefiels['flag']:
             response['message'].extend(uniquefiels['message'])
