@@ -184,6 +184,7 @@ class Generichelps(Minihelps):
     
     def preparepersonalDetails(self, personalDetails):
         if 'first_name' in personalDetails: personalDetails['first_name'] = personalDetails['first_name'][0]
+        else: personalDetails.update({'first_name': None})
         if 'last_name' in personalDetails: personalDetails['last_name'] = personalDetails['last_name'][0]
         if 'gender' in personalDetails: personalDetails['gender'] = personalDetails['gender'][0]
         if 'dob' in personalDetails: personalDetails['dob'] = personalDetails['dob'][0]
@@ -213,6 +214,30 @@ class Generichelps(Minihelps):
             if 'post_zip_code' in personalDetails['permanent_address']: personalDetails['permanent_address']['post_zip_code'] = personalDetails['permanent_address']['post_zip_code'][0]
             if 'country' in personalDetails['permanent_address']: personalDetails['permanent_address']['country'] = personalDetails['permanent_address']['country'][0]
             if 'address' in personalDetails['permanent_address']: personalDetails['permanent_address']['address'] = personalDetails['permanent_address']['address'][0]
+
+    # {
+    #     'present_address': {
+    #         'city': 'Dhaka',
+    #         'state': 'Dhaka'
+    #     }
+    # }
+
+    # def preparerequestdata(self, targeteddict={}, keys=['first_name', 'last_name', ['present_address', 'city'], ['present_address', 'state']]):
+    #     for key in keys:
+    #         if isinstance(key, str):
+    #             if key in targeteddict:
+    #                 targeteddict[key]=targeteddict[key][0] if bool(targeteddict[key][0]) else None
+    #             else: targeteddict.update({key: None})
+
+    #         elif isinstance(key, list):
+    #             if len(key)>0:
+    #                 if key[0] in targeteddict:
+    #                     value = targeteddict[key[0]]
+    #                     for item in key:
+    #                         value=value[item]
+    #                     targeteddict[key]=targeteddict[key][0] if bool(targeteddict[key][0]) else None
+
+    #     return targeteddict
 
     def prepareofficialDetails(self, officialDetails):
         if 'official_id' in officialDetails: officialDetails['official_id'] = officialDetails['official_id'][0]
