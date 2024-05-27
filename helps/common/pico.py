@@ -141,9 +141,10 @@ class Picohelps:
         }
         for usermodelsuniquefield in usermodelsuniquefields:
             if usermodelsuniquefield in dictdata:
-                if classOBJ.objects.filter(**{usermodelsuniquefield: dictdata[usermodelsuniquefield]}).exists():
-                    response['flag'] = True
-                    response['message'].append(f'{usermodelsuniquefield} is already exist!')
+                if bool(dictdata[usermodelsuniquefield]):
+                  if classOBJ.objects.filter(**{usermodelsuniquefield: dictdata[usermodelsuniquefield]}).exists():
+                     response['flag'] = True
+                     response['message'].append(f'{usermodelsuniquefield} is already exist!')
         return response
     
     def getobject(self, classOBJ, kwargs, filter=False): # New
