@@ -237,9 +237,10 @@ def addemployee(request):
                 documentsindex = []
                 photo = None
                 for index in range(documents):
-                    if request.data[f'uploadDocuments[{index}][title]'] == 'photo':
-                        photo = request.FILES.get(f'uploadDocuments[{index}][attachment]')
-                    else: documentsindex.append(index)
+                    title = request.data.get(f'uploadDocuments[{index}][title]')
+                    if title:
+                        if title == 'photo': photo = request.FILES.get(f'uploadDocuments[{index}][attachment]')
+                        else: documentsindex.append(index)
 
                 required_fields = ['first_name', 'last_name', 'gender', 'personal_phone', 'official_id']
                 usermodelsuniquefields = ['personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_phone', 'rfid']
