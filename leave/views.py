@@ -29,6 +29,23 @@ def addleavepolicy(request):
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_LEAV.Leavepolicy, SRLZER_LEAV.Leavepolicyserializer, request.data, 'name')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def getusersassignedleavepolicy(request, userid=None):
+    if userid:
+        leavepolicys =MODELS_LEAV.Leavepolicy.objects.filter(leavepolicyassign__user__id=userid)
+        leavepolicyserializers = SRLZER_LEAV.Leavepolicyserializer(leavepolicys, many=True)
+        return Response({'data': leavepolicyserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
+    else: return Response({'data': {}, 'message': 'provide a userid!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def getusersunassignedleavepolicy(request, userid=None):
+    if userid:
+        leavepolicys =MODELS_LEAV.Leavepolicy.objects.exclude(leavepolicyassign__user__id=userid)
+        leavepolicyserializers = SRLZER_LEAV.Leavepolicyserializer(leavepolicys, many=True)
+        return Response({'data': leavepolicyserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
+    else: return Response({'data': {}, 'message': 'provide a userid!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
@@ -38,6 +55,16 @@ def getleavesummarys(request):
     leavesummaryserializers = SRLZER_LEAV.Leavesummaryserializer(leavesummarys, many=True)
     return Response(leavesummaryserializers.data, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
+def getusersleavesummarys(request, userid=None):
+    if userid:
+        leavesummarys = MODELS_LEAV.Leavesummary.objects.filter(user__id=userid)
+        leavesummaryserializers = SRLZER_LEAV.Leavesummaryserializer(leavesummarys, many=True)
+        return Response({'data': leavesummaryserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
+    else: return Response({'data': {}, 'message': 'provide a userid!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
@@ -45,9 +72,9 @@ def getleavesummarys(request):
 def assignleavepolicy(request):
     check_mood = False
 
-    fiscalyear = ghelp().getobject(MODELS_SETT.Fiscalyear, request.data.get('fiscalyear'))
-    leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, request.data.get('leavepolicy'))
-    user = ghelp().getobject(MODELS_USER.User, request.data.get('user'))
+    fiscalyear = ghelp().getobject(MODELS_SETT.Fiscalyear, {'id': request.data.get('fiscalyear')})
+    leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
+    user = ghelp().getobject(MODELS_USER.User, {'id': request.data.get('user')})
     if check_mood:
         if fiscalyear == None: return Response({'status': 'error', 'message': 'fiscalyear doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
         if leavepolicy == None: return Response({'status': 'error', 'message': 'leavepolicy doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
@@ -81,11 +108,11 @@ def assignleavepolicy(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
-def leaverequest(request):
+def addleaverequest(request):
     check_mood = False
     user = MODELS_USER.User.objects.get(id=request.user.id)
 
-    leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, request.data.get('leavepolicy'))
+    leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
     if check_mood:
         if leavepolicy == None: return Response({'status': 'error', 'message': 'leavepolicy doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -158,7 +185,7 @@ def requestleaveallocation(request):
     check_mood = False
     user = MODELS_USER.User.objects.get(id=request.user.id)
 
-    leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, request.data.get('leavepolicy'))
+    leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
     if check_mood:
         if leavepolicy == None: return Response({'status': 'error', 'message': 'leavepolicy doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -184,20 +211,23 @@ def requestleaveallocation(request):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def approverequestleaveallocation(request, leaveallocationrequest=None):
     check_mood = False
-    approved_by = MODELS_USER.User.objects.get(id=request.user.id)
 
-    leaveallocationrequest = ghelp().getobject(MODELS_LEAV.Leaveallocationrequest, request.data.get('leavepolicy'))
-    if check_mood:
-        if leaveallocationrequest == None: return Response({'status': 'error', 'message': 'leaveallocationrequest doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+    if leaveallocationrequest:
+        approved_by = MODELS_USER.User.objects.get(id=request.user.id)
 
-    leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=leaveallocationrequest.first().user, leavepolicy=leaveallocationrequest.first().leavepolicy)
-    if leavesummary.exists():
-        total_allocation = leavesummary.first().total_allocation + leaveallocationrequest.first().no_of_days
-        total_left = leavesummary.first().total_left + leaveallocationrequest.first().no_of_days
-        leavesummary.update(total_allocation=total_allocation, total_left=total_left)
-        leaveallocationrequest.update(status=STATUS[1][1], approved_by=approved_by)
-        return Response({'status': 'success', 'message': '', 'data': []}, status=status.HTTP_200_OK)
-    else: return Response({'status': 'error', 'message': 'leavesummary doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+        leaveallocationrequest = ghelp().getobject(MODELS_LEAV.Leaveallocationrequest, {'id': leaveallocationrequest}, True)
+        if check_mood:
+            if not leaveallocationrequest.exists(): return Response({'status': 'error', 'message': 'leaveallocationrequest doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+
+        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=leaveallocationrequest.first().user, leavepolicy=leaveallocationrequest.first().leavepolicy)
+        if leavesummary.exists():
+            total_allocation = leavesummary.first().total_allocation + leaveallocationrequest.first().no_of_days
+            total_left = leavesummary.first().total_left + leaveallocationrequest.first().no_of_days
+            leavesummary.update(total_allocation=total_allocation, total_left=total_left)
+            leaveallocationrequest.update(status=STATUS[1][1], approved_by=approved_by)
+            return Response({'status': 'success', 'message': '', 'data': []}, status=status.HTTP_200_OK)
+        else: return Response({'status': 'error', 'message': 'leavesummary doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'status': 'error', 'message': 'provide a leaveallocationrequest id!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 # @permission_classes([IsAuthenticated])
@@ -205,33 +235,53 @@ def approverequestleaveallocation(request, leaveallocationrequest=None):
 def approveleaverequest(request, leaverequest=None):
     check_mood = False
 
-    leaverequest = ghelp().getobject(MODELS_LEAV.Leaverequest, request.data.get('leaverequest'))
-    if check_mood:
-        if leaverequest == None: return Response({'status': 'error', 'message': 'leaverequest doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+    if leaverequest:
+        leaverequest = ghelp().getobject(MODELS_LEAV.Leaverequest, {'id': leaverequest}, True)
+        print(leaverequest)
+        input()
+        if check_mood:
+            if leaverequest == None: return Response({'status': 'error', 'message': 'leaverequest doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
 
-    leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=leaverequest.first().user, leavepolicy=leaverequest.first().leavepolicy)
-    if leavesummary.first().total_left >= len(leaverequest.first().valid_leave_dates):
-        
-        for date in leaverequest.first().valid_leave_dates:
-            leaveallocation = MODELS_LEAV.Approvedleave.objects.filter(
-                leavepolicy=leaverequest.first().leavepolicy,
-                user=leaverequest.first().user,
-                date=date
-            )
-            if leaveallocation.exists(): return Response({'status': 'error', 'message': 'already exist in leaveallocation!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=leaverequest.first().user, leavepolicy=leaverequest.first().leavepolicy)
+        if leavesummary.first().total_left >= len(leaverequest.first().valid_leave_dates):
+            
+            for date in leaverequest.first().valid_leave_dates:
+                leaveallocation = MODELS_LEAV.Approvedleave.objects.filter(
+                    leavepolicy=leaverequest.first().leavepolicy,
+                    user=leaverequest.first().user,
+                    date=date
+                )
+                if leaveallocation.exists(): return Response({'status': 'error', 'message': 'already exist in leaveallocation!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
 
-        for date in leaverequest.first().valid_leave_dates:
-            MODELS_LEAV.Approvedleave.objects.create(
-                leavepolicy=leaverequest.first().leavepolicy,
-                user=leaverequest.first().user,
-                date=date,
-                approved_by=MODELS_USER.User.objects.get(id=request.user.id)
-            )
+            for date in leaverequest.first().valid_leave_dates:
+                MODELS_LEAV.Approvedleave.objects.create(
+                    leavepolicy=leaverequest.first().leavepolicy,
+                    user=leaverequest.first().user,
+                    date=date,
+                    approved_by=MODELS_USER.User.objects.get(id=request.user.id)
+                )
 
-        leaverequest.update(status=STATUS[1][1], approved_by=MODELS_USER.User.objects.get(id=request.user.id))
+            leaverequest.update(status=STATUS[1][1], approved_by=MODELS_USER.User.objects.get(id=request.user.id))
 
-        total_consumed = leavesummary.first().total_consumed + len(leaverequest.first().valid_leave_dates)
-        total_left = leavesummary.first().total_allocation - total_consumed
-        leavesummary.update(total_consumed=total_consumed, total_left=total_left)
-        return Response({'status': 'success', 'message': 'dates', 'data': []}, status=status.HTTP_200_OK)
-    else: return Response({'status': 'success', 'message': f'you have left {leavesummary.first().total_left} leave - {leavesummary.first().leavepolicy.name}!', 'data': []}, status=status.HTTP_200_OK)
+            total_consumed = leavesummary.first().total_consumed + len(leaverequest.first().valid_leave_dates)
+            total_left = leavesummary.first().total_allocation - total_consumed
+            leavesummary.update(total_consumed=total_consumed, total_left=total_left)
+            return Response({'status': 'success', 'message': 'dates', 'data': []}, status=status.HTTP_200_OK)
+        else: return Response({'status': 'error', 'message': f'you have left {leavesummary.first().total_left} leave - {leavesummary.first().leavepolicy.name}!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'status': 'error', 'message': 'provide a leaverequest id!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def getfilteredleaverequest(request):
+    kwargs = {}
+    userid = request.GET.get('userid')
+    if userid:
+        if userid.isnumeric(): kwargs.update({'user__id': int(userid)})
+
+    leaverequeststatus = request.GET.get('status')
+    if leaverequeststatus: kwargs.update({'status__icontains': leaverequeststatus})
+
+    leaverequests = MODELS_LEAV.Leaverequest.objects.filter(**kwargs)
+    leaverequestserializers = SRLZER_LEAV.Leaverequestserializer(leaverequests, many=True)
+    return Response({'data': leaverequestserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)

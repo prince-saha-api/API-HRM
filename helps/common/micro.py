@@ -101,7 +101,15 @@ class Microhelps(Nanohelps):
                     create_flag = False
 
                 age = details.get('age')
+
+                
                 phone_no = details.get('phone_no')
+                if phone_no:
+                    object = self.getobject(Employeecontact, {'phone_no': phone_no})
+                    if object:
+                        reasons.append('emergency phone_no is already exist!')
+                        create_flag = False
+
                 email = details.get('email')
                 relation = details.get('relation')
 
@@ -140,7 +148,7 @@ class Microhelps(Nanohelps):
             response['message'].append('branch_name is required!')
             response['flag'] = False
 
-        account_type = self.getobject(classOBJpackage['Bankaccounttype'], data.get('account_type'))
+        account_type = self.getobject(classOBJpackage['Bankaccounttype'], {'id': data.get('account_type')})
         if account_type == None:
             response['message'].append('Invalid bank account type!')
             response['flag'] = False
@@ -176,16 +184,4 @@ class Microhelps(Nanohelps):
             if address:bankaccountinstance.address=address['instance']
             bankaccountinstance.save()
             response['instance'] = bankaccountinstance
-        return response
-    
-    def isuniquefielsexist(self, classOBJ, dictdata, modelsuniquefields):
-        response = {
-            'flag': False,
-            'message': []
-        }
-        for modelsuniquefield in modelsuniquefields:
-            if modelsuniquefield in dictdata:
-                if classOBJ.objects.filter(**{modelsuniquefield: dictdata[modelsuniquefield]}).exists():
-                    response['flag'] = True
-                    response['message'].append(f'{modelsuniquefield} is already exist!')
         return response

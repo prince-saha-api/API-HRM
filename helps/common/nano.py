@@ -271,10 +271,3 @@ class Nanohelps(Picohelps):
                 else: response['failed'].append({'data': details, 'message': reasons})
         else: response['message'] = 'previousexperience is not list type!'
         return response
-
-    def getobject(self, classOBJ, id): # New
-        object = None
-        if id != None:
-            try: object = classOBJ.objects.get(id=id)
-            except: pass
-        return object

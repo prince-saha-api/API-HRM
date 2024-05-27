@@ -168,11 +168,11 @@ class Minihelps(Microhelps):
         flag = True
         if idlist:
             for id in idlist:
-                object = self.getobject(classOBJ, id)
+                object = self.getobject(classOBJ, {'id': id})
                 if object == None: flag = False
         return flag
     
-    def getuserdetails(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves): # New
+    def getuserdetails(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, created_by): # New
         response = {'flag': True, 'message': [], 'data': {}}
 
         addbankaccountdetails = None
@@ -211,7 +211,7 @@ class Minihelps(Microhelps):
             'marital_status': personalDetails.get('marital_status'),
             'spouse_name': personalDetails.get('spouse_name'),
             'nationality': personalDetails.get('nationality'),
-            'religion': self.getobject(classOBJpackage['Religion'], personalDetails.get('religion')),
+            'religion': self.getobject(classOBJpackage['Religion'], {'id': personalDetails.get('religion')}),
             'personal_email': personalDetails.get('personal_email'),
             'personal_phone': personalDetails.get('personal_phone'),
             'nid_passport_no': personalDetails.get('nid_passport_no'),
@@ -223,18 +223,20 @@ class Minihelps(Microhelps):
             'official_phone': officialDetails.get('official_phone'),
             'password': make_password(officialDetails.get('password')),
             'employee_type': officialDetails.get('employee_type'),
-            'designation': self.getobject(classOBJpackage['Designation'], officialDetails.get('designation')),
-            'shift': self.getobject(classOBJpackage['Shift'], officialDetails.get('shift')),
-            'grade': self.getobject(classOBJpackage['Grade'], officialDetails.get('grade')),
+            'designation': self.getobject(classOBJpackage['Designation'], {'id': officialDetails.get('designation')}),
+            'shift': self.getobject(classOBJpackage['Shift'], {'id': officialDetails.get('shift')}),
+            'grade': self.getobject(classOBJpackage['Grade'], {'id': officialDetails.get('grade')}),
             'official_note': officialDetails.get('official_note'),
             'joining_date': officialDetails.get('joining_date'),
-            'supervisor': self.getobject(classOBJpackage['User'], officialDetails.get('supervisor')),
-            'expense_approver': self.getobject(classOBJpackage['User'], officialDetails.get('expense_approver')),
-            'leave_approver': self.getobject(classOBJpackage['User'], officialDetails.get('leave_approver')),
-            'shift_request_approver': self.getobject(classOBJpackage['User'], officialDetails.get('shift_request_approver')),
+            'supervisor': self.getobject(classOBJpackage['User'], {'id': officialDetails.get('supervisor')}),
+            'expense_approver': self.getobject(classOBJpackage['User'], {'id': officialDetails.get('expense_approver')}),
+            'leave_approver': self.getobject(classOBJpackage['User'], {'id': officialDetails.get('leave_approver')}),
+            'shift_request_approver': self.getobject(classOBJpackage['User'], {'id': officialDetails.get('shift_request_approver')}),
             'payment_in': salaryAndLeaves.get('payment_in'),
             'bank_account': addbankaccountdetails['instance'] if addbankaccountdetails else None,
-            'gross_salary': salaryAndLeaves.get('gross_salary')
+            'gross_salary': salaryAndLeaves.get('gross_salary'),
+            'created_by': created_by,
+            'updated_by': created_by
         }
         return response
     
@@ -276,6 +278,8 @@ class Minihelps(Microhelps):
         if details['payment_in']: userinstance.payment_in=details['payment_in']
         if details['bank_account']: userinstance.bank_account=details['bank_account']
         if details['gross_salary']: userinstance.gross_salary=details['gross_salary']
+        if details['created_by']: userinstance.created_by=details['created_by']
+        if details['updated_by']: userinstance.updated_by=details['updated_by']
         userinstance.save()
 
         return userinstance

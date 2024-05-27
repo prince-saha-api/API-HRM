@@ -170,14 +170,15 @@ def getemployee(request):
 # @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def addemployee(request):
-    # requestdata = dict(request.data)
-    requestdata = ghelp().requestdata()
+
+    created_by = MODELS_USER.User.objects.get(id=request.user.id) if request.user.id != None else None
+    requestdata = dict(request.data)
+    # requestdata = ghelp().requestdata()
     options = {
         'allow_blank': True,
         'allow_empty': False
     }
     
-
     form = NestedForm(requestdata, **options)
     form.is_nested(raise_exception=True)
 
@@ -231,15 +232,15 @@ def addemployee(request):
                     'Religion': MODELS_USER.Religion,
                 }
                 
-                modelsuniquefields = ['personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_phone', 'rfid']
-                response = ghelp().createuser(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, modelsuniquefields)
+                usermodelsuniquefields = ['personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_phone', 'rfid']
+                response = ghelp().createuser(classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, usermodelsuniquefields, created_by)
                 if not response['flag']: return Response({'data': {}, 'message': response['message'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
                 userinstance = response['userinstance']
 
                 role_permission_officialDetails = officialDetails.get('role_permission')
                 if role_permission_officialDetails:
                     for id in role_permission_officialDetails:
-                        object = ghelp().getobject(MODELS_USER.Rolepermission, id)
+                        object = ghelp().getobject(MODELS_USER.Rolepermission, {'id': id})
                         if object: userinstance.role_permission.add(object)
 
 
@@ -247,14 +248,14 @@ def addemployee(request):
                 ethnic_group_officialDetails = officialDetails.get('ethnic_group')
                 if ethnic_group_officialDetails:
                     for id in ethnic_group_officialDetails:
-                        object = ghelp().getobject(MODELS_USER.Ethnicgroup, id)
+                        object = ghelp().getobject(MODELS_USER.Ethnicgroup, {'id': id})
                         if object:
                             if object.name != 'all': object.user.add(userinstance)
 
                 leavepolicy_salaryAndLeaves = salaryAndLeaves.get('leavepolicy')
                 if leavepolicy_salaryAndLeaves:
                     for id in leavepolicy_salaryAndLeaves:
-                        leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, id)
+                        leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': id})
                         if userinstance in leavepolicy.applicable_for.user.all() or leavepolicy.applicable_for.name == 'all':
                             if not MODELS_LEAV.Leavepolicyassign.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
                                 MODELS_LEAV.Leavepolicyassign.objects.create(user=userinstance, leavepolicy=leavepolicy)
@@ -267,21 +268,18 @@ def addemployee(request):
                                         total_consumed=0,
                                         total_left=leavepolicy.allocation_days
                                     )
-                
                 emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, MODELS_CONT.Address, userinstance, emergencyContact)
                 academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, userinstance, academicRecord)
                 previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, userinstance, previousExperience)
 
 
-                department_officialDetails = ghelp().getobject(MODELS_DEPA.Department, officialDetails.get('department'))
+                department_officialDetails = ghelp().getobject(MODELS_DEPA.Department, {'id': officialDetails.get('department')})
                 if department_officialDetails: department_officialDetails.user.add(userinstance)
-                # company_officialDetails = ghelp().getobject(MODELS_COM.Company, officialDetails.get('company'))
-                # branch_officialDetails = ghelp().getobject(MODELS_BR.Branch, officialDetails.get('branch'))
-                # department_officialDetails = ghelp().getobject('''MODELS_BR.Branch''', officialDetails.get('department'))
-
-
-
-                return Response({'data': {}, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
+                # company_officialDetails = ghelp().getobject(MODELS_COM.Company, {'id': officialDetails.get('company')})
+                # branch_officialDetails = ghelp().getobject(MODELS_BR.Branch, {'id': officialDetails.get('branch')})
+                # department_officialDetails = ghelp().getobject('''MODELS_BR.Branch''', {'id': officialDetails.get('department')})
+                
+                return Response({'data': SRLZER_USER.Userserializer(userinstance, many=False).data, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
             else: return Response({'data': {}, 'message': 'employee id is missing!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
         else: return Response({'data': {}, 'message': 'please add fiscalyear first!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     else: return Response({'data': {}, 'message': 'please add valid Leavepolicy!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
