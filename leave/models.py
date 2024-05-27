@@ -87,7 +87,7 @@ class Approvedleave(Basic):
     
     class Meta:
         constraints = [models.UniqueConstraint(fields=['leavepolicy', 'user', 'date'], name='Leaveallocation_leavepolicy_user_date')]
-    
+
 class Leavesummary(Basic):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
