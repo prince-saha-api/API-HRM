@@ -337,7 +337,7 @@ class Generichelps(Minihelps):
                     if 'to_date' in each: previousExperience[index]['to_date'] = each['to_date'][0]
 
 
-    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, usermodelsuniquefields, created_by):
+    def createuser(self, classOBJpackage, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, created_by):
         response = {
             'flag': True,
             'message': []
@@ -352,7 +352,7 @@ class Generichelps(Minihelps):
             response['message'].extend(uniquefiels['message'])
             response['flag'] = False
 
-        if response['flag']: response.update({'userinstance': self.createuserinstance(classOBJpackage['User'], details['data'])})
+        if response['flag']: response.update({'userinstance': self.createuserinstance(classOBJpackage['User'], details['data'], photo)})
 
         return response
     
