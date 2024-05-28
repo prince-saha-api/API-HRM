@@ -232,6 +232,16 @@ def updateremotelog(request, remotelogid):
         else: return Response({'status': 'error', 'message': 'something went wrong!', 'data': remotelogsserializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     else: return Response({'status': 'error', 'message': 'doesn\'t exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def deleteremotelog(request, remotelogid):
+    remotelogs = MODELS_ATTE.Remotelogs.objects.filter(id=remotelogid)
+    if remotelogs.exists():
+        remotelogs.delete()
+        return Response({'status': 'success', 'message': 'deleted!', 'data': {}}, status=status.HTTP_200_OK)
+    else: return Response({'status': 'error', 'message': 'doesn\'t exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
@@ -277,6 +287,19 @@ def addremoteattendance(request):
             return Response({'status': 'success', 'message': '', 'data': requestremoteattendanceserializer.data}, status=status.HTTP_201_CREATED)
         else: return Response({'status': 'error', 'message': 'no remote logs are available', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
     else: return Response({'status': 'error', 'message': 'already exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def deleteremoteattendance(request, deleteattendenceid):
+    requestremoteattendance = MODELS_ATTE.Requestremoteattendance.objects.filter(id=deleteattendenceid)
+    if requestremoteattendance.exists():
+        attendance = MODELS_ATTE.Attendance.objects.filter(date=requestremoteattendance.first().date, employee=requestremoteattendance.first().requested_by.id)
+        if attendance.exists(): attendance.delete()
+        requestremoteattendance.delete()
+        return Response({'status': 'success', 'message': 'deleted!', 'data': {}}, status=status.HTTP_200_OK)
+    else: return Response({'status': 'error', 'message': 'doesn\'t exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
