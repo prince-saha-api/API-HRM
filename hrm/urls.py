@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/bonusmanagement/', include('bonusmanagement.urls')),
     path('api/device/', include('device.urls')),
     path('api/leave/', include('leave.urls')),
+    path('api/payroll/', include('payroll.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

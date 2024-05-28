@@ -53,3 +53,8 @@ BANK_ACCOUNT_TYPE = (
     ('Retirement Account', 'Retirement Account'),
     ('Fixed Deposit Account', 'Fixed Deposit Account')
 )
+
+AMOUNT_TYPE = (
+    ('Fixed Amount', 'Fixed Amount'),
+    ('Percentage', 'Percentage'),
+)

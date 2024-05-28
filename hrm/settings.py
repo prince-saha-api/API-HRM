@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'bonusmanagement.apps.BonusmanagementConfig',
     'device.apps.DeviceConfig',
     'leave.apps.LeaveConfig',
+    'payroll.apps.PayrollConfig',
 ]
 
 AUTH_USER_MODEL = 'user.User'
