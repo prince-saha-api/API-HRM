@@ -20,3 +20,8 @@ class Leaverequestserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Leaverequest
         fields = '__all__'
+
+class Leaveallocationrequestserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Leaveallocationrequest
+        fields = '__all__'
