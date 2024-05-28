@@ -122,27 +122,27 @@ class Requestremoteattendance(Timedetailscode):
     reject_reason = models.CharField(max_length=200, blank=True, null=True)
 
     requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestremoteattendanceone')
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestremoteattendancetwo')
+    decisioned_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestremoteattendancetwo')
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['requested_by', 'date'], name='Requestremoteattendance_requested_by_date')]
     def __str__(self):
         return f'{self.date} - {self.requested_by.username} - {self.status}'
     
-    def save(self, *args, **kwargs):
-        if self.status == STATUS[1][1]:
-            Attendance(
-                date=self.date,
-                in_time=self.in_time,
-                out_time=self.out_time,
-                in_out_times=self.in_out_times,
-                employee=self.requested_by,
-                attendance_from=ATTENDANCE_FROM[2][1]
-            ).save()
-        else:
-            attendance = Attendance.objects.filter(date=self.date, employee=self.requested_by)
-            if attendance.exists(): attendance.delete()
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.status == STATUS[1][1]:
+    #         Attendance(
+    #             date=self.date,
+    #             in_time=self.in_time,
+    #             out_time=self.out_time,
+    #             in_out_times=self.in_out_times,
+    #             employee=self.requested_by,
+    #             attendance_from=ATTENDANCE_FROM[2][1]
+    #         ).save()
+    #     else:
+    #         attendance = Attendance.objects.filter(date=self.date, employee=self.requested_by)
+    #         if attendance.exists(): attendance.delete()
+    #     super().save(*args, **kwargs)
 
 class Requestmanualattendance(Timedetailscode):
     date = models.DateField()
@@ -155,23 +155,23 @@ class Requestmanualattendance(Timedetailscode):
     reject_reason = models.CharField(max_length=200, blank=True, null=True)
 
     requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestmanualattendanceone')
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestmanualattendancetwo')
+    decisioned_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestmanualattendancetwo')
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['requested_by', 'date'], name='Requestmanualattendance_requested_by_date')]
     def __str__(self):
         return f'{self.date} - {self.requested_by.username} - {self.status}'
     
-    def save(self, *args, **kwargs):
-        if self.status == STATUS[1][1]:
-            Attendance(
-                date=self.date,
-                in_time=self.in_time,
-                out_time=self.out_time,
-                employee=self.requested_by,
-                attendance_from=ATTENDANCE_FROM[1][1]
-            ).save()
-        else:
-            attendance = Attendance.objects.filter(date=self.date, employee=self.requested_by)
-            if attendance.exists(): attendance.delete()
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.status == STATUS[1][1]:
+    #         Attendance(
+    #             date=self.date,
+    #             in_time=self.in_time,
+    #             out_time=self.out_time,
+    #             employee=self.requested_by,
+    #             attendance_from=ATTENDANCE_FROM[1][1]
+    #         ).save()
+    #     else:
+    #         attendance = Attendance.objects.filter(date=self.date, employee=self.requested_by)
+    #         if attendance.exists(): attendance.delete()
+    #     super().save(*args, **kwargs)
