@@ -14,6 +14,8 @@ class Operatinghour(Basic):
 
     def __str__(self):
         return f'{self.operating_hour_from} - {self.operating_hour_to}'
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['operating_hour_from', 'operating_hour_to'], name='Operatinghour_operating_hour_from_operating_hour_to')]
 
 class Branch(Basic):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='branchone')
