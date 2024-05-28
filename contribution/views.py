@@ -18,6 +18,11 @@ def getaddresss(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addaddress(request):
+    addresss = request.data
+    if 'address' not in addresss: return Response({'data': {}, 'message': 'address is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'city' not in addresss: return Response({'data': {}, 'message': 'city is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'state_division' not in addresss: return Response({'data': {}, 'message': 'state_division is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'country' not in addresss: return Response({'data': {}, 'message': 'country is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     addressserializers = SRLZER_CONT.Addressserializer(data=request.data, many=False)
     if addressserializers.is_valid():
         addressserializers.save()
@@ -51,6 +56,12 @@ def getbankaccounts(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addbankaccount(request):
+    bankaccounts = request.data
+    if 'bank_name' not in bankaccounts: return Response({'data': {}, 'message': 'bank_name is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'branch_name' not in bankaccounts: return Response({'data': {}, 'message': 'branch_name is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'account_type' not in bankaccounts: return Response({'data': {}, 'message': 'account_type is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'account_no' not in bankaccounts: return Response({'data': {}, 'message': 'account_no is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    if 'routing_no' not in bankaccounts: return Response({'data': {}, 'message': 'routing_no is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     bankaccountserializers = SRLZER_CONT.Bankaccountserializer(data=request.data, many=False)
     if bankaccountserializers.is_valid():
         bankaccountserializers.save()
