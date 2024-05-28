@@ -12,22 +12,88 @@ from rest_framework.response import Response
 from rest_framework import status
 from user.models import User
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def getmanualattendence(request):
+    filter_fields = [
+                        {'name': 'date', 'convert': None, 'replace':'date'},
+                        {'name': 'in_time', 'convert': None, 'replace':'in_time'},
+                        {'name': 'out_time', 'convert': None, 'replace':'out_time'},
+                        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+                        {'name': 'requested_by', 'convert': None, 'replace':'requested_by'},
+                        {'name': 'approved_by', 'convert': None, 'replace':'approved_by'}
+                    ]
+    requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: requestmanualattendances = requestmanualattendances.order_by(column_accessor)
+    requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(requestmanualattendances, many=True)
+    return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializer.data}, status=status.HTTP_200_OK)
 
-# ----------------------------------------------------------
+
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
 def addmanualattendence(request):
-    requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(data=request.data, many=False)
-    if requestmanualattendanceserializer.is_valid():
-        requestmanualattendanceserializer.save()
-        return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializer.data}, status=status.HTTP_201_CREATED)
-    else: return Response({'status': 'error', 'message': '', 'data': requestmanualattendanceserializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    date = request.data.get('date')
+    if date == None: return Response({'status': 'error', 'message': 'date is required!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
+    
+    request.data.update({'requested_by': request.user.id})
+    requestmanualattendance = MODELS_ATTE.Requestmanualattendance.objects.filter(date=date, requested_by=request.user.id)
+    
+    if not requestmanualattendance.exists():
+        requestmanualattendanceserializers = SRLZER_ATTE.Requestmanualattendanceserializer(data=request.data, many=False)
+        if requestmanualattendanceserializers.is_valid():
+            requestmanualattendanceserializers.save()
+            return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializers.data}, status=status.HTTP_201_CREATED)
+        else: return Response({'status': 'error', 'message': '', 'data': requestmanualattendanceserializers.errors}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'status': 'error', 'message': 'already exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
 
-# ----------------------------------------------------------
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def getloggedinusersmanualattendence(request):
+    userid = request.user.id
+    filter_fields = [
+                        {'name': 'date', 'convert': None, 'replace':'date'},
+                        {'name': 'in_time', 'convert': None, 'replace':'in_time'},
+                        {'name': 'out_time', 'convert': None, 'replace':'out_time'},
+                        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+                        {'name': 'approved_by', 'convert': None, 'replace':'approved_by'}
+                    ]
+    kwargs = ghelp().KWARGS(request, filter_fields)
+    kwargs.update({'requested_by': userid})
+    requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**kwargs)
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: requestmanualattendances = requestmanualattendances.order_by(column_accessor)
+    requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(requestmanualattendances, many=True)
+    return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializer.data}, status=status.HTTP_200_OK)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def updatemanualattendence(request, manualattendenceid):
+    requestmanualattendance = MODELS_ATTE.Requestmanualattendance.objects.filter(id=manualattendenceid)
+    if requestmanualattendance.exists():
+        data = {}
+        date = request.data.get('date')
+        if date != None: data.update({'date': date})
+        in_time = request.data.get('in_time')
+        if in_time != None: data.update({'in_time': in_time})
+        out_time = request.data.get('out_time')
+        if out_time != None: data.update({'out_time': out_time})
+        is_exist = MODELS_ATTE.Requestmanualattendance.objects.filter(date=date, requested_by=request.user.id).exists()
+
+        if not is_exist:
+            sequestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(requestmanualattendance.first(), data=data, partial=True)
+            if sequestmanualattendanceserializer.is_valid(raise_exception=True):
+                sequestmanualattendanceserializer.save()
+                return Response({'status': 'success', 'message': '', 'data': sequestmanualattendanceserializer.data}, status=status.HTTP_200_OK)
+            else: return Response({'status': 'error', 'message': 'something went wrong!', 'data': sequestmanualattendanceserializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        else: return Response({'status': 'error', 'message': 'already exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'status': 'error', 'message': 'doesn\'t exist', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# ----------------------------------------------------------
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
@@ -80,10 +146,7 @@ def addattendancefromlogsalldevices(request, minutes):
 
     return Response({'status': 'success', 'message': '', 'data': logs}, status=status.HTTP_200_OK)
 
-# ----------------------------------------------------------
 
-
-# ----------------------------------------------------------
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
@@ -107,5 +170,3 @@ def addremoteattendance(request, userid, date):
             return Response({'status': 'success', 'message': '', 'data': []}, status=status.HTTP_201_CREATED)
         return Response({'status': 'error', 'message': 'no remote logs are available', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
     else: return Response({'status': 'error', 'message': 'user doesn\'t exist!', 'data': []}, status=status.HTTP_404_NOT_FOUND)
-
-# ----------------------------------------------------------

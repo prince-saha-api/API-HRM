@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from contribution import models as MODELS_CONT
 from contribution.serializer import serializers as SRLZER_CONT
 from rest_framework import status
+from helps.common.generic import Generichelps as ghelp
 
 # Create your views here.
 @api_view(['GET'])
@@ -37,13 +38,10 @@ def getbankaccounttypes(request):
     return Response(bankaccounttypeserializers.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def addbankaccounttype(request):
-    bankaccounttypeserializers = SRLZER_CONT.Bankaccounttypeserializer(data=request.data, many=False)
-    if bankaccounttypeserializers.is_valid():
-        bankaccounttypeserializers.save()
-        return Response({'data': bankaccounttypeserializers.data}, status=status.HTTP_201_CREATED)
-
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_CONT.Bankaccounttype, SRLZER_CONT.Bankaccounttypeserializer, request.data, 'name')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
