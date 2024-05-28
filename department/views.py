@@ -16,3 +16,12 @@ def getdepartments(request):
     departments = MODELS_DEPA.Department.objects.all()
     departmentserializers = SRLZER_DEPA.Departmentserializer(departments, many=True)
     return Response(departmentserializers.data, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+def adddepartment(request):
+    departmentserializers = SRLZER_DEPA.Departmentserializer(data=request.data, many=False)
+    if departmentserializers.is_valid():
+        departmentserializers.save()
+        return Response({'status': 'success', 'message': '', 'data': departmentserializers.data}, status=status.HTTP_201_CREATED)
+    else: return Response({'status': 'error', 'message': '', 'data': departmentserializers.errors}, status=status.HTTP_400_BAD_REQUEST)

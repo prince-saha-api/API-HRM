@@ -371,7 +371,7 @@ class Generichelps(Minihelps):
         if not details['flag']:
             response['message'].extend([f'user - {each}' for each in details['message']])
             response['flag'] = False
-        
+        print(details['data'])
         # required fields are checking
         for required_field in required_fields:
             if required_field in details['data']:

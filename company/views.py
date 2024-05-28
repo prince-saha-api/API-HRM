@@ -18,12 +18,12 @@ def getcompanys(request):
     companyserializers = SRLZER_COMP.Companyserializer(companys, many=True)
     return Response(companyserializers.data, status=status.HTTP_200_OK)
 
-# @api_view(['POST'])
-# # @permission_classes([IsAuthenticated])
-# def addcompany(request):
-#     companyserializers = SRLZER_COMP.Companyserializer(data=request.data, many=False)
-#     if companyserializers.is_valid():
-#         companyserializers.save()
-#         return Response({'status': 'success', 'message': '', 'data': companyserializers.data}, status=status.HTTP_201_CREATED)
-#     else: return Response({'status': 'error', 'message': '', 'data': companyserializers.errors}, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+def addcompany(request):
+    companyserializers = SRLZER_COMP.Companyserializer(data=request.data, many=False)
+    if companyserializers.is_valid():
+        companyserializers.save()
+        return Response({'status': 'success', 'message': '', 'data': companyserializers.data}, status=status.HTTP_201_CREATED)
+    else: return Response({'status': 'error', 'message': '', 'data': companyserializers.errors}, status=status.HTTP_400_BAD_REQUEST)
 
