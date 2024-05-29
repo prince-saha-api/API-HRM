@@ -9,8 +9,10 @@ urlpatterns = [
     path('add-dsignation/', views.adddsignation, name='add-dsignation'),
     path('get-grade/', views.getgrades, name='get-grade'),
     path('add-grade/', views.addgrade, name='add-grade'),
+
     path('get-shift/', views.getshifts, name='get-shift'),
     path('add-shift/', views.addshift, name='add-shift'),
+    
     path('get-religion/', views.getreligions, name='get-religion'),
     path('add-religion/', views.addreligion, name='add-religion'),
     path('get-permission/', views.getpermissions, name='get-permission'),
