@@ -60,5 +60,5 @@ class Payrolltax(Basic):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='payrolltaxtwo')
     
     def __str__(self):
-        return f'{self.title} -- {self.employee_group_id}'
+        return f'{self.title} -- {self.ethnicgroup}'
     

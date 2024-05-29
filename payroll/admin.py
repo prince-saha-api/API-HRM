@@ -8,4 +8,3 @@ admin.site.register([
     models.Payrolldeductionassign,
     models.Payrolltax,
 ])
-# Register your models here.
