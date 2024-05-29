@@ -40,7 +40,7 @@ def getresponsibilitys(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addresponsibility(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Responsibility, SRLZER_USER.Responsibilityserializer, request.data, 'title')
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Responsibility, SRLZER_USER.Responsibilityserializer, request.data, ['title'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
@@ -54,7 +54,7 @@ def getrequiredskills(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addrequiredskill(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Requiredskill, SRLZER_USER.Requiredskillserializer, request.data, 'title')
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Requiredskill, SRLZER_USER.Requiredskillserializer, request.data, ['title'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -68,7 +68,7 @@ def getdsignations(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def adddsignation(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Designation, SRLZER_USER.Designationserializer, request.data, 'name')
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Designation, SRLZER_USER.Designationserializer, request.data, ['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
@@ -82,21 +82,35 @@ def getgrades(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addgrade(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Grade, SRLZER_USER.Gradeserializer, request.data, 'name')
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Grade, SRLZER_USER.Gradeserializer, request.data, ['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getshifts(request):
-    shifts = MODELS_USER.Shift.objects.all()
+
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+                    {'name': 'in_time', 'convert': None, 'replace':'in_time'},
+                    {'name': 'out_time', 'convert': None, 'replace':'out_time'},
+                    {'name': 'late_tolerance_time', 'convert': None, 'replace':'late_tolerance_time'},
+                    {'name': 'created_by', 'convert': None, 'replace':'created_by'},
+                    {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
+                ]
+
+    shifts = MODELS_USER.Shift.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: shifts = shifts.order_by(column_accessor)
     shiftserializers = SRLZER_USER.Shiftserializer(shifts, many=True)
-    return Response(shiftserializers.data, status=status.HTTP_200_OK)
+    return Response({'status': 'success', 'message': '', 'data': shiftserializers.data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def addshift(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Shift, SRLZER_USER.Shiftserializer, request.data, 'name')
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Shift, SRLZER_USER.Shiftserializer, request.data, ['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -110,7 +124,7 @@ def getreligions(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addreligion(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Religion, SRLZER_USER.Religionserializer, request.data, 'name')
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Religion, SRLZER_USER.Religionserializer, request.data, ['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -124,7 +138,7 @@ def getpermissions(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addpermission(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Permission, SRLZER_USER.Permissionserializer, request.data, 'name')
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Permission, SRLZER_USER.Permissionserializer, request.data, ['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -139,7 +153,7 @@ def getrolepermissions(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addrolepermission(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Rolepermission, SRLZER_USER.Rolepermissionserializer, request.data, 'name')
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Rolepermission, SRLZER_USER.Rolepermissionserializer, request.data, ['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -154,7 +168,7 @@ def getethnicgroups(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addethnicgroup(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Ethnicgroup, SRLZER_USER.Ethnicgroupserializer, request.data, 'name')
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Ethnicgroup, SRLZER_USER.Ethnicgroupserializer, request.data, ['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 

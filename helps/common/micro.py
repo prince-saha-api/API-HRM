@@ -64,22 +64,28 @@ class Microhelps(Nanohelps):
                     OnePortionOfSalary = (percentage*salary)/100
         return OnePortionOfSalary
     
-    def addtocolass(self, classOBJ, classSrializer, data, unique): # New
-        unique_value = data.get(unique)
+    def addtocolass(self, classOBJ, classSrializer, data, uniquekeylist): # New
+        uniquekeyvalue = {}
+        for uniquekey in uniquekeylist:
+            unique_value = data.get(uniquekey)
+            if unique_value: uniquekeyvalue.update({uniquekey: unique_value})
+
         response_data = {}
-        response_message = ''
+        response_message = []
         response_successflag = 'error'
         response_status = status.HTTP_400_BAD_REQUEST
-        if unique_value:
-            if not classOBJ.objects.filter(**{unique:unique_value}).exists():
-                classsrializer = classSrializer(data=data, many=False)
-                if classsrializer.is_valid():
+        for key, value in uniquekeyvalue.items():
+            if classOBJ.objects.filter(**{key:value}).exists(): response_message.append(f'this {key} already exist!')
+        
+        if not response_message:
+            classsrializer = classSrializer(data=data, many=False)
+            if classsrializer.is_valid():
+                try:    
                     classsrializer.save()
                     response_data = classsrializer.data
                     response_successflag = 'success'
                     response_status = status.HTTP_201_CREATED
-            else: response_message = f'this {unique_value} already exist!'
-        else: response_message = f'{unique_value} is required!'
+                except: response_message.append('unique combination is already exist!')
 
         return response_data, response_message, response_successflag, response_status
     
