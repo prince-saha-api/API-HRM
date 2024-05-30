@@ -40,7 +40,7 @@ def getbankaccounttypes(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addbankaccounttype(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_CONT.Bankaccounttype, SRLZER_CONT.Bankaccounttypeserializer, request.data, allowed_fields=['__all__'], unique_fields=['name'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_CONT.Bankaccounttype, SRLZER_CONT.Bankaccounttypeserializer, request.data, unique_fields=['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])

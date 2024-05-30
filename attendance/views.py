@@ -55,20 +55,22 @@ def addmanualattendence(request):
 # @deco.get_permission(['get company info', 'all'])
 def getloggedinusersmanualattendence(request):
     userid = request.user.id
-    filter_fields = [
-                        {'name': 'date', 'convert': None, 'replace':'date'},
-                        {'name': 'in_time', 'convert': None, 'replace':'in_time'},
-                        {'name': 'out_time', 'convert': None, 'replace':'out_time'},
-                        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
-                        {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
-                    ]
-    kwargs = ghelp().KWARGS(request, filter_fields)
-    kwargs.update({'requested_by': userid})
-    requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**kwargs)
-    column_accessor = request.GET.get('column_accessor')
-    if column_accessor: requestmanualattendances = requestmanualattendances.order_by(column_accessor)
-    requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(requestmanualattendances, many=True)
-    return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializer.data}, status=status.HTTP_200_OK)
+    if userid:
+        filter_fields = [
+                            {'name': 'date', 'convert': None, 'replace':'date'},
+                            {'name': 'in_time', 'convert': None, 'replace':'in_time'},
+                            {'name': 'out_time', 'convert': None, 'replace':'out_time'},
+                            {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+                            {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
+                        ]
+        kwargs = ghelp().KWARGS(request, filter_fields)
+        kwargs.update({'requested_by': userid})
+        requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**kwargs)
+        column_accessor = request.GET.get('column_accessor')
+        if column_accessor: requestmanualattendances = requestmanualattendances.order_by(column_accessor)
+        requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(requestmanualattendances, many=True)
+        return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializer.data}, status=status.HTTP_200_OK)
+    else: return Response({'status': 'error', 'message': 'not loggedin!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -290,20 +292,22 @@ def deleteremoteattendance(request, deleteattendenceid):
 # @deco.get_permission(['get company info', 'all'])
 def getloggedinusersremoteattendence(request):
     userid = request.user.id
-    filter_fields = [
-                        {'name': 'date', 'convert': None, 'replace':'date'},
-                        {'name': 'in_time', 'convert': None, 'replace':'in_time'},
-                        {'name': 'out_time', 'convert': None, 'replace':'out_time'},
-                        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
-                        {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
-                    ]
-    kwargs = ghelp().KWARGS(request, filter_fields)
-    kwargs.update({'requested_by': userid})
-    requestremoteattendances = MODELS_ATTE.Requestremoteattendance.objects.filter(**kwargs)
-    column_accessor = request.GET.get('column_accessor')
-    if column_accessor: requestremoteattendances = requestremoteattendances.order_by(column_accessor)
-    requestremoteattendanceserializers = SRLZER_ATTE.Requestremoteattendanceserializer(requestremoteattendances, many=True)
-    return Response({'status': 'success', 'message': '', 'data': requestremoteattendanceserializers.data}, status=status.HTTP_200_OK)
+    if userid:
+        filter_fields = [
+                            {'name': 'date', 'convert': None, 'replace':'date'},
+                            {'name': 'in_time', 'convert': None, 'replace':'in_time'},
+                            {'name': 'out_time', 'convert': None, 'replace':'out_time'},
+                            {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+                            {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
+                        ]
+        kwargs = ghelp().KWARGS(request, filter_fields)
+        kwargs.update({'requested_by': userid})
+        requestremoteattendances = MODELS_ATTE.Requestremoteattendance.objects.filter(**kwargs)
+        column_accessor = request.GET.get('column_accessor')
+        if column_accessor: requestremoteattendances = requestremoteattendances.order_by(column_accessor)
+        requestremoteattendanceserializers = SRLZER_ATTE.Requestremoteattendanceserializer(requestremoteattendances, many=True)
+        return Response({'status': 'success', 'message': '', 'data': requestremoteattendanceserializers.data}, status=status.HTTP_200_OK)
+    else: return Response({'status': 'error', 'message': 'not loggedin!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])

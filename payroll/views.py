@@ -34,7 +34,7 @@ def addpayrollearning(request):
     userid = request.user.id
     extra_fields = {}
     if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrollearning, SRLZER_PAYR.Payrollearningserializer, request.data, allowed_fields=['__all__'], unique_fields=[], extra_fields=extra_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrollearning, SRLZER_PAYR.Payrollearningserializer, request.data, unique_fields=[], extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -64,7 +64,7 @@ def addpayrolldeduction(request):
     userid = request.user.id
     extra_fields = {}
     if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolldeduction, SRLZER_PAYR.Payrolldeductionserializer, request.data, allowed_fields=['__all__'], unique_fields=[], extra_fields=extra_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolldeduction, SRLZER_PAYR.Payrolldeductionserializer, request.data, unique_fields=[], extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -94,7 +94,7 @@ def addpayrolltax(request):
     userid = request.user.id
     extra_fields = {}
     if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolltax, SRLZER_PAYR.Payrolltaxserializer, request.data, allowed_fields=['__all__'], unique_fields=['title'], extra_fields=extra_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolltax, SRLZER_PAYR.Payrolltaxserializer, request.data, unique_fields=['title'], extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 

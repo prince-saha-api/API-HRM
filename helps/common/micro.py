@@ -64,11 +64,12 @@ class Microhelps(Nanohelps):
                     OnePortionOfSalary = (percentage*salary)/100
         return OnePortionOfSalary
     
-    def addtocolass(self, classOBJ, classSrializer, data, allowed_fields=[], unique_fields=[], extra_fields={}): # New
+    def addtocolass(self, classOBJ, classSrializer, data, allowed_fields='__all__', unique_fields=[], extra_fields={}): # New
         preparedata = {}
         
-        if allowed_fields[0] == '__all__': preparedata.update(data)
-        else:
+        if isinstance(allowed_fields, str):
+            if allowed_fields == '__all__': preparedata.update(data)
+        elif isinstance(allowed_fields, list):
             for field in allowed_fields:
                 fieldvalue = data.get(field)
                 if fieldvalue: preparedata.update({field: fieldvalue})
