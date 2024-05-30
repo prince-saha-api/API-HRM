@@ -21,6 +21,9 @@ urlpatterns = [
     path('approve-shiftchangerequest/<int:shiftchangerequestid>', views.approveshiftchangerequest, name='approve-shiftchangerequest'),
     path('reject-shiftchangerequest/<int:shiftchangerequestid>', views.rejectshiftchangerequest, name='reject-shiftchangerequest'),
     path('delete-shiftchangerequest/<int:shiftchangerequestid>', views.deleteshiftchangerequest, name='delete-shiftchangerequest'),
+
+    path('get-shiftchangelog/', views.getshiftchangelog, name='get-shiftchangelog'),
+    path('get-loggedin-users-shiftchangelog/', views.getloggedinusersshiftchangelog, name='get-loggedin-users-shiftchangelog'),
     
     path('get-religion/', views.getreligions, name='get-religion'),
     path('add-religion/', views.addreligion, name='add-religion'),

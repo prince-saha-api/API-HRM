@@ -56,4 +56,7 @@ class Shiftchangerequestserializer(serializers.ModelSerializer):
         model = models.Shiftchangerequest
         fields = '__all__'
 
-
+class Shiftchangelogserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Shiftchangelog
+        fields = '__all__'

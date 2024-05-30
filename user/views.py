@@ -221,6 +221,46 @@ def deleteshiftchangerequest(request, shiftchangerequestid=None):
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
+def getshiftchangelog(request):
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'user', 'convert': None, 'replace':'user'},
+                    {'name': 'decision_by', 'convert': None, 'replace':'decision_by'},
+                    {'name': 'previouseshift', 'convert': None, 'replace':'previouseshift'},
+                    {'name': 'newshift', 'convert': None, 'replace':'newshift'},
+                    {'name': 'date', 'convert': None, 'replace':'date'},
+                    {'name': 'reason', 'convert': None, 'replace':'reason__icontains'}
+                ]
+    shiftchangelogs = MODELS_USER.Shiftchangelog.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: shiftchangelogs = shiftchangelogs.order_by(column_accessor)
+    shiftchangelogserializers = SRLZER_USER.Shiftchangelogserializer(shiftchangelogs, many=True)
+    return Response({'status': 'success', 'message': '', 'data': shiftchangelogserializers.data}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
+def getloggedinusersshiftchangelog(request):
+    userid = request.user.id
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'decision_by', 'convert': None, 'replace':'decision_by'},
+                    {'name': 'previouseshift', 'convert': None, 'replace':'previouseshift'},
+                    {'name': 'newshift', 'convert': None, 'replace':'newshift'},
+                    {'name': 'date', 'convert': None, 'replace':'date'},
+                    {'name': 'reason', 'convert': None, 'replace':'reason__icontains'}
+                ]
+    kwargs = ghelp().KWARGS(request, filter_fields)
+    if userid: kwargs.update({'user': userid})
+    shiftchangelogs = MODELS_USER.Shiftchangelog.objects.filter(**kwargs)
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: shiftchangelogs = shiftchangelogs.order_by(column_accessor)
+    shiftchangelogserializers = SRLZER_USER.Shiftchangelogserializer(shiftchangelogs, many=True)
+    return Response({'status': 'success', 'message': '', 'data': shiftchangelogserializers.data}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getreligions(request):
