@@ -11,7 +11,7 @@ from user.serializer import serializers as SRLZER_USER
 from rest_framework.response import Response
 from rest_framework import status
 from helps.common.generic import Generichelps as ghelp
-# from helps.common.generic import Generichelps as ghelp
+from helps.choice.common import STATUS 
 # from django.core.paginator import Paginator
 from drf_nested_forms.utils import NestedForm
 import json
@@ -40,7 +40,7 @@ def getresponsibilitys(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addresponsibility(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Responsibility, SRLZER_USER.Responsibilityserializer, request.data, ['title'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Responsibility, SRLZER_USER.Responsibilityserializer, request.data, allowed_fields=['__all__'], unique_fields=['title'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
@@ -54,7 +54,7 @@ def getrequiredskills(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addrequiredskill(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Requiredskill, SRLZER_USER.Requiredskillserializer, request.data, ['title'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Requiredskill, SRLZER_USER.Requiredskillserializer, request.data, allowed_fields=['__all__'], unique_fields=['title'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -68,7 +68,7 @@ def getdsignations(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def adddsignation(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Designation, SRLZER_USER.Designationserializer, request.data, ['name'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Designation, SRLZER_USER.Designationserializer, request.data, allowed_fields=['__all__'], unique_fields=['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
@@ -82,7 +82,7 @@ def getgrades(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addgrade(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Grade, SRLZER_USER.Gradeserializer, request.data, ['name'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Grade, SRLZER_USER.Gradeserializer, request.data, allowed_fields=['__all__'], unique_fields=['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
@@ -110,7 +110,114 @@ def getshifts(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addshift(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Shift, SRLZER_USER.Shiftserializer, request.data, ['name'])
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Shift, SRLZER_USER.Shiftserializer, request.data, allowed_fields=['__all__'], unique_fields=['name'], extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updateshift(request, shiftid=None):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['name', 'in_time', 'out_time', 'late_tolerance_time', 'is_active']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_USER.Shift, SRLZER_USER.Shiftserializer, shiftid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deleteshift(request, shiftid=None):
+    classOBJpackage_tocheck_assciaativity = [
+        {'model': MODELS_USER.User, 'fields': ['shift']},
+        {'model': MODELS_USER.Shiftchangelog, 'fields': ['previouseshift', 'newshift']},
+        {'model': MODELS_USER.Shiftchangerequest, 'fields': ['reqshiftid']}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_USER.Shift, classOBJpackage_tocheck_assciaativity, shiftid)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
+def getshiftchangerequest(request):
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'user', 'convert': None, 'replace':'user'},
+                    {'name': 'reqshiftid', 'convert': None, 'replace':'reqshiftid'},
+                    {'name': 'fromdate', 'convert': None, 'replace':'fromdate'},
+                    {'name': 'todate', 'convert': None, 'replace':'todate'},
+                    {'name': 'reqnote', 'convert': None, 'replace':'reqnote__icontains'},
+                    {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+                    {'name': 'adminnote', 'convert': None, 'replace':'adminnote__icontains'},
+                    {'name': 'decision_by', 'convert': None, 'replace':'decision_by'},
+                    {'name': 'updated_by', 'convert': None, 'replace':'updated_by'}
+                ]
+    shiftchangerequests = MODELS_USER.Shiftchangerequest.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: shiftchangerequests = shiftchangerequests.order_by(column_accessor)
+    shiftchangerequestserializers = SRLZER_USER.Shiftchangerequestserializer(shiftchangerequests, many=True)
+    return Response({'status': 'success', 'message': '', 'data': shiftchangerequestserializers.data}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def addshiftchangerequest(request):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'user': userid, 'updated_by': userid})
+    extra_fields.update({'status': STATUS[0][1]})
+    allowed_fields = ['reqshiftid', 'fromdate', 'todate',  'reqnote']
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Shiftchangerequest, SRLZER_USER.Shiftchangerequestserializer, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def updateshiftchangerequest(request, shiftchangerequestid):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['reqshiftid', 'fromdate', 'todate', 'reqnote']
+    freez_update = [{'status': [STATUS[1][1], STATUS[2][1]]}]
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_USER.Shiftchangerequest, SRLZER_USER.Shiftchangerequestserializer, shiftchangerequestid, request.data, allowed_fields=allowed_fields, freez_update=freez_update, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def approveshiftchangerequest(request, shiftchangerequestid):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'decision_by': userid})
+    extra_fields.update({'status': STATUS[1][1]})
+    allowed_fields = ['adminnote']
+    # freez_update = [{'status': [STATUS[1][1], STATUS[2][1]]}]
+    continue_update = [{'status': [STATUS[0][1]]}]
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_USER.Shiftchangerequest, SRLZER_USER.Shiftchangerequestserializer, shiftchangerequestid, request.data, allowed_fields=allowed_fields, continue_update=continue_update, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def rejectshiftchangerequest(request, shiftchangerequestid):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'decision_by': userid})
+    extra_fields.update({'status': STATUS[2][1]})
+    allowed_fields = ['adminnote']
+    # freez_update = [{'status': [STATUS[1][1], STATUS[2][1]]}]
+    continue_update = [{'status': [STATUS[0][1]]}]
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_USER.Shiftchangerequest, SRLZER_USER.Shiftchangerequestserializer, shiftchangerequestid, request.data, allowed_fields=allowed_fields, continue_update=continue_update, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deleteshiftchangerequest(request, shiftchangerequestid=None):
+    classOBJpackage_tocheck_assciaativity = []
+    
+    # freez_delete = [{'status': [STATUS[1][1], STATUS[2][1]]}]
+    continue_delete = [{'status': [STATUS[0][1]]}]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_USER.Shiftchangerequest, classOBJpackage_tocheck_assciaativity, shiftchangerequestid, continue_delete=continue_delete)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -124,7 +231,7 @@ def getreligions(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addreligion(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Religion, SRLZER_USER.Religionserializer, request.data, ['name'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Religion, SRLZER_USER.Religionserializer, request.data, allowed_fields=['__all__'], unique_fields=['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -138,7 +245,7 @@ def getpermissions(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addpermission(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Permission, SRLZER_USER.Permissionserializer, request.data, ['name'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Permission, SRLZER_USER.Permissionserializer, request.data, allowed_fields=['__all__'], unique_fields=['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -153,7 +260,7 @@ def getrolepermissions(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addrolepermission(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Rolepermission, SRLZER_USER.Rolepermissionserializer, request.data, ['name'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Rolepermission, SRLZER_USER.Rolepermissionserializer, request.data, allowed_fields=['__all__'], unique_fields=['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -168,7 +275,7 @@ def getethnicgroups(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addethnicgroup(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Ethnicgroup, SRLZER_USER.Ethnicgroupserializer, request.data, ['name'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Ethnicgroup, SRLZER_USER.Ethnicgroupserializer, request.data, allowed_fields=['__all__'], unique_fields=['name'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 

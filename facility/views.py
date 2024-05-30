@@ -19,5 +19,5 @@ def getfacilitys(request):
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def addfacility(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_FACI.Facility, SRLZER_FACI.Facilityserializer, request.data, ['title'])
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_FACI.Facility, SRLZER_FACI.Facilityserializer, request.data, allowed_fields=['__all__'], unique_fields=['title'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
