@@ -5,6 +5,9 @@ STATUS = (('Pending','Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejecte
 ATTENDANCE_FROM = (('Device','Device'), ('Manual', 'Manual'), ('Remote', 'Remote'))
 LEAVE_TYPE = (('Paid', 'Paid'), ('Non Paid', 'Non Paid'))
 GENDER = (('Male', 'Male'), ('Female', 'Female'),)
+AMOUNT_TYPE = (('Fixed Amount', 'Fixed Amount'), ('Percentage', 'Percentage'),)
+LOAN_TYPE = (('Advance Salary', 'Advance Salary'), ('Loan', 'Loan'), ('Fine', 'Fine'),)
+ADJUSTMENT_TYPE = (('From Salary', 'From Salary'), ('By Cash', 'By Cash'),)
 JOB_STATUS = (
     ('OnGoing', 'OnGoing'),
     ('Resigned', 'Resigned'),
@@ -52,9 +55,4 @@ BANK_ACCOUNT_TYPE = (
     ('Basic Account', 'Basic Account'),
     ('Retirement Account', 'Retirement Account'),
     ('Fixed Deposit Account', 'Fixed Deposit Account')
-)
-
-AMOUNT_TYPE = (
-    ('Fixed Amount', 'Fixed Amount'),
-    ('Percentage', 'Percentage'),
 )
