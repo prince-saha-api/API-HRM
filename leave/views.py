@@ -39,8 +39,10 @@ def getleavepolicys(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def addleavepolicy(request):
-    request.data.update({'created_by': request.user.id, 'updated_by': request.user.id})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_LEAV.Leavepolicy, SRLZER_LEAV.Leavepolicyserializer, request.data, ['name'])
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_LEAV.Leavepolicy, SRLZER_LEAV.Leavepolicyserializer, request.data, allowed_fields=['__all__'], unique_fields=['name'], extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['POST'])

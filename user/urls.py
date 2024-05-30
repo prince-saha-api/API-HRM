@@ -12,6 +12,15 @@ urlpatterns = [
 
     path('get-shift/', views.getshifts, name='get-shift'),
     path('add-shift/', views.addshift, name='add-shift'),
+    path('update-shift/<int:shiftid>', views.updateshift, name='update-shift'),
+    path('delete-shift/<int:shiftid>', views.deleteshift, name='delete-shift'),
+
+    path('get-shiftchangerequest/', views.getshiftchangerequest, name='get-shiftchangerequest'),
+    path('add-shiftchangerequest/', views.addshiftchangerequest, name='add-shiftchangerequest'),
+    path('update-shiftchangerequest/<int:shiftchangerequestid>', views.updateshiftchangerequest, name='update-shiftchangerequest'),
+    path('approve-shiftchangerequest/<int:shiftchangerequestid>', views.approveshiftchangerequest, name='approve-shiftchangerequest'),
+    path('reject-shiftchangerequest/<int:shiftchangerequestid>', views.rejectshiftchangerequest, name='reject-shiftchangerequest'),
+    path('delete-shiftchangerequest/<int:shiftchangerequestid>', views.deleteshiftchangerequest, name='delete-shiftchangerequest'),
     
     path('get-religion/', views.getreligions, name='get-religion'),
     path('add-religion/', views.addreligion, name='add-religion'),

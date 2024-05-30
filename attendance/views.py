@@ -74,25 +74,9 @@ def getloggedinusersmanualattendence(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
 def updatemanualattendence(request, manualattendenceid):
-    requestmanualattendance = MODELS_ATTE.Requestmanualattendance.objects.filter(id=manualattendenceid)
-    if requestmanualattendance.exists():
-        data = {}
-        date = request.data.get('date')
-        if date != None: data.update({'date': date})
-
-        in_time = request.data.get('in_time')
-        if in_time != None: data.update({'in_time': in_time})
-        out_time = request.data.get('out_time')
-        if out_time != None: data.update({'out_time': out_time})
-
-        requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
-        if requestmanualattendanceserializer.is_valid(raise_exception=True):
-            try: 
-                requestmanualattendanceserializer.save()
-                return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializer.data}, status=status.HTTP_200_OK)
-            except: return Response({'status': 'error', 'message': 'already exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
-        else: return Response({'status': 'error', 'message': 'something went wrong!', 'data': requestmanualattendanceserializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'status': 'error', 'message': 'doesn\'t exist', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
+    allowed_fields = ['date', 'in_time', 'out_time']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_ATTE.Requestmanualattendance, SRLZER_ATTE.Requestmanualattendanceserializer, manualattendenceid, request.data, allowed_fields=allowed_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
 @api_view(['PUT'])

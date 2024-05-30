@@ -51,4 +51,9 @@ class Ethnicgroupserializer(serializers.ModelSerializer):
         model = models.Ethnicgroup
         fields = '__all__'
 
+class Shiftchangerequestserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Shiftchangerequest
+        fields = '__all__'
+
 

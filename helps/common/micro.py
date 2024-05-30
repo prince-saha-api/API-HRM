@@ -64,11 +64,19 @@ class Microhelps(Nanohelps):
                     OnePortionOfSalary = (percentage*salary)/100
         return OnePortionOfSalary
     
-    def addtocolass(self, classOBJ, classSrializer, data, uniquekeylist): # New
+    def addtocolass(self, classOBJ, classSrializer, data, allowed_fields=[], unique_fields=[], extra_fields={}): # New
+        preparedata = {}
+        
+        if allowed_fields[0] == '__all__': preparedata.update(data)
+        else:
+            for field in allowed_fields:
+                fieldvalue = data.get(field)
+                if fieldvalue: preparedata.update({field: fieldvalue})
+
         uniquekeyvalue = {}
-        for uniquekey in uniquekeylist:
-            unique_value = data.get(uniquekey)
-            if unique_value: uniquekeyvalue.update({uniquekey: unique_value})
+        for field in unique_fields:
+            uniquevalue = preparedata.get(field)
+            if uniquevalue: uniquekeyvalue.update({field: uniquevalue})
 
         response_data = {}
         response_message = []
@@ -78,15 +86,98 @@ class Microhelps(Nanohelps):
             if classOBJ.objects.filter(**{key:value}).exists(): response_message.append(f'this {key} already exist!')
         
         if not response_message:
-            classsrializer = classSrializer(data=data, many=False)
+            preparedata.update(extra_fields)
+            classsrializer = classSrializer(data=preparedata, many=False)
             if classsrializer.is_valid():
                 try:    
                     classsrializer.save()
                     response_data = classsrializer.data
                     response_successflag = 'success'
                     response_status = status.HTTP_201_CREATED
-                except: response_message.append('unique combination is already exist!')
+                except:
+                    response_message.append('unique combination is already exist!')
+            else:
+                for key, value in classsrializer.errors.items():
+                    for eachvalue in value:
+                        if eachvalue.code == 'required': response_message.append(f'{key} (required.)')
+                        elif eachvalue.code == 'invalid': response_message.append(f'{key} ({eachvalue})')
+                        else: response_message.append(f'{key} ({eachvalue})')
+        return response_data, response_message, response_successflag, response_status
+    
+    def updaterecord(self, classOBJ, classSrializer, idtofilter, data, allowed_fields=[], freez_update=[], continue_update=[], extra_fields={}): # New
+        response_data = {}
+        response_message = []
+        response_successflag = 'error'
+        response_status = status.HTTP_400_BAD_REQUEST
 
+        classobj = classOBJ.objects.filter(id=idtofilter)
+        if classobj.exists():
+            preparedata = {}
+            for field in allowed_fields:
+                fieldvalue = data.get(field)
+                if fieldvalue != None: preparedata.update({field: fieldvalue})
+            if extra_fields: preparedata.update(extra_fields)
+            for FREEZ in freez_update:
+                if FREEZ:
+                    for key, value in FREEZ.items():
+                        objvalue = getattr(classobj.first(), key, '')
+                        if objvalue in value:
+                            response_message.append(f'{key} (it\'s already {objvalue}.)')
+            for CONTINUE in continue_update:
+                if CONTINUE:
+                    for key, value in CONTINUE.items():
+                        objvalue = getattr(classobj.first(), key, '')
+                        if objvalue not in value: response_message.append(f'{key} (it\'s already {objvalue}.)')
+            if not response_message:
+                classsrializer = classSrializer(instance=classobj.first(), data=preparedata, partial=True)
+                if classsrializer.is_valid():
+                    try:
+                        classsrializer.save()
+
+                        response_data = classsrializer.data
+                        response_successflag = 'success'
+                        response_status = status.HTTP_200_OK
+                    except: response_message.append('unique combination is already exist!')
+                else:
+                    for key, value in classsrializer.errors.items():
+                        for eachvalue in value:
+                            if eachvalue.code == 'required': response_message.append(f'{key} (required.)')
+                            elif eachvalue.code == 'invalid': response_message.append(f'{key} ({eachvalue})')
+                            else: response_message.append(f'{key} ({eachvalue})')
+
+        else: response_message.append('doesn\'t exist!')
+        return response_data, response_message, response_successflag, response_status
+    
+    def deleterecord(self, classOBJ, classOBJpackage_tocheck_assciaativity, idtofilter, freez_delete=[], continue_delete=[]): # New
+        response_data = {}
+        response_message = []
+        response_successflag = 'error'
+        response_status = status.HTTP_400_BAD_REQUEST
+        classobj = classOBJ.objects.filter(id=idtofilter)
+        if classobj.exists():
+            for classOBJpackage in classOBJpackage_tocheck_assciaativity:
+                for field in classOBJpackage['fields']:
+                    if classOBJpackage['model'].objects.filter(**{field: classobj.first()}).exists():
+                        response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
+            
+            for FREEZ in freez_delete:
+                if FREEZ:
+                    for key, value in FREEZ.items():
+                        objvalue = getattr(classobj.first(), key, '')
+                        if objvalue in value:
+                            response_message.append(f'{key} (it\'s already {objvalue}.)')
+            for CONTINUE in continue_delete:
+                if CONTINUE:
+                    for key, value in CONTINUE.items():
+                        objvalue = getattr(classobj.first(), key, '')
+                        if objvalue not in value: response_message.append(f'{key} (it\'s already {objvalue}.)')
+            if not response_message:
+                try:
+                    classobj.delete()
+                    response_successflag = 'success'
+                    response_status = status.HTTP_200_OK
+                except: response_message.append('something went wrong!')
+        else: response_message.append('doesn\'t exist!')
         return response_data, response_message, response_successflag, response_status
     
     def addemergencycontact(self, Employeecontact, Address, userinstance, emergencyContact): # New
