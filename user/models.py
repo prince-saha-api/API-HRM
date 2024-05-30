@@ -44,6 +44,7 @@ class Responsibility(Basic):
 
     def __str__(self):
         return f'{self.title} - {self.is_active}'
+    
 class Requiredskill(Basic):
     title = models.CharField(max_length=100, unique=True)
 

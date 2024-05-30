@@ -93,14 +93,8 @@ def getpayrolltaxs(request):
 def addpayrolltax(request):
     userid = request.user.id
     extra_fields = {}
-    if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolltax, SRLZER_PAYR.Payrolltaxserializer, request.data, unique_fields=['title'], extra_fields=extra_fields)
+    unique_fields = ['title']
+    if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolltax, SRLZER_PAYR.Payrolltaxserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-
-
-# @api_view(['POST'])
-# # @permission_classes([IsAuthenticated])
-# def addpayrolltax(request):
-#     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolltax, SRLZER_PAYR.Payrolltaxserializer, request.data, [])
-#     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 

@@ -17,44 +17,53 @@ from drf_nested_forms.utils import NestedForm
 import json
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getresponsibilitys(request):
-    responsibilitys = MODELS_USER.Responsibility.objects.all()
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'title', 'convert': None, 'replace':'title__icontains'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
+                ]
+    responsibilitys = MODELS_USER.Responsibility.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: responsibilitys = responsibilitys.order_by(column_accessor)
     responsibilityserializers = SRLZER_USER.Responsibilityserializer(responsibilitys, many=True)
-    return Response(responsibilityserializers.data, status=status.HTTP_200_OK)
-
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def addresponsibility(request):
-#     title = request.data.get('title')
-#     if title:
-#         if not MODELS_U.Responsibility.objects.filter(title=title).exists():
-#             responsibilityserializers = SRLZER_U.Responsibilityserializer(data=request.data, many=False)
-#             if responsibilityserializers.is_valid():
-#                 responsibilityserializers.save()
-#                 return Response({'data': responsibilityserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_201_CREATED)
-#         else: return Response({'data': {}, 'message': 'this title already exist!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-#     else: return Response({'data': {}, 'message': 'title is required!', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'status': 'success', 'message': '', 'data': responsibilityserializers.data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def addresponsibility(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Responsibility, SRLZER_USER.Responsibilityserializer, request.data, unique_fields=['title'])
+    # userid = request.user.id
+    extra_fields = {}
+    unique_fields = ['title']
+    # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Responsibility, SRLZER_USER.Responsibilityserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-    
+
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getrequiredskills(request):
-    requiredskills = MODELS_USER.Requiredskill.objects.all()
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'title', 'convert': None, 'replace':'title__icontains'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
+                ]
+    requiredskills = MODELS_USER.Requiredskill.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: requiredskills = requiredskills.order_by(column_accessor)
     requiredskillserializers = SRLZER_USER.Requiredskillserializer(requiredskills, many=True)
-    return Response(requiredskillserializers.data, status=status.HTTP_200_OK)
+    return Response({'status': 'success', 'message': '', 'data': requiredskillserializers.data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def addrequiredskill(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Requiredskill, SRLZER_USER.Requiredskillserializer, request.data, unique_fields=['title'])
+    # userid = request.user.id
+    extra_fields = {}
+    unique_fields = ['title']
+    # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Requiredskill, SRLZER_USER.Requiredskillserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
