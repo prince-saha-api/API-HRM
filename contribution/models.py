@@ -2,7 +2,6 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from helps.abstract.abstractclass import Basic, Createdinfoint
 from django.db import models
 
-
 class Address(Basic, Createdinfoint):
     name = models.CharField(max_length=100, blank=True, null=True)
     alias = models.CharField(max_length=100, blank=True, null=True)

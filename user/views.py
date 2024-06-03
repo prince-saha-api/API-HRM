@@ -67,31 +67,63 @@ def addrequiredskill(request):
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getdsignations(request):
-    dsignations = MODELS_USER.Designation.objects.all()
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+                    {'name': 'responsibility', 'convert': None, 'replace':'responsibility'},
+                    {'name': 'required_skill', 'convert': None, 'replace':'required_skill'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
+                ]
+    dsignations = MODELS_USER.Designation.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: dsignations = dsignations.order_by(column_accessor)
     designationserializers = SRLZER_USER.Designationserializer(dsignations, many=True)
-    return Response(designationserializers.data, status=status.HTTP_200_OK)
+    return Response({'status': 'success', 'message': '', 'data': designationserializers.data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def adddsignation(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Designation, SRLZER_USER.Designationserializer, request.data, unique_fields=['name'])
+    # userid = request.user.id
+    extra_fields = {}
+    unique_fields = ['name']
+    # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Designation, SRLZER_USER.Designationserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-    
+
+# @api_view(['GET'])
+# # @permission_classes([IsAuthenticated])
+# # @deco.get_permission(['Get Single Permission Details', 'all'])
+# def getdsignations(request):
+#     dsignations = MODELS_USER.Designation.objects.all()
+#     designationserializers = SRLZER_USER.Designationserializer(dsignations, many=True)
+#     return Response(designationserializers.data, status=status.HTTP_200_OK)
+
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getgrades(request):
-    grades = MODELS_USER.Grade.objects.all()
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
+                ]
+    grades = MODELS_USER.Grade.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: grades = grades.order_by(column_accessor)
     gradeserializers = SRLZER_USER.Gradeserializer(grades, many=True)
-    return Response(gradeserializers.data, status=status.HTTP_200_OK)
+    return Response({'status': 'success', 'message': '', 'data': gradeserializers.data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def addgrade(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Grade, SRLZER_USER.Gradeserializer, request.data, unique_fields=['name'])
+    # userid = request.user.id
+    extra_fields = {}
+    unique_fields = ['name']
+    # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Grade, SRLZER_USER.Gradeserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
@@ -388,6 +420,7 @@ def addemployee(request):
                 for index in range(documents):
                     title = request.data.get(f'uploadDocuments[{index}][title]')
                     if title:
+                        title = title.lower()
                         if title == 'photo': photo = request.FILES.get(f'uploadDocuments[{index}][attachment]')
                         else: documentsindex.append(index)
 
