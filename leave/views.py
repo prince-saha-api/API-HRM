@@ -24,17 +24,27 @@ def getleavepolicys(request):
                         {'name': 'name', 'convert': None, 'replace':'name__icontains'},
                         {'name': 'allocation_days', 'convert': None, 'replace':'allocation_days'},
                         {'name': 'leave_type', 'convert': None, 'replace':'leave_type__icontains'},
-                        {'name': 'applicable_for', 'convert': None, 'replace':'applicable_for'},
                         {'name': 'max_consecutive_days', 'convert': None, 'replace':'max_consecutive_days'},
                         {'name': 'require_attachment', 'convert': 'bool', 'replace':'require_attachment'},
                         {'name': 'is_optional', 'convert': 'bool', 'replace':'is_optional'},
                         {'name': 'is_calendar_day', 'convert': 'bool', 'replace':'is_calendar_day'}
                     ]
     leavepolicys = MODELS_LEAV.Leavepolicy.objects.filter(**ghelp().KWARGS(request, filter_fields))
+
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: leavepolicys = leavepolicys.order_by(column_accessor)
+    
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    leavepolicys=leavepolicys[(page-1)*page_size:page*page_size]
+
     leavepolicyserializers = SRLZER_LEAV.Leavepolicyserializer(leavepolicys, many=True)
-    return Response({'data': leavepolicyserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': MODELS_LEAV.Leavepolicy.objects.all().count(),
+        'page': page,
+        'page_size': page_size,
+        'result': leavepolicyserializers.data
+    }, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -62,9 +72,9 @@ def assignleavepolicy(request):
         if user == None: return Response({'status': 'error', 'message': 'user doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
 
 
-    if leavepolicy.applicable_for.name != 'all':
-        if user not in leavepolicy.applicable_for.user.all():
-            return Response({'status': 'error', 'message': 'This user can\'t have this leave!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+    # if leavepolicy.applicable_for.name != 'all':
+    #     if user not in leavepolicy.applicable_for.user.all():
+    #         return Response({'status': 'error', 'message': 'This user can\'t have this leave!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
     
 
     leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user, leavepolicy=leavepolicy)

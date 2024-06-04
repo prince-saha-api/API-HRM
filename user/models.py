@@ -218,10 +218,7 @@ class Groupofdevicegroup(Basic):
 
     def __str__(self):
         return f'{self.user.username}'
-{
-    'User': ['shift'],
-    'Shiftchangelog': ['previouseshift', 'newshift']
-}
+
 class Shiftchangelog(Basic):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shiftchangelogone')
     decision_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='shiftchangelogtwo')

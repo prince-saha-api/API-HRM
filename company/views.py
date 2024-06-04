@@ -124,6 +124,7 @@ def addbasicinformation(request):
         if 'city' in form.data['address']:
             city = form.data['address']['city']
             if city: city = city[0]
+        # else: return Response({'data': {}, 'message': 'City is required', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
         if 'state_division' in form.data['address']:
             state_division = form.data['address']['state_division']
@@ -146,9 +147,11 @@ def addbasicinformation(request):
             {'field': 'state_division', 'value': state_division},
             {'field': 'country', 'value': country}]
         
+        
         for required_field in address_required_fields:
-            if not bool(required_field['value']):
-                response_message.append(f"{unique_field['field']} is required in address!")
+            if not required_field['value']:
+                response_message.append(f"{required_field['field']} is required in address!")
+
 
 
 

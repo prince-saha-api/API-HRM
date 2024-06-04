@@ -449,18 +449,18 @@ def addemployee(request):
                 if leavepolicy_salaryAndLeaves:
                     for id in leavepolicy_salaryAndLeaves:
                         leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': id})
-                        if userinstance in leavepolicy.applicable_for.user.all() or leavepolicy.applicable_for.name == 'all':
-                            if not MODELS_LEAV.Leavepolicyassign.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
-                                MODELS_LEAV.Leavepolicyassign.objects.create(user=userinstance, leavepolicy=leavepolicy)
-                                if not MODELS_LEAV.Leavesummary.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
-                                    MODELS_LEAV.Leavesummary.objects.create(
-                                        user=userinstance,
-                                        leavepolicy=leavepolicy,
-                                        fiscal_year=fiscal_year_salaryAndLeaves,
-                                        total_allocation=leavepolicy.allocation_days,
-                                        total_consumed=0,
-                                        total_left=leavepolicy.allocation_days
-                                    )
+                        # if userinstance in leavepolicy.applicable_for.user.all() or leavepolicy.applicable_for.name == 'all':
+                        if not MODELS_LEAV.Leavepolicyassign.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
+                            MODELS_LEAV.Leavepolicyassign.objects.create(user=userinstance, leavepolicy=leavepolicy)
+                            if not MODELS_LEAV.Leavesummary.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
+                                MODELS_LEAV.Leavesummary.objects.create(
+                                    user=userinstance,
+                                    leavepolicy=leavepolicy,
+                                    fiscal_year=fiscal_year_salaryAndLeaves,
+                                    total_allocation=leavepolicy.allocation_days,
+                                    total_consumed=0,
+                                    total_left=leavepolicy.allocation_days
+                                )
                 emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, MODELS_CONT.Address, userinstance, emergencyContact)
                 academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, userinstance, academicRecord)
                 previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, userinstance, previousExperience)

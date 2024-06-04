@@ -48,7 +48,7 @@ class Leavepolicy(Basic):
     allocation_days = models.IntegerField(validators=[MinValueValidator(1)], default=1)
     leave_type = models.CharField(max_length=20, choices=LEAVE_TYPE)
 
-    applicable_for = models.ForeignKey(Ethnicgroup, on_delete=models.SET_NULL, blank=True, null=True) # Leavepolicyassign done
+    # applicable_for = models.ForeignKey(Ethnicgroup, on_delete=models.SET_NULL, blank=True, null=True) # Leavepolicyassign done
 
     max_consecutive_days = models.IntegerField(validators=[MinValueValidator(0)], default=1) # done
     
