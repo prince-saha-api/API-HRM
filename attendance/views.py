@@ -64,7 +64,7 @@ def getloggedinusersmanualattendence(request):
                             {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
                         ]
         kwargs = ghelp().KWARGS(request, filter_fields)
-        kwargs.update({'requested_by': userid})
+        kwargs.update({'requested_by': userid}) ,
         requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**kwargs)
         column_accessor = request.GET.get('column_accessor')
         if column_accessor: requestmanualattendances = requestmanualattendances.order_by(column_accessor)

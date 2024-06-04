@@ -19,7 +19,7 @@ def getdevices(request):
                     {'name': 'location', 'convert': None, 'replace':'location'},
                     {'name': 'macaddress', 'convert': None, 'replace':'macaddress'},
                     {'name': 'deviceip', 'convert': None, 'replace':'deviceip'},
-                    {'name': 'is_active', 'convert': None, 'replace':'is_active'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
                 ]
     devices = MODELS_DEVI.Device.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
@@ -56,7 +56,7 @@ def getdevicegroups(request):
                     {'name': 'id', 'convert': None, 'replace':'id'},
                     {'name': 'title', 'convert': None, 'replace':'title__icontains'},
                     {'name': 'device', 'convert': None, 'replace':'device'},
-                    {'name': 'is_active', 'convert': None, 'replace':'is_active'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
                 ]
     devicegroups = MODELS_DEVI.Devicegroup.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
