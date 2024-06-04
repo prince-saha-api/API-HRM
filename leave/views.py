@@ -31,10 +31,21 @@ def getleavepolicys(request):
                         {'name': 'is_calendar_day', 'convert': 'bool', 'replace':'is_calendar_day'}
                     ]
     leavepolicys = MODELS_LEAV.Leavepolicy.objects.filter(**ghelp().KWARGS(request, filter_fields))
+
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: leavepolicys = leavepolicys.order_by(column_accessor)
+    
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    leavepolicys=leavepolicys[(page-1)*page_size:page*page_size]
+
     leavepolicyserializers = SRLZER_LEAV.Leavepolicyserializer(leavepolicys, many=True)
-    return Response({'data': leavepolicyserializers.data, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': leavepolicys.count(),
+        'page': page,
+        'page_size': page_size,
+        'result': leavepolicyserializers.data
+    }, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
