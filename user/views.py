@@ -93,13 +93,16 @@ def adddsignation(request):
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Designation, SRLZER_USER.Designationserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
-# @api_view(['GET'])
-# # @permission_classes([IsAuthenticated])
-# # @deco.get_permission(['Get Single Permission Details', 'all'])
-# def getdsignations(request):
-#     dsignations = MODELS_USER.Designation.objects.all()
-#     designationserializers = SRLZER_USER.Designationserializer(dsignations, many=True)
-#     return Response(designationserializers.data, status=status.HTTP_200_OK)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatedesignation(request, designationid=None):
+    # userid = request.user.id
+    extra_fields = {}
+    # if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['name', 'responsibility', 'required_skill', 'is_active']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_USER.Designation, SRLZER_USER.Designationserializer, designationid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -125,7 +128,18 @@ def addgrade(request):
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Grade, SRLZER_USER.Gradeserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-    
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updategrade(request, gradeid=None):
+    # userid = request.user.id
+    extra_fields = {}
+    # if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['name', 'is_active']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_USER.Grade, SRLZER_USER.Gradeserializer, gradeid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
@@ -153,7 +167,7 @@ def getshifts(request):
 def addshift(request):
     userid = request.user.id
     extra_fields = {}
-    if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
+    if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Shift, SRLZER_USER.Shiftserializer, request.data, unique_fields=['name'], extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -281,17 +295,27 @@ def getshiftchangelog(request):
     return Response({'status': 'success', 'message': '', 'data': shiftchangelogserializers.data}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getreligions(request):
-    religions = MODELS_USER.Religion.objects.all()
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+                    {'name': 'is_active', 'convert': None, 'replace':'is_active'},
+                ]
+    religions = MODELS_USER.Religion.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: religions = religions.order_by(column_accessor)
     religionserializers = SRLZER_USER.Religionserializer(religions, many=True)
-    return Response(religionserializers.data, status=status.HTTP_200_OK)
+    return Response({'status': 'success', 'message': '', 'data': religionserializers.data}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def addreligion(request):
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Religion, SRLZER_USER.Religionserializer, request.data, unique_fields=['name'])
+    # userid = request.user.id
+    extra_fields = {}
+    # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Religion, SRLZER_USER.Religionserializer, request.data, unique_fields=['name'], extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])

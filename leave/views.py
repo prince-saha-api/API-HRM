@@ -57,6 +57,26 @@ def addleavepolicy(request):
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_LEAV.Leavepolicy, SRLZER_LEAV.Leavepolicyserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updateleavepolicy(request, leavepolicyid=None):
+    userid = request.user.id
+    leavepolicys = MODELS_LEAV.Leavepolicy.objects.filter(id=leavepolicyid)
+    if leavepolicys.exists():
+        leavepolicys = leavepolicys.first()
+        allowed_fields = ['name', 'description', 'max_consecutive_days', 'require_attachment', 'is_optional', 'is_calendar_day', 'is_active']
+
+        allocation_days = request.data.get('allocation_days')
+        if allocation_days != None:
+            if allocation_days > leavepolicys.allocation_days: allowed_fields.append('allocation_days')
+        
+        extra_fields = {}
+        if userid: extra_fields.update({'updated_by': userid})
+        response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_LEAV.Leavepolicy, SRLZER_LEAV.Leavepolicyserializer, leavepolicyid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+        return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
@@ -113,6 +133,7 @@ def getleavesummarys(request):
     if column_accessor: leavesummarys = leavesummarys.order_by(column_accessor)
     leavesummaryserializers = SRLZER_LEAV.Leavesummaryserializer(leavesummarys, many=True)
     return Response(leavesummaryserializers.data, status=status.HTTP_200_OK)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -337,3 +358,45 @@ def approverequestleaveallocation(request, leaveallocationrequest=None):
             return Response({'status': 'success', 'message': '', 'data': []}, status=status.HTTP_200_OK)
         else: return Response({'status': 'error', 'message': 'leavesummary doesn\'t exist!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
     else: return Response({'status': 'error', 'message': 'provide a leaveallocationrequest id!', 'data': []}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
+def getholidays(request):
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'title', 'convert': None, 'replace':'title__icontains'},
+                    {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+                    {'name': 'date', 'convert': None, 'replace':'date'},
+                    {'name': 'is_recuring', 'convert': "bool", 'replace':'is_recuring'},
+                    {'name': 'employee_grade', 'convert': None, 'replace':'employee_grade'},
+                    {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
+                    {'name': 'created_by', 'convert': None, 'replace':'created_by'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
+                ]
+    holidays = MODELS_LEAV.Holiday.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: holidays = holidays.order_by(column_accessor)
+    holidayserializers = SRLZER_LEAV.Holidayserializer(holidays, many=True)
+    return Response({'status': 'success', 'message': '', 'data': holidayserializers.data}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def addholiday(request):
+    userid = request.user.id
+    extra_fields = {}
+    unique_fields = []
+    if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_LEAV.Holiday, SRLZER_LEAV.Holidayserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updateholiday(request, holidayid=None):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['title', 'username', 'password', 'location', 'macaddress', 'deviceip', 'is_active']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_LEAV.Holiday, SRLZER_LEAV.Holidayserializer, holidayid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
