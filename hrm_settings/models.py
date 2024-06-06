@@ -20,7 +20,6 @@ class Fiscalyear(Basic):
         print((self.to_date-self.from_date))
         super().save(*args, **kwargs)
 
-
 class Latefineforfewdays(Basic):
     cost_in_days = models.FloatField(validators=[MinValueValidator(0)], default=0)
     consecutive = models.BooleanField(default=True)
@@ -31,7 +30,6 @@ class Latefineforfewdays(Basic):
         if self.id is not None: Latefineforfewdays.objects.exclude().delete()
         else: Latefineforfewdays.objects.all().delete()
         super().save(*args, **kwargs)
-
 
 class Workingminutesperday(Basic):
     working_minutes_per_day = models.FloatField(validators=[MinValueValidator(0)], default=540)

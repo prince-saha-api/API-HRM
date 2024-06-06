@@ -34,3 +34,14 @@ def addfacility(request):
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_FACI.Facility, SRLZER_FACI.Facilityserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatefacility(request, facilityid=None):
+    # userid = request.user.id
+    extra_fields = {}
+    # if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['title', 'description', 'is_active']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_FACI.Facility, SRLZER_FACI.Facilityserializer, facilityid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
