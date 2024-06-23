@@ -80,8 +80,18 @@ def getdsignations(request):
     dsignations = MODELS_USER.Designation.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: dsignations = dsignations.order_by(column_accessor)
+
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    dsignations = dsignations[(page-1)*page_size:page*page_size]
+
     designationserializers = SRLZER_USER.Designationserializer(dsignations, many=True)
-    return Response({'status': 'success', 'message': '', 'data': designationserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': MODELS_USER.Designation.objects.all().count(),
+        'page': page,
+        'page_size': page_size,
+        'result': designationserializers.data
+    }, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -159,8 +169,18 @@ def getshifts(request):
     shifts = MODELS_USER.Shift.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: shifts = shifts.order_by(column_accessor)
+
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    shifts = shifts[(page-1)*page_size:page*page_size]
+
     shiftserializers = SRLZER_USER.Shiftserializer(shifts, many=True)
-    return Response({'status': 'success', 'message': '', 'data': shiftserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': MODELS_USER.Shift.objects.all().count(),
+        'page': page,
+        'page_size': page_size,
+        'result': shiftserializers.data
+    }, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

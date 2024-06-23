@@ -4,7 +4,7 @@ from contribution import models
 class Addressserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Address
-        fields = '__all__'
+        fields = ['id', 'name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country']
 
 class Bankaccounttypeserializer(serializers.ModelSerializer):
     class Meta:

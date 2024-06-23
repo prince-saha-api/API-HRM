@@ -4,9 +4,11 @@ from leave import views
 urlpatterns = [
     path('get-leavepolicy/', views.getleavepolicys, name='get-leavepolicy'),
     path('add-leavepolicy/', views.addleavepolicy, name='add-leavepolicy'),
-    path('assign-leavepolicy/', views.assignleavepolicy, name='assign-leave-policy'),
     path('update-leavepolicy/<int:leavepolicyid>', views.updateleavepolicy, name='update-leavepolicy'),
 
+    path('assign-leavepolicy/', views.assignleavepolicy, name='assign-leave-policy'),
+    path('get-assign-leavepolicy/', views.getassignleavepolicys, name='get-assign-leave-policy'),
+    
     path('get-leavesummary/', views.getleavesummarys, name='get-leavesummary'),
     
     path('get-leaverequest/', views.getleaverequest, name='get-leaverequest'),

@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from drf_nested_forms.utils import NestedForm
 from rest_framework import status
 from contribution import models as MODELS_CONT
+from contribution.serializer import serializers as SRLZER_CONT
 
 
 # Create your views here.
@@ -29,22 +30,26 @@ def getcompanys(request):
     companyserializers = SRLZER_COMP.Companyserializer(companys, many=True)
     return Response({'status': 'success', 'message': '', 'data': companyserializers.data}, status=status.HTTP_200_OK)
 
-# @api_view(['GET'])
-# # @permission_classes([IsAuthenticated])
-# # @deco.get_permission(['Get Single Permission Details', 'all'])
-# def getcompanys(request):
-#     companys = MODELS_COMP.Company.objects.all()
-#     companyserializers = SRLZER_COMP.Companyserializer(companys, many=True)
-#     return Response(companyserializers.data, status=status.HTTP_200_OK)
-
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def addcompany(request):
-    companyserializers = SRLZER_COMP.Companyserializer(data=request.data, many=False)
-    if companyserializers.is_valid():
-        companyserializers.save()
-        return Response({'status': 'success', 'message': '', 'data': companyserializers.data}, status=status.HTTP_201_CREATED)
-    else: return Response({'status': 'error', 'message': '', 'data': companyserializers.errors}, status=status.HTTP_400_BAD_REQUEST)
+    # userid = request.user.id
+    extra_fields = {}
+    unique_fields = []
+    # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_COMP.Company, SRLZER_COMP.Companyserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatecompany(request, companyid=None):
+    # userid = request.user.id
+    extra_fields = {}
+    # if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['basic_information', 'address', 'company_owner']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_COMP.Company, SRLZER_COMP.Companyserializer, companyid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
@@ -77,7 +82,8 @@ def addbasicinformation(request):
     establishment_date = form.data.get('establishment_date')
     if establishment_date: establishment_date = establishment_date[0]
 
-    industry_type = form.data.get('industry_type')
+    # industry_type = form.data.get('industry_type')
+    print("----------------------------", form.data.get('industry_type'))
     if industry_type:
         industry_type = industry_type[0]
         if industry_type.isnumeric():
@@ -117,14 +123,11 @@ def addbasicinformation(request):
 
     logo = request.FILES.get('logo')
 
-    print ("----------------------------------------------------",industry_type)
-
     city = state_division = post_zip_code = country = address = None
     if 'address' in form.data:
         if 'city' in form.data['address']:
             city = form.data['address']['city']
             if city: city = city[0]
-        # else: return Response({'data': {}, 'message': 'City is required', 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
         if 'state_division' in form.data['address']:
             state_division = form.data['address']['state_division']
@@ -145,15 +148,11 @@ def addbasicinformation(request):
             {'field': 'address', 'value': address},
             {'field': 'city', 'value': city},
             {'field': 'state_division', 'value': state_division},
-            {'field': 'country', 'value': country}]
-        
+            {'field': 'country', 'value': country}]        
         
         for required_field in address_required_fields:
             if not required_field['value']:
                 response_message.append(f"{required_field['field']} is required in address!")
-
-
-
 
     unique_fields = [{'field': 'name', 'value': name}, 
                      {'field': 'business_registration_number', 'value': business_registration_number}, 
@@ -167,7 +166,6 @@ def addbasicinformation(request):
         is_exist = MODELS_COMP.Basicinformation.objects.filter(**{unique_field['field']: unique_field['value']}).exists()
         if is_exist:
             response_message.append(f"{unique_field['field']} is already exist!")
-
     
     required_fields = [{'field': 'name', 'value': name}]
 
@@ -183,7 +181,6 @@ def addbasicinformation(request):
         if country: addressinstnace.country = country
         if address: addressinstnace.address = address
         addressinstnace.save()
-
         
         basicinformationinstance = MODELS_COMP.Basicinformation()
         if name: basicinformationinstance.name = name
@@ -204,7 +201,103 @@ def addbasicinformation(request):
         return Response({'data': SRLZER_COMP.Basicinformationserializer(basicinformationinstance, many=False).data, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
 
     else: return Response({'status': 'error', 'message': response_message, 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatebasicinformation(request, basicinformationid=None):
+    requestdata = dict(request.data)
+    options = {
+        'allow_blank': True,
+        'allow_empty': False
+    }
+    form = NestedForm(requestdata, **options)
+    form.is_nested(raise_exception=True)
+
+    userid = request.user.id
+    error_message = []
+    response_data = {}
+
+    address_dict = {}
+    addressid=MODELS_COMP.Basicinformation.objects.filter(id=basicinformationid).first().address.id
+    if 'address' in form.data:
+        if 'city' in form.data['address']:
+            city = form.data['address']['city']
+            if city: address_dict.update({'city': city[0]})
+
+        if 'state_division' in form.data['address']:
+            state_division = form.data['address']['state_division']
+            if state_division: address_dict.update({'state_division': state_division[0]})
+
+        if 'post_zip_code' in form.data['address']:
+            post_zip_code = form.data['address']['post_zip_code']
+            if post_zip_code: address_dict.update({'post_zip_code': post_zip_code[0]})
+
+        if 'country' in form.data['address']:
+            country = form.data['address']['country']
+            if country: address_dict.update({'country': country[0]})
+
+        if 'address' in form.data['address']:
+            address = form.data['address']['address']
+            if address: address_dict.update({'address': address[0]})
+
+    allowed_fields = ['city', 'state_division', 'post_zip_code', 'country', 'address', 'tax_id_number']
+    if address_dict:
+        _, response_message, _, _ = ghelp().updaterecord(MODELS_CONT.Address, SRLZER_CONT.Addressserializer, addressid, address_dict, allowed_fields=allowed_fields)
+        error_message.extend(response_message)
+
+    basic_dict = {}
+    name = form.data.get('name')
+    if name: basic_dict.update({'name': name[0]})
+
+    legal_name = form.data.get('legal_name')
+    if legal_name: basic_dict.update({'legal_name': legal_name[0]})
+
+    establishment_date = form.data.get('establishment_date')
+    if establishment_date: basic_dict.update({'establishment_date': establishment_date[0]})
+
+    industry_type = form.data.get('industry_type')
+    if industry_type:
+        try: basic_dict.update({'industry_type': int(industry_type[0])})
+        except: pass
+
+    business_registration_number = form.data.get('business_registration_number')
+    if business_registration_number: basic_dict.update({'business_registration_number': business_registration_number[0]})
+
+    tax_id_number = form.data.get('tax_id_number')
+    if tax_id_number: basic_dict.update({'tax_id_number': tax_id_number[0]})
+
+    bin_no = form.data.get('bin_no')
+    if bin_no: basic_dict.update({'bin_no': bin_no[0]})
+
+    description = form.data.get('description')
+    if description: basic_dict.update({'description': description[0]})
+
+    website_url = form.data.get('website_url')
+    if website_url: basic_dict.update({'website_url': website_url[0]})
+
+    primary_email = form.data.get('primary_email')
+    if primary_email: basic_dict.update({'primary_email': primary_email[0]})
+
+    primary_phone_number = form.data.get('primary_phone_number')
+    if primary_phone_number: basic_dict.update({'primary_phone_number': primary_phone_number[0]})
+
+    fax = form.data.get('fax')
+    if fax: basic_dict.update({'fax': fax[0]})
+
+    allowed_fields = ['name', 'legal_name', 'establishment_date', 'industry_type', 'business_registration_number', 'tax_id_number', 'bin_no', 'description', 'website_url', 'primary_email', 'primary_phone_number', 'fax']
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+
+    logo = request.FILES.get('logo')
+    if logo: extra_fields.update({'logo': logo})
     
+    if extra_fields:
+        response_data, response_message, _, _ = ghelp().updaterecord(MODELS_COMP.Basicinformation, SRLZER_COMP.Basicinformationserializer, basicinformationid, basic_dict, allowed_fields=allowed_fields, extra_fields=extra_fields)
+        error_message.extend(response_message)
+    
+    return Response({'message': error_message, 'data': response_data}, status=status.HTTP_200_OK)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
@@ -225,9 +318,20 @@ def getcompanytypes(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addcompanytype(request):
-    # userid = request.user.id
+    userid = request.user.id
     extra_fields = {}
     unique_fields = []
-    # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_COMP.Companytype, SRLZER_COMP.Companytypeserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatecompanytype(request, companytypeid=None):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['name', 'is_active']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_COMP.Companytype, SRLZER_COMP.Companytypeserializer, companytypeid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

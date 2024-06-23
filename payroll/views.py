@@ -37,6 +37,17 @@ def addpayrollearning(request):
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrollearning, SRLZER_PAYR.Payrollearningserializer, request.data, unique_fields=[], extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatepayrollearning(request, payrollearningid=None):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['title', 'description', 'is_taxable', 'depends_on_attendance', 'amount_type', 'amount', 'is_active']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_PAYR.Payrollearning, SRLZER_PAYR.Payrollearningserializer, payrollearningid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
@@ -65,6 +76,17 @@ def addpayrolldeduction(request):
     extra_fields = {}
     if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolldeduction, SRLZER_PAYR.Payrolldeductionserializer, request.data, unique_fields=[], extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatepayrolldeduction(request, payrolldeductionid=None):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['title', 'description', 'exempted_for_tax', 'depends_on_attendance', 'amount_type', 'amount', 'is_active']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_PAYR.Payrolldeduction, SRLZER_PAYR.Payrolldeductionserializer, payrolldeductionid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -98,3 +120,13 @@ def addpayrolltax(request):
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolltax, SRLZER_PAYR.Payrolltaxserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatepayrolltax(request, payrolltaxid=None):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['title', 'description', 'min_income', 'max_income', 'ethnicgroup', 'percentage', 'is_active']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_PAYR.Payrolltax, SRLZER_PAYR.Payrolltaxserializer, payrolltaxid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

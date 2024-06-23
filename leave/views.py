@@ -76,6 +76,23 @@ def updateleavepolicy(request, leavepolicyid=None):
         response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_LEAV.Leavepolicy, SRLZER_LEAV.Leavepolicyserializer, leavepolicyid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
         return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
+def getassignleavepolicys(request):
+    filter_fields = [
+                        {'name': 'id', 'convert': None, 'replace':'id'},
+                        {'name': 'user', 'convert': None, 'replace':'user'},
+                        {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
+                        {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
+                        {'name': 'created_by', 'convert': None, 'replace':'created_by'},
+                        {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
+                    ]
+    leavepolicyassigns = MODELS_LEAV.Leavepolicyassign.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: leavepolicyassigns = leavepolicyassigns.order_by(column_accessor)
+    leavepolicyassignserializers = SRLZER_LEAV.Leavepolicyassignserializer(leavepolicyassigns, many=True)
+    return Response(leavepolicyassignserializers.data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -153,8 +170,18 @@ def getleaverequest(request):
     leaverequests = MODELS_LEAV.Leaverequest.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: leaverequests = leaverequests.order_by(column_accessor)
+
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    leaverequests = leaverequests[(page-1)*page_size:page*page_size]
+
     leaverequestserializers=SRLZER_LEAV.Leaverequestserializer(leaverequests, many=True)
-    return Response({'status': 'success', 'message': '', 'data': leaverequestserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': MODELS_LEAV.Leaverequest.objects.all().count(),
+        'page': page,
+        'page_size': page_size,
+        'result': leaverequestserializers.data
+    }, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -303,10 +330,19 @@ def getleaveallocationrequest(request):
     leaveallocationrequests = MODELS_LEAV.Leaveallocationrequest.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: leaveallocationrequests = leaveallocationrequests.order_by(column_accessor)
+
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    leaveallocationrequests = leaveallocationrequests[(page-1)*page_size:page*page_size]
+
     leaveallocationrequestserializers=SRLZER_LEAV.Leaveallocationrequestserializer(leaveallocationrequests, many=True)
-    return Response({'status': 'success', 'message': '', 'data': leaveallocationrequestserializers.data}, status=status.HTTP_200_OK)
-
-
+    return Response({'data': {
+        'count': MODELS_LEAV.Leaveallocationrequest.objects.all().count(),
+        'page': page,
+        'page_size': page_size,
+        'result': leaveallocationrequestserializers.data
+    }, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
+    
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
@@ -377,8 +413,18 @@ def getholidays(request):
     holidays = MODELS_LEAV.Holiday.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: holidays = holidays.order_by(column_accessor)
+
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    holidays = holidays[(page-1)*page_size:page*page_size]
+
     holidayserializers = SRLZER_LEAV.Holidayserializer(holidays, many=True)
-    return Response({'status': 'success', 'message': '', 'data': holidayserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': MODELS_LEAV.Holiday.objects.all().count(),
+        'page': page,
+        'page_size': page_size,
+        'result': holidayserializers.data
+    }, 'message': '', 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

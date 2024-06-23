@@ -244,8 +244,8 @@ class Shiftchangerequest(Basic):
     adminnote = models.TextField(blank=True, null=True)
 
     decision_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='shiftchangerequesttwo')
-
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='shiftchangerequestthree')
+    
     def __str__(self):
         return f'{self.code} -- {self.user.username}'
     

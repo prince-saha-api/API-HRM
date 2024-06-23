@@ -72,7 +72,7 @@ class Basicinformation(Basic):
     logo = models.ImageField(upload_to=uploadcompanylogo, blank=True, null=True)
     address = models.OneToOneField(MODELS_CONT.Address, on_delete=models.SET_NULL, blank=True, null=True)
 
-    cupdated_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='basicinformationone')
+    updated_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='basicinformationone')
     created_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='basicinformationtwo')
 
     def __str__(self):
