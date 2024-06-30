@@ -12,7 +12,7 @@ class Device(Basic):
 
     def __str__(self):
         return f'{self.code} - {self.title}'
-    
+
 class Devicegroup(Basic):
     title = models.CharField(max_length=50, unique=True)
     device = models.ManyToManyField(Device, blank=True)

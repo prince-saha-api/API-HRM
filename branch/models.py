@@ -18,14 +18,13 @@ class Operatinghour(Basic):
         constraints = [models.UniqueConstraint(fields=['operating_hour_from', 'operating_hour_to'], name='Operatinghour_operating_hour_from_operating_hour_to')]
 
 class Branch(Basic):
+    name = models.CharField(max_length=100)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='branchone')
-    name = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     email = models.EmailField(unique=True, blank=True, null=True)
-    address = models.OneToOneField(CNTRIB.Address, on_delete=models.SET_NULL, blank=True, null=True)
     phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
-    operating_hour = models.ForeignKey(Operatinghour, on_delete=models.SET_NULL, blank=True, null=True)
-    facilities = models.ManyToManyField(Facility)
+    fax = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    address = models.OneToOneField(CNTRIB.Address, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return f'{self.company.basic_information.name} - {self.name}'

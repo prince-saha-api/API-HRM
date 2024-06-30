@@ -9,8 +9,6 @@ from department import models as MODELS_DEPA
 from contribution import models as MODELS_CONT
 from helps.choice import common as CHOICE
 
-# Create your models here.
-
 class Payrollearning(Basic):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
@@ -31,7 +29,7 @@ class Payrollearningassign(Basic):
 
     def __str__(self):
         return f'{self.payrollearning} -- {self.user}'
-    
+
 class Payrolldeduction(Basic):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
@@ -52,7 +50,8 @@ class Payrolldeductionassign(Basic):
 
     def __str__(self):
         return f'{self.payrolldeduction} -- {self.user}'
-    
+
+
 class Payrolltax(Basic):
     title = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)

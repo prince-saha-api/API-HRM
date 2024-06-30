@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from device import models as MODELS_DEVI
 from device.serializer import serializers as SRLZER_DEVI
+from device.serializer.POST import serializers as PSRLZER_DEVI
 from helps.common.generic import Generichelps as ghelp
 from rest_framework.response import Response
 from rest_framework import status
@@ -19,7 +20,7 @@ def getdevices(request):
                     {'name': 'location', 'convert': None, 'replace':'location'},
                     {'name': 'macaddress', 'convert': None, 'replace':'macaddress'},
                     {'name': 'deviceip', 'convert': None, 'replace':'deviceip'},
-                    {'name': 'is_active', 'convert': None, 'replace':'is_active'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
                 ]
     devices = MODELS_DEVI.Device.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
@@ -34,7 +35,19 @@ def adddevice(request):
     extra_fields = {}
     unique_fields = ['title']
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_DEVI.Device, SRLZER_DEVI.Deviceserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
+    required_fields = ['title', 'deviceip']
+    fields_regex = [
+        {'field': 'username', 'type': 'username'}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_DEVI.Device, 
+        PSRLZER_DEVI.Deviceserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        extra_fields=extra_fields, 
+        required_fields=required_fields,
+        fields_regex=fields_regex
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -44,8 +57,13 @@ def updatedevice(request, deviceid=None):
     # userid = request.user.id
     extra_fields = {}
     # if userid: extra_fields.update({'updated_by': userid})
-    allowed_fields = ['title', 'username', 'password', 'location', 'macaddress', 'deviceip', 'is_active']
-    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_DEVI.Device, SRLZER_DEVI.Deviceserializer, deviceid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_DEVI.Device,
+        PSRLZER_DEVI.Deviceserializer,
+        deviceid,
+        request.data,
+        extra_fields=extra_fields
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -56,7 +74,7 @@ def getdevicegroups(request):
                     {'name': 'id', 'convert': None, 'replace':'id'},
                     {'name': 'title', 'convert': None, 'replace':'title__icontains'},
                     {'name': 'device', 'convert': None, 'replace':'device'},
-                    {'name': 'is_active', 'convert': None, 'replace':'is_active'},
+                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
                 ]
     devicegroups = MODELS_DEVI.Devicegroup.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
@@ -71,7 +89,8 @@ def adddevicegroup(request):
     extra_fields = {}
     unique_fields = ['title']
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_DEVI.Devicegroup, SRLZER_DEVI.Devicegroupserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
+    required_fields = ['title']
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_DEVI.Devicegroup, PSRLZER_DEVI.Devicegroupserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, required_fields=required_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -81,6 +100,11 @@ def updatedevicegroup(request, devicegroupid=None):
     # userid = request.user.id
     extra_fields = {}
     # if userid: extra_fields.update({'updated_by': userid})
-    allowed_fields = ['title', 'device', 'is_active']
-    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_DEVI.Devicegroup, SRLZER_DEVI.Devicegroupserializer, devicegroupid, request.data, allowed_fields=allowed_fields, extra_fields=extra_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_DEVI.Devicegroup,
+        PSRLZER_DEVI.Devicegroupserializer,
+        devicegroupid,
+        request.data,
+        extra_fields=extra_fields
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

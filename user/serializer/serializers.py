@@ -16,16 +16,15 @@ class Requiredskillserializer(serializers.ModelSerializer):
         model = models.Requiredskill
         fields = '__all__'
 
-class Designationserializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Designation
-        fields = '__all__'
-
 class Gradeserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Grade
         fields = '__all__'
-
+class Designationserializer(serializers.ModelSerializer):
+    grade=Gradeserializer(many=False)
+    class Meta:
+        model = models.Designation
+        fields = '__all__'
 class Shiftserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Shift

@@ -2,8 +2,10 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from payroll import models as MODELS_PAYR
 from payroll.serializer import serializers as SRLZER_PAYR
+from payroll.serializer.POST import serializers as PSRLZER_PAYR
 from helps.common.generic import Generichelps as ghelp
 from rest_framework.response import Response
+from helps.choice import common as CHOICE
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
@@ -34,7 +36,27 @@ def addpayrollearning(request):
     userid = request.user.id
     extra_fields = {}
     if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrollearning, SRLZER_PAYR.Payrollearningserializer, request.data, unique_fields=[], extra_fields=extra_fields)
+    choice_fields = [
+        {'name': 'day', 'values': [item[1] for item in CHOICE.AMOUNT_TYPE]}
+    ]
+    required_fields = ['title', 'amount']
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrollearning, PSRLZER_PAYR.Payrollearningserializer, request.data, unique_fields=[], extra_fields=extra_fields, choice_fields=choice_fields, required_fields=required_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatepayrollearning(request, payrollearningid=None):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_PAYR.Payrollearning,
+        PSRLZER_PAYR.Payrollearningserializer,
+        payrollearningid,
+        request.data,
+        extra_fields=extra_fields
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -64,7 +86,27 @@ def addpayrolldeduction(request):
     userid = request.user.id
     extra_fields = {}
     if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolldeduction, SRLZER_PAYR.Payrolldeductionserializer, request.data, unique_fields=[], extra_fields=extra_fields)
+    choice_fields = [
+        {'name': 'day', 'values': [item[1] for item in CHOICE.AMOUNT_TYPE]}
+    ]
+    required_fields = ['title', 'amount']
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolldeduction, PSRLZER_PAYR.Payrolldeductionserializer, request.data, extra_fields=extra_fields, choice_fields=choice_fields, required_fields=required_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatepayrolldeduction(request, payrolldeductionid=None):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_PAYR.Payrolldeduction,
+        PSRLZER_PAYR.Payrolldeductionserializer,
+        payrolldeductionid,
+        request.data,
+        extra_fields=extra_fields
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -94,7 +136,23 @@ def addpayrolltax(request):
     userid = request.user.id
     extra_fields = {}
     unique_fields = ['title']
+    required_fields = ['title', 'min_income', 'max_income', 'percentage']
     if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolltax, SRLZER_PAYR.Payrolltaxserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolltax, PSRLZER_PAYR.Payrolltaxserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, required_fields=required_fields)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatepayrolltax(request, payrolltaxid=None):
+    userid = request.user.id
+    extra_fields = {}
+    if userid: extra_fields.update({'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_PAYR.Payrolltax,
+        PSRLZER_PAYR.Payrolltaxserializer,
+        payrolltaxid,
+        request.data,
+        extra_fields=extra_fields
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

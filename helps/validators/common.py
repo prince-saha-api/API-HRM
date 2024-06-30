@@ -1,4 +1,9 @@
 from django.core.exceptions import ValidationError
+import re
+ 
+def validate_phonenumber(value):
+    result = re.findall('^01[3456789][0-9]{8}$|^8801[3456789][0-9]{8}$|^\+8801[3456789][0-9]{8}$', value)
+    if not result: raise ValidationError('Please insert a valid BD number!')
  
 def validate_phone_number(value):
     if len(value) == 14:

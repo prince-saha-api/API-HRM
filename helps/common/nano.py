@@ -1,4 +1,5 @@
 from helps.common.pico import Picohelps
+import re
 
 class Nanohelps(Picohelps):
     def is_date_in_range(self, date, start_date, end_date):
@@ -130,17 +131,12 @@ class Nanohelps(Picohelps):
                     string = string[0:len(string)-1]
         return string
     
-    def addaddress(self, Address, data): # New
+    def addaddress(self, Address, data, createdInstance=None): # New
         response = {
             'flag': True,
             'message': [],
             'instance': {}
         }
-        # name = data.get('name')
-        # if name == None:
-        #     response['message'].append('name is required!')
-        #     response['flag'] = False
-
         city = data.get('city')
         if city == None:
             response['message'].append('city is required!')
@@ -170,8 +166,11 @@ class Nanohelps(Picohelps):
             if post_zip_code: addressinstance.post_zip_code=post_zip_code
             if country: addressinstance.country=country
             if address: addressinstance.address=address
-            addressinstance.save()
-            response['instance'] = addressinstance
+            try:
+                addressinstance.save()
+                response['instance'] = addressinstance
+                createdInstance.append(addressinstance)
+            except: pass
         return response
     
     def addacademicrecord(self, Employeeacademichistory, userinstance, academicRecord): # New
@@ -225,7 +224,7 @@ class Nanohelps(Picohelps):
         return response
 
 
-    def addpreviousexperience(self, Employeeexperiencehistory, userinstance, previousExperience): # New
+    def addpreviousexperience(self, Employeeexperiencehistory, userinstance, previousExperience): # New 
         response = {
             'flag': False,
             'failed': [],
@@ -271,3 +270,64 @@ class Nanohelps(Picohelps):
                 else: response['failed'].append({'data': details, 'message': reasons})
         else: response['message'] = 'previousexperience is not list type!'
         return response
+    
+    def filterAllowedFields(self, allowed_fields, data, preparedata): # New
+        if isinstance(allowed_fields, str):
+            if allowed_fields == '__all__':
+                for datakey in data.keys():
+                    if data[datakey]: preparedata.update(data)
+        elif isinstance(allowed_fields, list):
+            for field in allowed_fields:
+                fieldvalue = data.get(field)
+                if fieldvalue: preparedata.update({field: fieldvalue})
+
+    def filterUniqueFields(self, classOBJ, unique_fields, preparedata, response_message): # New
+        uniquekeyvalue = {}
+        for field in unique_fields:
+            uniquevalue = preparedata.get(field)
+            if uniquevalue: uniquekeyvalue.update({field: uniquevalue})
+
+        for key, value in uniquekeyvalue.items():
+            if classOBJ.objects.filter(**{key:value}).exists(): response_message.append(f'this {key} already exist!')
+
+    def filterChoiceFields(self, choice_fields, preparedata, response_message): # New
+        for choice_field in choice_fields:
+            if choice_field['name'] in preparedata:
+                if preparedata[choice_field['name']] not in choice_field['values']: response_message.append(f'{choice_field["name"]} fields\'s allowed values are {", ".join(choice_field["values"])}')
+
+    def filterRequiredFields(self, required_fields, preparedata, response_message): # New
+        for required_field in required_fields:
+            if required_field not in preparedata: response_message.append(f'{required_field} is required!')
+
+    def filterRegexFields(self, fields_regex, preparedata, response_message): # New
+        for field_regex in fields_regex:
+            if field_regex['field'] in preparedata:
+                regexObj= self.getregex(field_regex['type'])
+                if re.search(regexObj['regex'], preparedata[field_regex['field']]):
+                    if field_regex['type'] == 'date':
+                        year, month, date = [int(each) for each in preparedata[field_regex['field']].split('-')]
+                        if not self.checkValidDate(year, month, date): response_message.append(f'{field_regex["field"]} field\'s format is {regexObj["format"]}!')
+                    if field_regex['type'] == 'time':
+                        hour, minute, second = [int(each) for each in preparedata[field_regex['field']].split(':')]
+                        if not self.checkValidTime(hour, minute, second): response_message.append(f'{field_regex["field"]} field\'s format is {regexObj["format"]}!')
+                    if field_regex['type'] == 'datetime':
+                        str_date, str_time = preparedata[field_regex['field']].split(' ')
+                        year, month, date = [int(each) for each in str_date.split('-')]
+                        hour, minute, second = [int(each) for each in str_time.split(':')]
+                        if not self.checkValidTime(year, month, date, hour, minute, second): response_message.append(f'{field_regex["field"]} field\'s format is {regexObj["format"]}!')
+                else: response_message.append(f'{field_regex["field"]} field\'s format is {regexObj["format"]}!')
+
+    def filterFreezFields(self, classobj, freez_update, response_message): # New
+        for FREEZ in freez_update:
+            if FREEZ:
+                for key, value in FREEZ.items():
+                    objvalue = getattr(classobj.first(), key, '')
+                    if objvalue in value:
+                        response_message.append(f'{key} (it\'s already {objvalue}.)')
+
+    def filterContinueFields(self, classobj, continue_update, response_message): # New
+        for CONTINUE in continue_update:
+            if CONTINUE:
+                for key, value in CONTINUE.items():
+                    objvalue = getattr(classobj.first(), key, '')
+                    if objvalue not in value: response_message.append(f'{key} (it\'s already {objvalue}.)')

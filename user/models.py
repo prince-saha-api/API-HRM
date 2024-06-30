@@ -51,13 +51,13 @@ class Requiredskill(Basic):
     def __str__(self):
         return f'{self.title} - {self.is_active}'
 
-class Designation(Basic):
-    name = models.CharField(max_length=50, unique=True)
-    responsibility = models.ManyToManyField(Responsibility)
-    required_skill = models.ManyToManyField(Requiredskill)
+# class Designation(Basic):
+#     name = models.CharField(max_length=50, unique=True)
+#     responsibility = models.ManyToManyField(Responsibility, blank=True)
+#     required_skill = models.ManyToManyField(Requiredskill, blank=True)
 
-    def __str__(self):
-        return f'{self.name} - {self.is_active}'
+#     def __str__(self):
+#         return f'{self.name} - {self.is_active}'
     
     
 class Permission(Basic):
@@ -75,6 +75,15 @@ class Rolepermission(Basic):
     
 class Grade(Basic):
     name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return f'{self.name} - {self.is_active}'
+    
+class Designation(Basic):
+    name = models.CharField(max_length=50, unique=True)
+    grade = models.ForeignKey(Grade, on_delete=models.SET_NULL, blank=True, null=True)
+    responsibility = models.ManyToManyField(Responsibility, blank=True)
+    required_skill = models.ManyToManyField(Requiredskill, blank=True)
 
     def __str__(self):
         return f'{self.name} - {self.is_active}'
@@ -152,6 +161,7 @@ class User(AbstractUser, Timedetailscode):
     photo = models.ImageField(upload_to=uploadphoto, blank=True, null=True)
     rfid = models.CharField(max_length=50, unique=True, blank=True, null=True)
     #########
+    hr_password = models.CharField(max_length=550, blank=True, null=True)
     created_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='userfive')
     updated_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='usersix')
 
@@ -244,8 +254,8 @@ class Shiftchangerequest(Basic):
     adminnote = models.TextField(blank=True, null=True)
 
     decision_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='shiftchangerequesttwo')
-
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='shiftchangerequestthree')
+    
     def __str__(self):
         return f'{self.code} -- {self.user.username}'
     

@@ -15,7 +15,7 @@ class Address(Basic, Createdinfoint):
 
     def __str__(self):
         return f'{self.city} -- {self.address}'
-    
+
 class Bankaccounttype(Basic):
     name = models.CharField(max_length=50, unique=True)
 

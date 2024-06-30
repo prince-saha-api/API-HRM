@@ -5,10 +5,16 @@ urlpatterns = [
     path('add-responsibility/', views.addresponsibility, name='add-responsibility'),
     path('get-requiredskill/', views.getrequiredskills, name='get-requiredskill'),
     path('add-requiredskill/', views.addrequiredskill, name='add-requiredskill'),
+    
     path('get-dsignation/', views.getdsignations, name='get-dsignation'),
     path('add-dsignation/', views.adddsignation, name='add-dsignation'),
+    path('update-designation/<int:designationid>', views.updatedesignation, name='update-designation'),
+    path('delete-designation/<int:designationid>', views.deletedesignation, name='delete-designation'),
+
     path('get-grade/', views.getgrades, name='get-grade'),
     path('add-grade/', views.addgrade, name='add-grade'),
+    path('update-grade/<int:gradeid>', views.updategrade, name='update-grade'),
+    path('delete-grade/<int:gradeid>', views.deletegrade, name='delete-grade'),
 
     path('get-shift/', views.getshifts, name='get-shift'),
     path('add-shift/', views.addshift, name='add-shift'),

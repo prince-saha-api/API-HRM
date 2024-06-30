@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from helps.common.generic import Generichelps as ghelp
 from helps.accesscontroldevice.a_devicehelp import Decicehelps as dhelp
 from attendance import models as MODELS_ATTE
+from attendance.serializer.POST import serializers as PSRLZER_ATTE
 from attendance.serializer import serializers as SRLZER_ATTE
 from device.models import Device
 from rest_framework.response import Response
@@ -43,7 +44,7 @@ def addmanualattendence(request):
     requestmanualattendance = MODELS_ATTE.Requestmanualattendance.objects.filter(date=date, requested_by=request.user.id)
     
     if not requestmanualattendance.exists():
-        requestmanualattendanceserializers = SRLZER_ATTE.Requestmanualattendanceserializer(data=request.data, many=False)
+        requestmanualattendanceserializers = PSRLZER_ATTE.Requestmanualattendanceserializer(data=request.data, many=False)
         if requestmanualattendanceserializers.is_valid():
             requestmanualattendanceserializers.save()
             return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializers.data}, status=status.HTTP_201_CREATED)
@@ -64,7 +65,7 @@ def getloggedinusersmanualattendence(request):
                             {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
                         ]
         kwargs = ghelp().KWARGS(request, filter_fields)
-        kwargs.update({'requested_by': userid})
+        kwargs.update({'requested_by': userid}) ,
         requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**kwargs)
         column_accessor = request.GET.get('column_accessor')
         if column_accessor: requestmanualattendances = requestmanualattendances.order_by(column_accessor)
@@ -75,16 +76,28 @@ def getloggedinusersmanualattendence(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def updatemanualattendence(request, manualattendenceid):
+def updatemanualattendence(request, manualattendenceid=None):
     allowed_fields = ['date', 'in_time', 'out_time']
-    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(MODELS_ATTE.Requestmanualattendance, SRLZER_ATTE.Requestmanualattendanceserializer, manualattendenceid, request.data, allowed_fields=allowed_fields)
+    fields_regex = [
+        {'field': 'date', 'type': 'date'},
+        {'field': 'in_time', 'type': 'time'},
+        {'field': 'out_time', 'type': 'time'},
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_ATTE.Requestmanualattendance, 
+        SRLZER_ATTE.Requestmanualattendanceserializer, 
+        manualattendenceid, 
+        request.data, 
+        allowed_fields=allowed_fields,
+        fields_regex=fields_regex
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def approvemanualattendence(request, manualattendenceid):
+def approvemanualattendence(request, manualattendenceid=None):
     requestmanualattendance = MODELS_ATTE.Requestmanualattendance.objects.filter(id=manualattendenceid)
     if requestmanualattendance.exists():
         attendance = MODELS_ATTE.Attendance.objects.filter(date=requestmanualattendance.first().date, employee=requestmanualattendance.first().requested_by.id)
@@ -92,7 +105,7 @@ def approvemanualattendence(request, manualattendenceid):
             if requestmanualattendance.first().status != STATUS[1][1]:
                 if not attendance.exists():
                     data = {'status': STATUS[1][1], 'decisioned_by': request.user.id}
-                    requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
+                    requestmanualattendanceserializer = PSRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
                     if requestmanualattendanceserializer.is_valid(raise_exception=True):
                         requestmanualattendanceserializer.save()
                         MODELS_ATTE.Attendance(
@@ -106,7 +119,7 @@ def approvemanualattendence(request, manualattendenceid):
                     else: return Response({'status': 'error', 'message': 'something went wrong!', 'data': requestmanualattendanceserializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     data = {'status': STATUS[1][1], 'decisioned_by': request.user.id}
-                    requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
+                    requestmanualattendanceserializer = PSRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
                     if requestmanualattendanceserializer.is_valid(raise_exception=True):
                         requestmanualattendanceserializer.save()
                     return Response({'status': 'error', 'message': 'already attendance exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
@@ -128,7 +141,7 @@ def approvemanualattendence(request, manualattendenceid):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def rejectmanualattendence(request, manualattendenceid):
+def rejectmanualattendence(request, manualattendenceid=None):
     requestmanualattendance = MODELS_ATTE.Requestmanualattendance.objects.filter(id=manualattendenceid)
     if requestmanualattendance.exists():
 
@@ -138,7 +151,7 @@ def rejectmanualattendence(request, manualattendenceid):
 
         data = {'status': STATUS[2][1], 'decisioned_by': request.user.id}
         if request.data.get('reject_reason'): data.update({'reject_reason': request.data.get('reject_reason')})
-        requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
+        requestmanualattendanceserializer = PSRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
         if requestmanualattendanceserializer.is_valid(raise_exception=True):
             requestmanualattendanceserializer.save()
             return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializer.data}, status=status.HTTP_200_OK)
@@ -177,7 +190,7 @@ def addremotelog(request):
     remotelogs = MODELS_ATTE.Remotelogs.objects.filter(date=date, employee=request.user.id, time=time)
     
     if not remotelogs.exists():
-        remotelogsserializer = SRLZER_ATTE.Remotelogsserializer(data=request.data, many=False)
+        remotelogsserializer = PSRLZER_ATTE.Remotelogsserializer(data=request.data, many=False)
         if remotelogsserializer.is_valid():
             remotelogsserializer.save()
             return Response({'status': 'success', 'message': '', 'data': remotelogsserializer.data}, status=status.HTTP_201_CREATED)
@@ -187,7 +200,7 @@ def addremotelog(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def updateremotelog(request, remotelogid):
+def updateremotelog(request, remotelogid=None):
     remotelogs = MODELS_ATTE.Remotelogs.objects.filter(id=remotelogid)
     if remotelogs.exists():
         data = {}
@@ -209,7 +222,7 @@ def updateremotelog(request, remotelogid):
         model = request.data.get('model')
         if model != None: data.update({'model': model})
 
-        remotelogsserializer = SRLZER_ATTE.Remotelogsserializer(instance=remotelogs.first(), data=data, partial=True)
+        remotelogsserializer = PSRLZER_ATTE.Remotelogsserializer(instance=remotelogs.first(), data=data, partial=True)
         if remotelogsserializer.is_valid(raise_exception=True):
             try:
                 remotelogsserializer.save()
@@ -221,7 +234,7 @@ def updateremotelog(request, remotelogid):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def deleteremotelog(request, remotelogid):
+def deleteremotelog(request, remotelogid=None):
     remotelogs = MODELS_ATTE.Remotelogs.objects.filter(id=remotelogid)
     if remotelogs.exists():
         remotelogs.delete()
@@ -278,7 +291,7 @@ def addremoteattendance(request):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def deleteremoteattendance(request, deleteattendenceid):
+def deleteremoteattendance(request, deleteattendenceid=None):
     requestremoteattendance = MODELS_ATTE.Requestremoteattendance.objects.filter(id=deleteattendenceid)
     if requestremoteattendance.exists():
         attendance = MODELS_ATTE.Attendance.objects.filter(date=requestremoteattendance.first().date, employee=requestremoteattendance.first().requested_by.id)
@@ -312,7 +325,7 @@ def getloggedinusersremoteattendence(request):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def approveremoteattendence(request, remoteattendenceid):
+def approveremoteattendence(request, remoteattendenceid=None):
     requestremoteattendance = MODELS_ATTE.Requestremoteattendance.objects.filter(id=remoteattendenceid)
     if requestremoteattendance.exists():
         attendance = MODELS_ATTE.Attendance.objects.filter(date=requestremoteattendance.first().date, employee=requestremoteattendance.first().requested_by.id)
@@ -320,7 +333,7 @@ def approveremoteattendence(request, remoteattendenceid):
             if requestremoteattendance.first().status != STATUS[1][1]:
                 if not attendance.exists():
                     data = {'status': STATUS[1][1], 'decisioned_by': request.user.id}
-                    requestremoteattendanceserializer = SRLZER_ATTE.Requestremoteattendanceserializer(instance=requestremoteattendance.first(), data=data, partial=True)
+                    requestremoteattendanceserializer = PSRLZER_ATTE.Requestremoteattendanceserializer(instance=requestremoteattendance.first(), data=data, partial=True)
                     if requestremoteattendanceserializer.is_valid(raise_exception=True):
                         requestremoteattendanceserializer.save()
                         MODELS_ATTE.Attendance(
@@ -334,7 +347,7 @@ def approveremoteattendence(request, remoteattendenceid):
                     else: return Response({'status': 'error', 'message': 'something went wrong!', 'data': requestremoteattendanceserializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     data = {'status': STATUS[1][1], 'decisioned_by': request.user.id}
-                    requestremoteattendanceserializer = SRLZER_ATTE.Requestremoteattendanceserializer(instance=requestremoteattendance.first(), data=data, partial=True)
+                    requestremoteattendanceserializer = PSRLZER_ATTE.Requestremoteattendanceserializer(instance=requestremoteattendance.first(), data=data, partial=True)
                     if requestremoteattendanceserializer.is_valid(raise_exception=True):
                         requestremoteattendanceserializer.save()
                     return Response({'status': 'error', 'message': 'already attendance exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
@@ -356,7 +369,7 @@ def approveremoteattendence(request, remoteattendenceid):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def rejectremoteattendence(request, remoteattendenceid):
+def rejectremoteattendence(request, remoteattendenceid=None):
     requestremoteattendance = MODELS_ATTE.Requestremoteattendance.objects.filter(id=remoteattendenceid)
     if requestremoteattendance.exists():
 
@@ -366,7 +379,7 @@ def rejectremoteattendence(request, remoteattendenceid):
 
         data = {'status': STATUS[2][1], 'decisioned_by': request.user.id}
         if request.data.get('reject_reason'): data.update({'reject_reason': request.data.get('reject_reason')})
-        requestremoteattendanceserializer = SRLZER_ATTE.Requestremoteattendanceserializer(instance=requestremoteattendance.first(), data=data, partial=True)
+        requestremoteattendanceserializer = PSRLZER_ATTE.Requestremoteattendanceserializer(instance=requestremoteattendance.first(), data=data, partial=True)
         if requestremoteattendanceserializer.is_valid(raise_exception=True):
             requestremoteattendanceserializer.save()
             return Response({'status': 'success', 'message': '', 'data': requestremoteattendanceserializer.data}, status=status.HTTP_200_OK)

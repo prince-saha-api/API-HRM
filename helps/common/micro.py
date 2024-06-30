@@ -2,6 +2,7 @@ from rest_framework import status
 
 from helps.common.nano import Nanohelps
 import datetime
+import re
 
 class Microhelps(Nanohelps):
     
@@ -64,30 +65,21 @@ class Microhelps(Nanohelps):
                     OnePortionOfSalary = (percentage*salary)/100
         return OnePortionOfSalary
     
-    def addtocolass(self, classOBJ, classSrializer, data, allowed_fields='__all__', unique_fields=[], extra_fields={}): # New
-        preparedata = {}
-        
-        if isinstance(allowed_fields, str):
-            if allowed_fields == '__all__': preparedata.update(data)
-        elif isinstance(allowed_fields, list):
-            for field in allowed_fields:
-                fieldvalue = data.get(field)
-                if fieldvalue: preparedata.update({field: fieldvalue})
-
-        uniquekeyvalue = {}
-        for field in unique_fields:
-            uniquevalue = preparedata.get(field)
-            if uniquevalue: uniquekeyvalue.update({field: uniquevalue})
-
+    def addtocolass(self, classOBJ, classSrializer, data, allowed_fields='__all__', unique_fields=[], required_fields=[], extra_fields={}, choice_fields=[], fields_regex=[]): # New
         response_data = {}
         response_message = []
         response_successflag = 'error'
         response_status = status.HTTP_400_BAD_REQUEST
-        for key, value in uniquekeyvalue.items():
-            if classOBJ.objects.filter(**{key:value}).exists(): response_message.append(f'this {key} already exist!')
-        
+
+        preparedata = {}
+        self. filterAllowedFields(allowed_fields, data, preparedata)
+        self.filterUniqueFields(classOBJ, unique_fields, preparedata, response_message)
+        preparedata.update(extra_fields)
+        self.filterChoiceFields(choice_fields, preparedata, response_message)
+        self.filterRequiredFields(required_fields, preparedata, response_message)
+        self.filterRegexFields(fields_regex, preparedata, response_message)
+
         if not response_message:
-            preparedata.update(extra_fields)
             classsrializer = classSrializer(data=preparedata, many=False)
             if classsrializer.is_valid():
                 try:    
@@ -97,15 +89,10 @@ class Microhelps(Nanohelps):
                     response_status = status.HTTP_201_CREATED
                 except:
                     response_message.append('unique combination is already exist!')
-            else:
-                for key, value in classsrializer.errors.items():
-                    for eachvalue in value:
-                        if eachvalue.code == 'required': response_message.append(f'{key} (required.)')
-                        elif eachvalue.code == 'invalid': response_message.append(f'{key} ({eachvalue})')
-                        else: response_message.append(f'{key} ({eachvalue})')
+            else: response_message.append('something went wrong!')
         return response_data, response_message, response_successflag, response_status
     
-    def updaterecord(self, classOBJ, classSrializer, idtofilter, data, allowed_fields=[], freez_update=[], continue_update=[], extra_fields={}): # New
+    def updaterecord(self, classOBJ, classSrializer, idtofilter, data, allowed_fields='__all__', freez_update=[], continue_update=[], extra_fields={}, fields_regex=[]): # New
         response_data = {}
         response_message = []
         response_successflag = 'error'
@@ -113,22 +100,14 @@ class Microhelps(Nanohelps):
 
         classobj = classOBJ.objects.filter(id=idtofilter)
         if classobj.exists():
+
             preparedata = {}
-            for field in allowed_fields:
-                fieldvalue = data.get(field)
-                if fieldvalue != None: preparedata.update({field: fieldvalue})
+            self. filterAllowedFields(allowed_fields, data, preparedata)
             if extra_fields: preparedata.update(extra_fields)
-            for FREEZ in freez_update:
-                if FREEZ:
-                    for key, value in FREEZ.items():
-                        objvalue = getattr(classobj.first(), key, '')
-                        if objvalue in value:
-                            response_message.append(f'{key} (it\'s already {objvalue}.)')
-            for CONTINUE in continue_update:
-                if CONTINUE:
-                    for key, value in CONTINUE.items():
-                        objvalue = getattr(classobj.first(), key, '')
-                        if objvalue not in value: response_message.append(f'{key} (it\'s already {objvalue}.)')
+            self.filterFreezFields(classobj, freez_update, response_message)
+            self.filterContinueFields(classobj, continue_update, response_message)
+            self.filterRegexFields(fields_regex, preparedata, response_message)
+
             if not response_message:
                 classsrializer = classSrializer(instance=classobj.first(), data=preparedata, partial=True)
                 if classsrializer.is_valid():
@@ -139,12 +118,7 @@ class Microhelps(Nanohelps):
                         response_successflag = 'success'
                         response_status = status.HTTP_200_OK
                     except: response_message.append('unique combination is already exist!')
-                else:
-                    for key, value in classsrializer.errors.items():
-                        for eachvalue in value:
-                            if eachvalue.code == 'required': response_message.append(f'{key} (required.)')
-                            elif eachvalue.code == 'invalid': response_message.append(f'{key} ({eachvalue})')
-                            else: response_message.append(f'{key} ({eachvalue})')
+                else: response_message.append('Something Went wrong!')
 
         else: response_message.append('doesn\'t exist!')
         return response_data, response_message, response_successflag, response_status
@@ -153,7 +127,7 @@ class Microhelps(Nanohelps):
         response_data = {}
         response_message = []
         response_successflag = 'error'
-        response_status = status.HTTP_400_BAD_REQUEST
+        response_status = status.HTTP_409_CONFLICT
         classobj = classOBJ.objects.filter(id=idtofilter)
         if classobj.exists():
             for classOBJpackage in classOBJpackage_tocheck_assciaativity:
@@ -161,22 +135,13 @@ class Microhelps(Nanohelps):
                     if classOBJpackage['model'].objects.filter(**{field: classobj.first()}).exists():
                         response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
             
-            for FREEZ in freez_delete:
-                if FREEZ:
-                    for key, value in FREEZ.items():
-                        objvalue = getattr(classobj.first(), key, '')
-                        if objvalue in value:
-                            response_message.append(f'{key} (it\'s already {objvalue}.)')
-            for CONTINUE in continue_delete:
-                if CONTINUE:
-                    for key, value in CONTINUE.items():
-                        objvalue = getattr(classobj.first(), key, '')
-                        if objvalue not in value: response_message.append(f'{key} (it\'s already {objvalue}.)')
+            self.filterFreezFields(classobj, freez_delete, response_message)
+            self.filterContinueFields(classobj, continue_delete, response_message)
             if not response_message:
                 try:
                     classobj.delete()
                     response_successflag = 'success'
-                    response_status = status.HTTP_200_OK
+                    response_status = status.HTTP_202_ACCEPTED
                 except: response_message.append('something went wrong!')
         else: response_message.append('doesn\'t exist!')
         return response_data, response_message, response_successflag, response_status
@@ -230,7 +195,7 @@ class Microhelps(Nanohelps):
 
         return response
 
-    def addbankaccount(self, classOBJpackage, data): # New
+    def addbankaccount(self, classOBJpackage, data, createdInstance=None): # New
         response = {
             'flag': True,
             'message': [],
@@ -246,9 +211,13 @@ class Microhelps(Nanohelps):
             response['message'].append('branch_name is required!')
             response['flag'] = False
 
-        account_type = self.getobject(classOBJpackage['Bankaccounttype'], {'id': data.get('account_type')})
-        if account_type == None:
-            response['message'].append('Invalid bank account type!')
+        if 'account_type' in data:
+            account_type = self.getobject(classOBJpackage['Bankaccounttype'], {'id': data['account_type']})
+            if account_type == None:
+                response['message'].append('Invalid bank account type!')
+                response['flag'] = False
+        else:
+            response['message'].append('account_type is required!')
             response['flag'] = False
 
         account_no = data.get('account_no')
@@ -265,9 +234,9 @@ class Microhelps(Nanohelps):
 
         address = None
         if isinstance(data.get('address'), dict):
-            address = self.addaddress(classOBJpackage['Address'], data.get('address'))
+            address = self.addaddress(classOBJpackage['Address'], data['address'], createdInstance)
             if not address['flag']:
-                response['message'].extend([f'address - {each}' for each in address['message']])
+                response['message'].extend([f'bank account address\'s {each}' for each in address['message']])
                 response['flag'] = False
         
         
@@ -280,6 +249,9 @@ class Microhelps(Nanohelps):
             if routing_no: bankaccountinstance.routing_no=routing_no
             if swift_bic: bankaccountinstance.swift_bic=swift_bic
             if address:bankaccountinstance.address=address['instance']
-            bankaccountinstance.save()
-            response['instance'] = bankaccountinstance
+            try:
+                bankaccountinstance.save()
+                response['instance'] = bankaccountinstance
+                createdInstance.append(bankaccountinstance)
+            except: pass
         return response

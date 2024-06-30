@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from facility import models as MODELS_FACI
 from facility.serializer import serializers as SRLZER_FACI
+from facility.serializer.POST import serializers as PSRLZER_FACI
 from helps.common.generic import Generichelps as ghelp
 from rest_framework.response import Response
 from rest_framework import status
@@ -32,5 +33,22 @@ def addfacility(request):
     extra_fields = {}
     unique_fields = ['title']
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_FACI.Facility, SRLZER_FACI.Facilityserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields)
+    required_fields = ['title']
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_FACI.Facility, PSRLZER_FACI.Facilityserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, required_fields=required_fields)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatefacility(request, facilityid=None):
+    # userid = request.user.id
+    extra_fields = {}
+    # if userid: extra_fields.update({'updated_by': userid})
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_FACI.Facility,
+        PSRLZER_FACI.Facilityserializer,
+        facilityid,
+        request.data,
+        extra_fields=extra_fields
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
