@@ -97,7 +97,8 @@ def updateleavepolicy(request, leavepolicyid=None):
             response_message.extend(response_message_)
             response_successflag = response_successflag_
             response_status = response_status_
-        return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+    else: response_message.append('doesn\'t exist!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])

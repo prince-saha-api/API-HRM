@@ -120,7 +120,6 @@ class Microhelps(Nanohelps):
                         response_status = status.HTTP_200_OK
                     except: response_message.append('unique combination is already exist!')
                 else: response_message.append('Something Went wrong!')
-
         else: response_message.append('doesn\'t exist!')
         return response_data, response_message, response_successflag, response_status
     
