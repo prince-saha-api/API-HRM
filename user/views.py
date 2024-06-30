@@ -121,9 +121,13 @@ def updatedesignation(request, designationid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletedesignation(request, designationid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_USER.User, 'fields': ['designation']}
+        {'model': MODELS_USER.User, 'fields': [{'field': 'designation', 'relation': 'foreignkey', 'records': []}]}
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_USER.Designation, classOBJpackage_tocheck_assciaativity, designationid)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_USER.Designation,
+        designationid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -179,11 +183,15 @@ def updategrade(request, gradeid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletegrade(request, gradeid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_LEAV.Holiday, 'fields': ['employee_grade']},
-        {'model': MODELS_USER.Designation, 'fields': ['grade']},
-        {'model': MODELS_USER.User, 'fields': ['grade']}
+        {'model': MODELS_LEAV.Holiday, 'fields': [{'field': 'employee_grade', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_USER.Designation, 'fields': [{'field': 'grade', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_USER.User, 'fields': [{'field': 'grade', 'relation': 'foreignkey', 'records': []}]}
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_USER.Grade, classOBJpackage_tocheck_assciaativity, gradeid)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_USER.Grade,
+        gradeid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -264,11 +272,15 @@ def updateshift(request, shiftid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deleteshift(request, shiftid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_USER.User, 'fields': ['shift']},
-        {'model': MODELS_USER.Shiftchangelog, 'fields': ['previouseshift', 'newshift']},
-        {'model': MODELS_USER.Shiftchangerequest, 'fields': ['reqshiftid']}
+        {'model': MODELS_USER.User, 'fields': [{'field': 'shift', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_USER.Shiftchangelog, 'fields': [{'field': 'previouseshift', 'relation': 'foreignkey', 'records': []}, {'field': 'newshift', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_USER.Shiftchangerequest, 'fields': [{'field': 'reqshiftid', 'relation': 'foreignkey', 'records': []}]}
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_USER.Shift, classOBJpackage_tocheck_assciaativity, shiftid)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_USER.Shift,
+        shiftid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -399,11 +411,12 @@ def rejectshiftchangerequest(request, shiftchangerequestid=None):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deleteshiftchangerequest(request, shiftchangerequestid=None):
-    classOBJpackage_tocheck_assciaativity = []
-    
     # freez_delete = [{'status': [CHOICE.STATUS[1][1], CHOICE.STATUS[2][1]]}]
     continue_delete = [{'status': [CHOICE.STATUS[0][1]]}]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_USER.Shiftchangerequest, classOBJpackage_tocheck_assciaativity, shiftchangerequestid, continue_delete=continue_delete)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_USER.Shiftchangerequest,
+        shiftchangerequestid,
+        continue_delete=continue_delete)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])

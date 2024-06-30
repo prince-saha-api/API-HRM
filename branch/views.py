@@ -145,10 +145,14 @@ def updatebranch(request, branchid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletebranch(request, branchid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_BRAN.Branchphonenumber, 'fields': ['branch']},
-        {'model': MODELS_BRAN.Branchemail, 'fields': ['branch']},
-        {'model': MODELS_BRAN.Contactperson, 'fields': ['branch']},
-        {'model': MODELS_DEPA.Department, 'fields': ['branch']}
+        {'model': MODELS_BRAN.Branchphonenumber, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_BRAN.Branchemail, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_BRAN.Contactperson, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]}
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_BRAN.Branch, classOBJpackage_tocheck_assciaativity, branchid)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_BRAN.Branch,
+        branchid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

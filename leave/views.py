@@ -66,7 +66,10 @@ def addleavepolicy(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updateleavepolicy(request, leavepolicyid=None):
-    error_message = []
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
     userid = request.user.id
     leavepolicys = MODELS_LEAV.Leavepolicy.objects.filter(id=leavepolicyid)
     if leavepolicys.exists():
@@ -77,12 +80,12 @@ def updateleavepolicy(request, leavepolicyid=None):
         if allocation_days != None:
             allocation_days = int(allocation_days)
             if allocation_days > leavepolicys.allocation_days: allowed_fields.append('allocation_days')
-            else: error_message.append('allocation_days must have to be incresed compared to previous allocation_days!') 
+            else: response_message.append('allocation_days must have to be incresed compared to previous allocation_days!') 
         
-        if not error_message:
+        if not response_message:
             extra_fields = {}
             if userid: extra_fields.update({'updated_by': userid})
-            response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+            response_data_, response_message_, response_successflag_, response_status_ = ghelp().updaterecord(
                 MODELS_LEAV.Leavepolicy,
                 PSRLZER_LEAV.Leavepolicyserializer,
                 leavepolicyid,
@@ -90,21 +93,28 @@ def updateleavepolicy(request, leavepolicyid=None):
                 allowed_fields=allowed_fields,
                 extra_fields=extra_fields
                 )
-            error_message.extend(response_message)
-        return Response({'data': response_data, 'message': error_message, 'status': response_successflag}, status=response_status)
+            response_data.update(response_data_)
+            response_message.extend(response_message_)
+            response_successflag = response_successflag_
+            response_status = response_status_
+        return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deleteleavepolicy(request, leavepolicyid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_LEAV.Leavepolicyassign, 'fields': ['leavepolicy']},
-        {'model': MODELS_LEAV.Approvedleave, 'fields': ['leavepolicy']},
-        {'model': MODELS_LEAV.Leavesummary, 'fields': ['leavepolicy']},
-        {'model': MODELS_LEAV.Leaveallocationrequest, 'fields': ['leavepolicy']},
-        {'model': MODELS_LEAV.Leaverequest, 'fields': ['leavepolicy']},
+        {'model': MODELS_LEAV.Leavepolicyassign, 'fields': [{'field': 'leavepolicy', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_LEAV.Approvedleave, 'fields': [{'field': 'leavepolicy', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_LEAV.Leavesummary, 'fields': [{'field': 'leavepolicy', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_LEAV.Leaveallocationrequest, 'fields': [{'field': 'leavepolicy', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_LEAV.Leaverequest, 'fields': [{'field': 'leavepolicy', 'relation': 'foreignkey', 'records': []}]},
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_LEAV.Leavepolicy, classOBJpackage_tocheck_assciaativity, leavepolicyid)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_LEAV.Leavepolicy,
+        leavepolicyid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -541,6 +551,8 @@ def updateholiday(request, holidayid=None):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deleteholiday(request, holidayid=None):
-    classOBJpackage_tocheck_assciaativity = []
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_LEAV.Holiday, classOBJpackage_tocheck_assciaativity, holidayid)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_LEAV.Holiday,
+        holidayid
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

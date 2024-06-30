@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from device import models as MODELS_DEVI
+from user import models as MODELS_USER
 from device.serializer import serializers as SRLZER_DEVI
 from device.serializer.POST import serializers as PSRLZER_DEVI
 from helps.common.generic import Generichelps as ghelp
@@ -32,7 +33,6 @@ def getdevices(request):
 @permission_classes([IsAuthenticated])
 def adddevice(request):
     # userid = request.user.id
-    extra_fields = {}
     unique_fields = ['title']
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields = ['title', 'deviceip']
@@ -44,7 +44,6 @@ def adddevice(request):
         PSRLZER_DEVI.Deviceserializer, 
         request.data, 
         unique_fields=unique_fields, 
-        extra_fields=extra_fields, 
         required_fields=required_fields,
         fields_regex=fields_regex
         )
@@ -65,6 +64,21 @@ def updatedevice(request, deviceid=None):
         extra_fields=extra_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletedevice(request, deviceid=None):
+    classOBJpackage_tocheck_assciaativity = [
+        {'model': MODELS_DEVI.Devicegroup, 'fields': [{'field': 'device', 'relation': 'manytomanyfield', 'records': MODELS_DEVI.Device.objects.filter(id=deviceid).first().devicegroup_set.all()}]}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_DEVI.Device,
+        deviceid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -106,5 +120,19 @@ def updatedevicegroup(request, devicegroupid=None):
         devicegroupid,
         request.data,
         extra_fields=extra_fields
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletedevicegroup(request, devicegroupid=None):
+    classOBJpackage_tocheck_assciaativity = [
+        {'model': MODELS_USER.Groupofdevicegroup, 'fields': [{'field': 'devicegroup', 'relation': 'manytomanyfield', 'records': MODELS_DEVI.Devicegroup.objects.filter(id=devicegroupid).first().groupofdevicegroup_set.all()}]}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_DEVI.Devicegroup,
+        devicegroupid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

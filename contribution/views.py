@@ -77,15 +77,19 @@ def updateaddress(request, addressid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deleteaddress(request, addressid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_BRAN.Branch, 'fields': ['address']},
-        {'model': MODELS_COMP.Basicinformation, 'fields': ['address']},
-        {'model': MODELS_COMP.Company, 'fields': ['address']},
-        {'model': MODELS_CONT.Bankaccount, 'fields': ['address']},
-        {'model': MODELS_DEPA.Department, 'fields': ['address']},
-        {'model': MODELS_USER.User, 'fields': ['present_address', 'permanent_address']},
-        {'model': MODELS_USER.Employeecontact, 'fields': ['address']},
+        {'model': MODELS_BRAN.Branch, 'fields': [{'field': 'address', 'relation': 'onetoonefield', 'records': []}]},
+        {'model': MODELS_COMP.Basicinformation, 'fields': [{'field': 'address', 'relation': 'onetoonefield', 'records': []}]},
+        {'model': MODELS_COMP.Company, 'fields': [{'field': 'address', 'relation': 'onetoonefield', 'records': []}]},
+        {'model': MODELS_CONT.Bankaccount, 'fields': [{'field': 'address', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'address', 'relation': 'onetoonefield', 'records': []}]},
+        {'model': MODELS_USER.User, 'fields': [{'field': 'present_address', 'relation': 'onetoonefield', 'records': []}, {'field': 'permanent_address', 'relation': 'onetoonefield', 'records': []}]},
+        {'model': MODELS_USER.Employeecontact, 'fields': [{'field': 'address', 'relation': 'onetoonefield', 'records': []}]},
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_CONT.Address, classOBJpackage_tocheck_assciaativity, addressid)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_CONT.Address,
+        addressid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     
 @api_view(['GET'])
@@ -145,11 +149,14 @@ def updatebankaccounttype(request, bankaccounttypeid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletebankaccounttype(request, bankaccounttypeid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_CONT.Bankaccount, 'fields': ['account_type']}
+        {'model': MODELS_CONT.Bankaccount, 'fields': [{'field': 'account_type', 'relation': 'foreignkey', 'records': []}]}
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_CONT.Bankaccounttype, classOBJpackage_tocheck_assciaativity, bankaccounttypeid)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_CONT.Bankaccounttype,
+        bankaccounttypeid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

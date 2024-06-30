@@ -119,9 +119,13 @@ def updatedepartment(request, departmentid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletedepartment(request, departmentid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_DEPA.Departmentmobilenumber, 'fields': ['department']},
-        {'model': MODELS_DEPA.Departmentemail, 'fields': ['department']},
-        {'model': MODELS_DEPA.Departmentimage, 'fields': ['department']}
+        {'model': MODELS_DEPA.Departmentmobilenumber, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_DEPA.Departmentemail, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_DEPA.Departmentimage, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]}
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(MODELS_DEPA.Department, classOBJpackage_tocheck_assciaativity, departmentid)
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_DEPA.Department,
+        departmentid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

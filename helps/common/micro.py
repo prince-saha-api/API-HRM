@@ -87,9 +87,10 @@ class Microhelps(Nanohelps):
                     response_data = classsrializer.data
                     response_successflag = 'success'
                     response_status = status.HTTP_201_CREATED
-                except:
-                    response_message.append('unique combination is already exist!')
-            else: response_message.append('something went wrong!')
+                except: response_message.append('unique combination is already exist!')
+            else:
+                print(classsrializer.errors)
+                response_message.append('something went wrong!')
         return response_data, response_message, response_successflag, response_status
     
     def updaterecord(self, classOBJ, classSrializer, idtofilter, data, allowed_fields='__all__', freez_update=[], continue_update=[], extra_fields={}, fields_regex=[]): # New
@@ -123,7 +124,7 @@ class Microhelps(Nanohelps):
         else: response_message.append('doesn\'t exist!')
         return response_data, response_message, response_successflag, response_status
     
-    def deleterecord(self, classOBJ, classOBJpackage_tocheck_assciaativity, idtofilter, freez_delete=[], continue_delete=[]): # New
+    def deleterecord(self, classOBJ, idtofilter, classOBJpackage_tocheck_assciaativity=[], freez_delete=[], continue_delete=[]): # New
         response_data = {}
         response_message = []
         response_successflag = 'error'
@@ -132,8 +133,14 @@ class Microhelps(Nanohelps):
         if classobj.exists():
             for classOBJpackage in classOBJpackage_tocheck_assciaativity:
                 for field in classOBJpackage['fields']:
-                    if classOBJpackage['model'].objects.filter(**{field: classobj.first()}).exists():
-                        response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
+                    if field['relation'] == 'onetoonefield':
+                        if classOBJpackage['model'].objects.filter(**{field['field']: classobj.first()}).exists():
+                            response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
+                    if field['relation'] == 'foreignkey':
+                        if classOBJpackage['model'].objects.filter(**{field['field']: classobj.first()}).exists():
+                            response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
+                    if field['relation'] == 'manytomanyfield':
+                        if field['records']: response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
             
             self.filterFreezFields(classobj, freez_delete, response_message)
             self.filterContinueFields(classobj, continue_delete, response_message)
