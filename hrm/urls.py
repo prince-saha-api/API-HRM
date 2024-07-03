@@ -15,7 +15,6 @@ urlpatterns = [
     path('api/department/', include('department.urls')),
     path('api/attendance/', include('attendance.urls')),
     path('api/workingshift/', include('workingshift.urls')),
-    path('api/officialoffday/', include('officialoffday.urls')),
     path('api/salarycalculation/', include('salarycalculation.urls')),
     path('api/costcalculation/', include('costcalculation.urls')),
     path('api/hrm_settings/', include('hrm_settings.urls')),

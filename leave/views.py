@@ -3,7 +3,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
 from user import models as MODELS_USER
-from officialoffday.models import Offday
 from leave import models as MODELS_LEAV
 from leave.serializer import serializers as SRLZER_LEAV
 from leave.serializer.POST import serializers as PSRLZER_LEAV
@@ -11,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from hrm_settings import models as MODELS_SETT
 from helps.common.generic import Generichelps as ghelp
-from helps.choice.common import STATUS, LEAVE_TYPE
+from helps.choice import common as CHOICE
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -57,9 +56,18 @@ def addleavepolicy(request):
     unique_fields = ['name']
     required_fields = ['name', 'leave_type']
     choice_fields = [
-        {'name': 'leave_type', 'values': [item[1] for item in LEAVE_TYPE]}
+        {'name': 'leave_type', 'values': [item[1] for item in CHOICE.LEAVE_TYPE]}
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_LEAV.Leavepolicy, PSRLZER_LEAV.Leavepolicyserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, choice_fields=choice_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_LEAV.Leavepolicy, 
+        PSRLZER_LEAV.Leavepolicyserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        extra_fields=extra_fields, 
+        choice_fields=choice_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -81,7 +89,7 @@ def updateleavepolicy(request, leavepolicyid=None):
             allocation_days = int(allocation_days)
             if allocation_days > leavepolicys.allocation_days: allowed_fields.append('allocation_days')
             else: response_message.append('allocation_days must have to be incresed compared to previous allocation_days!') 
-        
+
         if not response_message:
             extra_fields = {}
             if userid: extra_fields.update({'updated_by': userid})
@@ -223,7 +231,6 @@ def getleaverequest(request):
     filter_fields = [
                         {'name': 'id', 'convert': None, 'replace':'id'},
                         {'name': 'user', 'convert': None, 'replace':'user'},
-                        {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
                         {'name': 'from_date', 'convert': None, 'replace':'from_date'},
                         {'name': 'to_date', 'convert': None, 'replace':'to_date'},
                         {'name': 'description', 'convert': None, 'replace':'description__icontains'},
@@ -249,16 +256,23 @@ def getleaverequest(request):
     }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def addleaverequest(request):
     check_mood = True
-    user = MODELS_USER.User.objects.get(id=request.user.id)
+  
+    user = None
+    userid = request.data.get('user')
+    if userid:
+        if isinstance(userid, list):
+            userid = userid[0]
+            user = MODELS_USER.User.objects.get(id=userid)
+        else: user = MODELS_USER.User.objects.get(id=userid)
+    if user == None: return Response({'data': {}, 'message': ['please provide an user!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
     leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
     if check_mood:
         if leavepolicy == None: return Response({'data': {}, 'message': ['leavepolicy doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-
 
     from_date = request.data.get('from_date')
     try: from_date=ghelp().convert_STR_datetime_date(from_date)
@@ -270,6 +284,8 @@ def addleaverequest(request):
     attachment = request.FILES.get('attachment')
 
     leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
+    fiscal_year_from_date, fiscal_year_to_date = ghelp().getFiscalyearBoundary(leavesummary.first().general_settings.fiscalyear_month)
+    
     if leavesummary.exists():
 
         # Section to calculate date based on is_calendar_day
@@ -279,20 +295,21 @@ def addleaverequest(request):
             for day in range(daycount):
                 
                 filter_date = from_date + timedelta(day)
-                if ghelp().is_date_in_range(filter_date, leavesummary.first().fiscal_year.from_date, leavesummary.first().fiscal_year.to_date):
+                if ghelp().is_date_in_range(filter_date, fiscal_year_from_date, fiscal_year_to_date):
                     dates.append(filter_date)
-                else: return Response({'data': {}, 'message': ['applied date is not in this fiscal year!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+                else: return Response({'data': {}, 'message': [f'applied date is not in this fiscal year!({fiscal_year_from_date} - {fiscal_year_to_date})'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             for day in range(daycount):
                 date = from_date + timedelta(day)
-                offday = Offday.objects.filter(is_active=True, day=ghelp().convert_y_m_d_STR_day(date))
+                # offday = MODELS_SETT.Weeklyholiday.objects.filter(day=ghelp().convert_y_m_d_STR_day(date))
+                offday = leavesummary.first().general_settings.weekly_holiday.day.all()
                 if not offday.exists():
                     holiday = MODELS_LEAV.Holiday.objects.filter(date=date, employee_grade=user.grade)
                     if not holiday.exists():
                         filter_date = from_date + timedelta(day)
-                        if ghelp().is_date_in_range(filter_date, leavesummary.first().fiscal_year.from_date, leavesummary.first().fiscal_year.to_date):
+                        if ghelp().is_date_in_range(filter_date, fiscal_year_from_date, fiscal_year_to_date):
                             dates.append(filter_date)
-                        else: return Response({'data': {}, 'message': ['applied date is not in this fiscal year!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+                        else: return Response({'data': {}, 'message': [f'applied date is not in this fiscal year!({fiscal_year_from_date} - {fiscal_year_to_date})'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
         if leavepolicy.max_consecutive_days == 0 or len(dates)<=leavepolicy.max_consecutive_days:
             total_left = leavesummary.first().total_left
@@ -311,11 +328,11 @@ def addleaverequest(request):
                     leaverequest.valid_leave_dates=dates
                     if attachment: leaverequest.attachment=attachment
                     if description: leaverequest.description=description
-                    leaverequest.status=STATUS[0][1]
+                    leaverequest.status=CHOICE.STATUS[0][1]
                     leaverequest.save()
                     return Response({'data': {}, 'message': dates, 'status': 'success'}, status=status.HTTP_200_OK)
                 
-                else: return Response({'data': {}, 'message': ['all the day\'s are holiday!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+                else: return Response({'data': {}, 'message': ['all the day\'s are weekly holiday!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
             else: return Response({'data': {}, 'message': [f'you have left {total_left} leave - {leavepolicy.name}!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
         else: return Response({'data': {}, 'message': [f'max_consecutive_days {leavepolicy.max_consecutive_days} have been exceeded!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     else: return Response({'data': {}, 'message': [f'you are not permitted to have {leavepolicy.name} leave!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
@@ -351,7 +368,7 @@ def approveleaverequest(request, leaverequest=None):
                     approved_by=MODELS_USER.User.objects.get(id=request.user.id)
                 )
 
-            leaverequest.update(status=STATUS[1][1], approved_by=MODELS_USER.User.objects.get(id=request.user.id))
+            leaverequest.update(status=CHOICE.STATUS[1][1], approved_by=MODELS_USER.User.objects.get(id=request.user.id))
 
             total_consumed = leavesummary.first().total_consumed + len(leaverequest.first().valid_leave_dates)
             total_left = leavesummary.first().total_allocation - total_consumed
@@ -427,29 +444,40 @@ def getleaveallocationrequest(request):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def addleaveallocationrequest(request):
     check_mood = True
-    user = MODELS_USER.User.objects.get(id=request.user.id)
-
+    
     leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
     if check_mood:
         if leavepolicy == None: return Response({'data': {}, 'message': ['leavepolicy doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     
-    no_of_days = request.data.get('no_of_days')
-    reason = request.data.get('reason')
-    
-    if no_of_days>0:
-        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
-        if leavesummary.exists():
-            leaveallocationrequestinstance = MODELS_LEAV.Leaveallocationrequest()
-            leaveallocationrequestinstance.user=user
-            leaveallocationrequestinstance.leavepolicy=leavepolicy
-            leaveallocationrequestinstance.no_of_days=no_of_days
-            if reason: leaveallocationrequestinstance.reason=reason
-            leaveallocationrequestinstance.status=STATUS[0][1]
-            leaveallocationrequestinstance.save()
-            return Response({'data': {}, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
-        else: return Response({'data': {}, 'message': ['leavesummary doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': ['no_of_days is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    user = None
+    userid = request.data.get('user')
+    if userid:
+        if userid.isnumeric():
+            user = MODELS_USER.User.objects.get(id=int(userid))
+        else: return Response({'data': {}, 'message': ['please enter a valid user id(integer value)'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'data': {}, 'message': ['user id is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
+    no_of_days = request.data.get('no_of_days')
+    if no_of_days: no_of_days = int(no_of_days)
+    reason = request.data.get('reason')
+    attachment = request.FILES.get('attachment')
+    
+    if no_of_days:
+        if no_of_days>0:
+            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
+            if leavesummary.exists():
+                leaveallocationrequestinstance = MODELS_LEAV.Leaveallocationrequest()
+                leaveallocationrequestinstance.user=user
+                leaveallocationrequestinstance.leavepolicy=leavepolicy
+                leaveallocationrequestinstance.no_of_days=no_of_days
+                if reason: leaveallocationrequestinstance.reason=reason
+                if attachment: leaveallocationrequestinstance.attachment=attachment
+                leaveallocationrequestinstance.status=CHOICE.STATUS[0][1]
+                leaveallocationrequestinstance.save()
+                return Response({'data': {}, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+            else: return Response({'data': {}, 'message': ['leavesummary doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        else: return Response({'data': {}, 'message': ['no_of_days should be a positive value!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'data': {}, 'message': ['no_of_days is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -469,7 +497,7 @@ def approverequestleaveallocation(request, leaveallocationrequest=None):
             total_allocation = leavesummary.first().total_allocation + leaveallocationrequest.first().no_of_days
             total_left = leavesummary.first().total_left + leaveallocationrequest.first().no_of_days
             leavesummary.update(total_allocation=total_allocation, total_left=total_left)
-            leaveallocationrequest.update(status=STATUS[1][1], approved_by=approved_by)
+            leaveallocationrequest.update(status=CHOICE.STATUS[1][1], approved_by=approved_by)
             return Response({'data': {}, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
         else: return Response({'data': {}, 'message': ['leavesummary doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     else: return Response({'data': {}, 'message': ['provide a leaveallocationrequest id!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
@@ -526,6 +554,7 @@ def addholiday(request):
         required_fields=required_fields,
         fields_regex=fields_regex
         )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])

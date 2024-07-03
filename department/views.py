@@ -52,8 +52,16 @@ def adddepartment(request):
 
     if 'address' in departmentObj:
         addressobj = departmentObj['address']
-        addressresponse = ghelp().addaddress(MODELS_CONT.Address, addressobj)
-        if addressresponse['flag']: departmentObj.update({'address': addressresponse['instance'].id})
+
+        required_fields = ['address', 'city', 'state_division', 'country']
+        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+            MODELS_CONT.Address,
+            PSRLZER_CONT.Addressserializer,
+            addressobj,
+            required_fields=required_fields
+            )
+        if responsesuccessflag == 'success':
+            if responsedata: departmentObj.update({'address': responsedata.data['id']})
 
     unique_fields = ['email', 'phone', 'fax']
     required_fields = ['company', 'branch']
@@ -73,6 +81,7 @@ def adddepartment(request):
         if 'address' in departmentObj:
             address = MODELS_CONT.Address.objects.filter(id=departmentObj['address'])
             if address.exists(): address.delete()
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])

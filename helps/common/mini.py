@@ -163,33 +163,49 @@ class Minihelps(Microhelps):
                 if object == None: flag = False
         return flag
     
-    def getuserdetails(self, classOBJpackage, createdInstance,  personalDetails, officialDetails, salaryAndLeaves, created_by): # New
+    def getuserdetails(self, classOBJpackage, serializerOBJpackage, createdInstance,  personalDetails, officialDetails, salaryAndLeaves, created_by): # New
         response = {'flag': True, 'message': [], 'data': {}}
 
         addbankaccountdetails = None
         if 'bank_account' in salaryAndLeaves:
-            addbankaccountdetails=self.addbankaccount(classOBJpackage, salaryAndLeaves['bank_account'], createdInstance)
+            addbankaccountdetails=self.addbankaccount(classOBJpackage, serializerOBJpackage, salaryAndLeaves['bank_account'], createdInstance)
             if not addbankaccountdetails['flag']:
                 response['message'].extend([f'user\'s {each}' for each in addbankaccountdetails['message']])
                 response['flag'] = False
                 addbankaccountdetails = None
-        
+
         presentaddressdetails = None
         if 'present_address' in personalDetails:
-            presentaddressdetails=self.addaddress(classOBJpackage['Address'], personalDetails['present_address'], createdInstance)
-            if not presentaddressdetails['flag']:
-                response['message'].extend([f'user present address\'s {each}' for each in presentaddressdetails['message']])
+            required_fields = ['address', 'city', 'state_division', 'country']
+            response_data, response_message, response_successflag, response_status = self.addtocolass(
+                classOBJpackage['Address'],
+                serializerOBJpackage['Address'],
+                personalDetails['present_address'],
+                required_fields=required_fields
+            )
+            if response_successflag == 'success':
+                presentaddressdetails = response_data.instance
+                createdInstance.append(presentaddressdetails)
+            elif response_successflag == 'error':
+                response['message'].extend([f'user present address\'s {each}' for each in response_message])
                 response['flag'] = False
-                presentaddressdetails = None
-        
+            
         permanentaddressdetails = None
-        if 'permanent_address' in personalDetails:
-            permanentaddressdetails=self.addaddress(classOBJpackage['Address'], personalDetails.get('permanent_address'), createdInstance)
-            if not permanentaddressdetails['flag']:
-                response['message'].extend([f'user permanet address {each}' for each in permanentaddressdetails['message']])
+        if 'present_address' in personalDetails:
+            required_fields = ['address', 'city', 'state_division', 'country']
+            response_data, response_message, response_successflag, response_status = self.addtocolass(
+                classOBJpackage['Address'],
+                serializerOBJpackage['Address'],
+                personalDetails['present_address'],
+                required_fields=required_fields
+            )
+            if response_successflag == 'success':
+                permanentaddressdetails = response_data.instance
+                createdInstance.append(permanentaddressdetails)
+            elif response_successflag == 'error':
+                response['message'].extend([f'user permanet address {each}' for each in response_message])
                 response['flag'] = False
-                permanentaddressdetails = None
-
+                
         if response['flag']:
             fields_to_prepare_details_obj = self.prepareUserObjInfo(personalDetails, officialDetails, salaryAndLeaves)
             for each in fields_to_prepare_details_obj:
@@ -197,8 +213,8 @@ class Minihelps(Microhelps):
 
             religion = self.getobject(classOBJpackage['Religion'], {'id': personalDetails.get('religion')})
             if religion: response['data'].update({'religion': religion})
-            if presentaddressdetails: response['data'].update({'present_address': presentaddressdetails['instance']})
-            if permanentaddressdetails: response['data'].update({'permanent_address': permanentaddressdetails['instance']})
+            if presentaddressdetails: response['data'].update({'present_address': presentaddressdetails})
+            if permanentaddressdetails: response['data'].update({'permanent_address': permanentaddressdetails})
             designation = self.getobject(classOBJpackage['Designation'], {'id': officialDetails.get('designation')})
             if designation: response['data'].update({'designation': designation})
             shift = self.getobject(classOBJpackage['Shift'], {'id': officialDetails.get('shift')})
@@ -325,3 +341,101 @@ class Minihelps(Microhelps):
                                                 if subList: mainObj.update({field['field']: subList})
                     if subObj: mainObj.update({nestedfield['field']: subObj})
         return mainObj if mainObj else None
+    
+    def addemergencycontact(self, Employeecontact, Employeecontactserializer, Address, Addressserializer, userinstance, emergencyContact): # New
+        response = {'success': [], 'failed': [], 'message': []}
+        if isinstance(emergencyContact, list):
+            for index, details in enumerate(emergencyContact):
+                details_copy = details.copy()
+                details.update({'user': userinstance.id})
+                
+                address_flag = True
+                address_responsemessage = []
+                if 'address' in details:
+                    required_fields = ['address', 'city', 'state_division', 'country']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                        Address,
+                        Addressserializer,
+                        details['address'],
+                        required_fields=required_fields
+                    )
+
+                    if responsesuccessflag == 'success':
+                        address_responsemessage.extend(responsemessage)
+                        details.update({'address': responsedata.instance.id})
+                    elif responsesuccessflag == 'error':
+                        address_responsemessage.extend(responsemessage)
+                        address_flag = False
+                        del details['address']
+
+                required_fields = ['name', 'user']
+                response_data, response_message, response_successflag, response_status = self.addtocolass(
+                    Employeecontact,
+                    Employeecontactserializer,
+                    details,
+                    required_fields=required_fields
+                )
+                if response_successflag == 'success':
+                    objects = {'details': details_copy, 'message': []}
+                    if not address_flag: objects['message'].extend([f'{index+1} user\'s emergency contact address {each}' for each in address_responsemessage])
+                    response['success'].append(objects)
+                elif response_successflag == 'error':
+                    objects = {'details': details_copy, 'message': []}
+                    objects['message'].extend([f'{index+1} user\'s emergency contact {each}' for each in response_message])
+                    if not address_flag: objects['message'].extend([f'{index+1} user\'s emergency contact address {each}' for each in address_responsemessage])
+                    response['failed'].append(objects)
+        else: response['message'].append('emergencycontact is not list type!')
+        return response
+    
+    def addacademicrecord(self, Employeeacademichistory, Employeeacademichistoryserializer, userinstance, academicRecord): # New
+        response = {'success': [], 'failed': [], 'message': []}
+        if isinstance(academicRecord, list):
+            for index, details in enumerate(academicRecord):
+                details_copy = details.copy()
+                details.update({'user': userinstance.id})
+
+                required_fields = ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
+                response_data, response_message, response_successflag, response_status = self.addtocolass(
+                    Employeeacademichistory,
+                    Employeeacademichistoryserializer,
+                    details,
+                    required_fields=required_fields
+                )
+                if response_successflag == 'success':
+                    objects = {'details': details_copy, 'message': []}
+                    response['success'].append(objects)
+                elif response_successflag == 'error':
+                    objects = {'details': details_copy, 'message': []}
+                    objects['message'].extend([f'{index+1} user\'s academic record {each}' for each in response_message])
+                    response['failed'].append(objects)
+        else: response['message'].append('academicrecord is not list type!')
+        return response
+    
+    def addpreviousexperience(self, Employeeexperiencehistory, Employeeexperiencehistoryserializer, userinstance, previousExperience): # New 
+        response = {'success': [], 'failed': [], 'message': []}
+        if isinstance(previousExperience, list):
+            for index, details in enumerate(previousExperience):
+                details_copy = details.copy()
+                details.update({'user': userinstance.id})
+
+                required_fields = ['user', 'company_name', 'designation', 'address', 'from_date', 'to_date']
+                fields_regex = [
+                    {'field': 'from_date', 'type': 'date'},
+                    {'field': 'to_date', 'type': 'date'}
+                ]
+                response_data, response_message, response_successflag, response_status = self.addtocolass(
+                    Employeeexperiencehistory,
+                    Employeeexperiencehistoryserializer,
+                    details,
+                    required_fields=required_fields,
+                    fields_regex=fields_regex
+                )
+                if response_successflag == 'success':
+                    objects = {'details': details_copy, 'message': []}
+                    response['success'].append(objects)
+                elif response_successflag == 'error':
+                    objects = {'details': details_copy, 'message': []}
+                    objects['message'].extend([f'{index+1} user\'s previous experience {each}' for each in response_message])
+                    response['failed'].append(objects)
+        else: response['message'].append('previousexperience is not list type!')
+        return response

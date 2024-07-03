@@ -3,7 +3,7 @@ from user.models import User, Shiftchangelog
 from helps.choice.common import ATTENDANCE_FROM, STATUS
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
-from officialoffday.models import Offday
+from hrm_settings import models as MODELS_HRMS
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Timedetails, Timedetailscode
 from workingshift.models import Globalbuffertime
@@ -26,7 +26,7 @@ class Attendance(Timedetails):
     total_minutes = models.FloatField(validators=[MinValueValidator(0)], null=True, blank=True)
     in_out_times = ArrayField(models.TimeField(blank=True, null=True), null=True, blank=True)
     # holiday = models.ForeignKey(Holiday, on_delete=models.SET_NULL, null=True, blank=True)
-    office_off_day = models.ForeignKey(Offday, on_delete=models.SET_NULL, null=True, blank=True)
+    # office_off_day = models.ForeignKey(MODELS_HRMS.Weeklyholiday, on_delete=models.SET_NULL, null=True, blank=True)
     buffer_time_minutes = models.CharField(max_length=25, null=True, blank=True)
     employee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     attendance_from = models.CharField(max_length=20, choices=ATTENDANCE_FROM)
@@ -55,7 +55,7 @@ class Attendance(Timedetails):
             shiftchangelog = shiftchangelog.first()
             shift = shiftchangelog.newshift
 
-            details = ghelp().getattendancedetails(Globalbuffertime, Offday, shift, self.date, self.in_time, self.out_time)
+            details = ghelp().getattendancedetails(Globalbuffertime, MODELS_HRMS.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
             self.in_negative_minutes = details['in_negative_minutes']
             self.in_positive_minutes = details['in_positive_minutes']
             self.out_negative_minutes = details['out_negative_minutes']
@@ -65,11 +65,11 @@ class Attendance(Timedetails):
             self.early_leave_based_on_buffertime = details['early_leave_based_on_buffertime']
 
             self.total_minutes = details['total_minutes']
-            if details['office_off_day']: self.office_off_day = details['office_off_day']
+            # if details['office_off_day']: self.office_off_day = details['office_off_day']
         else:
             shift = self.employee.shift
 
-            details = ghelp().getattendancedetails(Globalbuffertime, Offday, shift, self.date, self.in_time, self.out_time)
+            details = ghelp().getattendancedetails(Globalbuffertime, MODELS_HRMS.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
             self.in_negative_minutes = details['in_negative_minutes']
             self.in_positive_minutes = details['in_positive_minutes']
             self.out_negative_minutes = details['out_negative_minutes']
@@ -80,7 +80,7 @@ class Attendance(Timedetails):
             self.buffer_time_minutes = details['buffer_time_minutes']
 
             self.total_minutes = details['total_minutes']
-            if details['office_off_day']: self.office_off_day = details['office_off_day']
+            # if details['office_off_day']: self.office_off_day = details['office_off_day']
 
         super().save(*args, **kwargs)
 

@@ -60,3 +60,18 @@ class Shiftchangelogserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Shiftchangelog
         fields = '__all__'
+
+class Employeecontactserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Employeecontact
+        fields = '__all__'
+
+class Employeeacademichistoryserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Employeeacademichistory
+        fields = '__all__'
+
+class Employeeexperiencehistoryserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Employeeexperiencehistory
+        fields = '__all__'

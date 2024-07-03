@@ -39,7 +39,15 @@ def addcompany(request):
     unique_fields = []
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields = ['company_owner']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_COMP.Company, PSRLZER_COMP.Companyserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_COMP.Company, 
+        PSRLZER_COMP.Companyserializer, 
+        request.data,
+        unique_fields=unique_fields, 
+        extra_fields=extra_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -344,7 +352,15 @@ def addcompanytype(request):
     unique_fields = []
     if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields = ['name']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_COMP.Companytype, PSRLZER_COMP.Companytypeserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_COMP.Companytype,
+        PSRLZER_COMP.Companytypeserializer, 
+        request.data,
+        unique_fields=unique_fields, 
+        extra_fields=extra_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])

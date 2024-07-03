@@ -65,14 +65,15 @@ class Microhelps(Nanohelps):
                     OnePortionOfSalary = (percentage*salary)/100
         return OnePortionOfSalary
     
-    def addtocolass(self, classOBJ, classSrializer, data, allowed_fields='__all__', unique_fields=[], required_fields=[], extra_fields={}, choice_fields=[], fields_regex=[]): # New
-        response_data = {}
+    def addtocolass(self, classOBJ, classSrializer, data, instance=False, allowed_fields='__all__', unique_fields=[], required_fields=[], extra_fields={}, choice_fields=[], fields_regex=[]): # New
+        response_data = None
         response_message = []
+        response_data = {}
         response_successflag = 'error'
         response_status = status.HTTP_400_BAD_REQUEST
 
         preparedata = {}
-        self. filterAllowedFields(allowed_fields, data, preparedata)
+        self.filterAllowedFields(allowed_fields, data, preparedata)
         self.filterUniqueFields(classOBJ, unique_fields, preparedata, response_message)
         preparedata.update(extra_fields)
         self.filterChoiceFields(choice_fields, preparedata, response_message)
@@ -84,7 +85,7 @@ class Microhelps(Nanohelps):
             if classsrializer.is_valid():
                 try:    
                     classsrializer.save()
-                    response_data = classsrializer.data
+                    response_data = classsrializer
                     response_successflag = 'success'
                     response_status = status.HTTP_201_CREATED
                 except: response_message.append('unique combination is already exist!')
@@ -93,7 +94,7 @@ class Microhelps(Nanohelps):
                 response_message.append('something went wrong!')
         return response_data, response_message, response_successflag, response_status
     
-    def updaterecord(self, classOBJ, classSrializer, idtofilter, data, allowed_fields='__all__', freez_update=[], continue_update=[], extra_fields={}, fields_regex=[]): # New
+    def updaterecord(self, classOBJ, classSrializer, idtofilter, data, allowed_fields='__all__', freez_update=[], continue_update=[], extra_fields={}, choice_fields=[], fields_regex=[]): # New
         response_data = {}
         response_message = []
         response_successflag = 'error'
@@ -103,12 +104,12 @@ class Microhelps(Nanohelps):
         if classobj.exists():
 
             preparedata = {}
-            self. filterAllowedFields(allowed_fields, data, preparedata)
+            self.filterAllowedFields(allowed_fields, data, preparedata)
             if extra_fields: preparedata.update(extra_fields)
             self.filterFreezFields(classobj, freez_update, response_message)
             self.filterContinueFields(classobj, continue_update, response_message)
+            self.filterChoiceFields(choice_fields, preparedata, response_message)
             self.filterRegexFields(fields_regex, preparedata, response_message)
-
             if not response_message:
                 classsrializer = classSrializer(instance=classobj.first(), data=preparedata, partial=True)
                 if classsrializer.is_valid():
@@ -151,113 +152,33 @@ class Microhelps(Nanohelps):
                 except: response_message.append('something went wrong!')
         else: response_message.append('doesn\'t exist!')
         return response_data, response_message, response_successflag, response_status
-    
-    def addemergencycontact(self, Employeecontact, Address, userinstance, emergencyContact): # New
-        response = {
-            'flag': False,
-            'failed': [],
-            'message': ''
-        }
 
-        if isinstance(emergencyContact, list):
-            for details in emergencyContact:
-                create_flag = True
-                reasons = []
-                
-                name = details.get('name')
-                if name == None:
-                    reasons.append('name field is required!')
-                    create_flag = False
-
-                age = details.get('age')
-
-                
-                phone_no = details.get('phone_no')
-                if phone_no:
-                    object = self.getobject(Employeecontact, {'phone_no': phone_no})
-                    if object:
-                        reasons.append('emergency phone_no is already exist!')
-                        create_flag = False
-
-                email = details.get('email')
-                relation = details.get('relation')
-
-                if create_flag:
-                    response['flag'] = True
-                    addressinstance = self.addaddress(Address, details['address'])
-                    if addressinstance['flag']:
-                        employeecontactinstance = Employeecontact()
-                        employeecontactinstance.user=userinstance
-                        if name: employeecontactinstance.name=name
-                        if age: employeecontactinstance.age=age
-                        if phone_no: employeecontactinstance.phone_no=phone_no
-                        if email: employeecontactinstance.email=email
-                        if relation: employeecontactinstance.relation=relation
-                        if addressinstance: employeecontactinstance.address=addressinstance['instance']
-                        employeecontactinstance.save()
-                    else: response['failed'].append({'data': details, 'message': [f'address - {each}' for each in addressinstance['message']]})
-                else: response['failed'].append({'data': details, 'message': reasons})
-        else: response['message'] = 'emergencycontact is not list type!'
-
-        return response
-
-    def addbankaccount(self, classOBJpackage, data, createdInstance=None): # New
-        response = {
-            'flag': True,
-            'message': [],
-            'instance': {}
-        }
-        bank_name = data.get('bank_name')
-        if bank_name == None:
-            response['message'].append('bank_name is required!')
-            response['flag'] = False
-
-        branch_name = data.get('branch_name')
-        if branch_name == None:
-            response['message'].append('branch_name is required!')
-            response['flag'] = False
-
-        if 'account_type' in data:
-            account_type = self.getobject(classOBJpackage['Bankaccounttype'], {'id': data['account_type']})
-            if account_type == None:
-                response['message'].append('Invalid bank account type!')
-                response['flag'] = False
-        else:
-            response['message'].append('account_type is required!')
-            response['flag'] = False
-
-        account_no = data.get('account_no')
-        if account_no == None:
-            response['message'].append('account_no is required!')
-            response['flag'] = False
-
-        routing_no = data.get('routing_no')
-        if routing_no == None:
-            response['message'].append('routing_no is required!')
-            response['flag'] = False
-
-        swift_bic = data.get('swift_bic')
-
-        address = None
+    def addbankaccount(self, classOBJpackage, serializerOBJpackage, data, createdInstance=None): # New
+        response = {'flag': True, 'message': [], 'instance': {}}
         if isinstance(data.get('address'), dict):
-            address = self.addaddress(classOBJpackage['Address'], data['address'], createdInstance)
-            if not address['flag']:
-                response['message'].extend([f'bank account address\'s {each}' for each in address['message']])
+            address_required_fields = ['address', 'city', 'state_division', 'country']
+            address_response_data, address_response_message, address_response_successflag, address_response_status = self.addtocolass(
+                classOBJpackage['Address'],
+                serializerOBJpackage['Address'],
+                data['address'],
+                required_fields=address_required_fields
+            )
+            if address_response_successflag == 'success':
+                data.update({'address': address_response_data.instance.id})
+                createdInstance.append(address_response_data.instance)
+            elif response_successflag == 'error':
                 response['flag'] = False
-        
+                response['message'].extend([f'bank account address\'s {each}' for each in address_response_message])
         
         if response['flag']:
-            bankaccountinstance = classOBJpackage['Bankaccount']()
-            if bank_name: bankaccountinstance.bank_name=bank_name
-            if branch_name: bankaccountinstance.branch_name=branch_name
-            if account_type: bankaccountinstance.account_type=account_type
-            if account_no: bankaccountinstance.account_no=account_no
-            if routing_no: bankaccountinstance.routing_no=routing_no
-            if swift_bic: bankaccountinstance.swift_bic=swift_bic
-            if address:bankaccountinstance.address=address['instance']
-            try:
-                bankaccountinstance.save()
-                response['instance'] = bankaccountinstance
-                createdInstance.append(bankaccountinstance)
-            except: pass
+            required_fields = ['bank_name', 'branch_name', 'account_type', 'account_no', 'routing_no']
+            response_data, response_message, response_successflag, response_status = self.addtocolass(
+                classOBJpackage['Bankaccount'],
+                serializerOBJpackage['Bankaccount'],
+                data,
+                required_fields=required_fields
+            )
+            if response_successflag == 'success':
+                response['instance'] = response_data.instance
+                createdInstance.append(response_data.instance)
         return response

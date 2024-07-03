@@ -9,6 +9,7 @@ from hrm_settings import models as MODELS_SETT
 from user import models as MODELS_USER
 from user.serializer import serializers as SRLZER_USER
 from user.serializer.POST import serializers as PSRLZER_USER
+from contribution.serializer.POST import serializers as PSRLZER_CONT
 from rest_framework.response import Response
 from rest_framework import status
 from helps.common.generic import Generichelps as ghelp
@@ -39,7 +40,15 @@ def addresponsibility(request):
     unique_fields = ['title']
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields = ['title']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Responsibility, PSRLZER_USER.Responsibilityserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_USER.Responsibility, 
+        PSRLZER_USER.Responsibilityserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        extra_fields=extra_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -64,7 +73,15 @@ def addrequiredskill(request):
     unique_fields = ['title']
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields= ['title']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Requiredskill, PSRLZER_USER.Requiredskillserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_USER.Requiredskill, 
+        PSRLZER_USER.Requiredskillserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        extra_fields=extra_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -99,7 +116,14 @@ def adddsignation(request):
     # userid = request.user.id
     unique_fields = ['name']
     required_fields= ['name']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Designation, PSRLZER_USER.Designationserializer, request.data, unique_fields=unique_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_USER.Designation, 
+        PSRLZER_USER.Designationserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -162,7 +186,14 @@ def addgrade(request):
     # userid = request.user.id
     unique_fields = ['name']
     required_fields = ['name']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Grade, PSRLZER_USER.Gradeserializer, request.data, unique_fields=unique_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_USER.Grade, 
+        PSRLZER_USER.Gradeserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -244,6 +275,7 @@ def addshift(request):
         required_fields=required_fields,
         fields_regex=fields_regex
         )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -329,6 +361,7 @@ def addshiftchangerequest(request):
         required_fields=required_fields,
         fields_regex=fields_regex
         )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -461,7 +494,15 @@ def addreligion(request):
     unique_fields = ['name']
     required_fields = ['name']
     
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Religion, PSRLZER_USER.Religionserializer, request.data, extra_fields=extra_fields, unique_fields=unique_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_USER.Religion, 
+        PSRLZER_USER.Religionserializer, 
+        request.data, 
+        extra_fields=extra_fields, 
+        unique_fields=unique_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -483,7 +524,14 @@ def getpermissions(request):
 def addpermission(request):
     unique_fields = ['name']
     required_fields = ['name']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Permission, PSRLZER_USER.Permissionserializer, request.data, unique_fields=unique_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_USER.Permission, 
+        PSRLZER_USER.Permissionserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -506,7 +554,14 @@ def getrolepermissions(request):
 def addrolepermission(request):
     unique_fields = ['name']
     required_fields = ['name']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Rolepermission, PSRLZER_USER.Rolepermissionserializer, request.data, unique_fields=unique_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_USER.Rolepermission, 
+        PSRLZER_USER.Rolepermissionserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -529,7 +584,14 @@ def getethnicgroups(request):
 def addethnicgroup(request):
     unique_fields = ['name']
     required_fields = ['name']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_USER.Ethnicgroup, PSRLZER_USER.Ethnicgroupserializer, request.data, unique_fields=unique_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_USER.Ethnicgroup, 
+        PSRLZER_USER.Ethnicgroupserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -651,6 +713,17 @@ def addemployee(request):
                     'Bankaccounttype': MODELS_CONT.Bankaccounttype,
                     'Religion': MODELS_USER.Religion,
                 }
+
+                serializerOBJpackage = {
+                    'User': PSRLZER_USER.Userserializer,
+                    'Address': PSRLZER_CONT.Addressserializer,
+                    'Designation': PSRLZER_USER.Designationserializer,
+                    'Shift': PSRLZER_USER.Shiftserializer,
+                    'Grade': PSRLZER_USER.Gradeserializer,
+                    'Bankaccount': PSRLZER_CONT.Bankaccountserializer,
+                    'Bankaccounttype': PSRLZER_CONT.Bankaccounttypeserializer,
+                    'Religion': PSRLZER_USER.Religionserializer,
+                }
                 
                 documents=int(len([key for key in requestdata.keys() if 'uploadDocuments' in key])/2)
                 documentsindex = []
@@ -666,7 +739,8 @@ def addemployee(request):
                 createdInstance = []
                 required_fields = ['username', 'password', 'first_name', 'last_name', 'gender', 'personal_phone', 'official_id']
                 usermodelsuniquefields = ['personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_phone', 'rfid']
-                response = ghelp().createuser(classOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, required_fields, created_by)
+                response = ghelp().createuser(classOBJpackage, serializerOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, required_fields, created_by)
+
                 if not response['flag']:
                     for each in createdInstance:
                         if each: each.delete()
@@ -704,9 +778,19 @@ def addemployee(request):
                                     total_consumed=0,
                                     total_left=leavepolicy.allocation_days
                                 )
-                emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, MODELS_CONT.Address, userinstance, emergencyContact)
-                academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, userinstance, academicRecord)
-                previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, userinstance, previousExperience)
+                emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, PSRLZER_USER.Employeecontactserializer, MODELS_CONT.Address, PSRLZER_CONT.Addressserializer, userinstance, emergencyContact)
+                academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, PSRLZER_USER.Employeeacademichistoryserializer, userinstance, academicRecord)
+                previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, PSRLZER_USER.Employeeexperiencehistoryserializer, userinstance, previousExperience)
+
+                faileddetails = []
+                faileddetails.extend(emergencycontact['failed'])
+                faileddetails.extend(academicrecord['failed'])
+                faileddetails.extend(previousexperience['failed'])
+
+                # message
+                emergencycontact['message']
+                academicrecord['message']
+                previousexperience['message']
 
                 # upload documents
                 for index in documentsindex:

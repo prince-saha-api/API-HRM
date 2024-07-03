@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from user.serializer import serializers as SRLZER_USER
+from leave.serializer import serializers as SRLZER_LEAV
 from leave import models
 
 class Leavepolicyserializer(serializers.ModelSerializer):
@@ -18,6 +19,8 @@ class Leavepolicyassignserializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class Leaverequestserializer(serializers.ModelSerializer):
+    user = SRLZER_USER.Userserializer(many=False)
+    leavepolicy = SRLZER_LEAV.Leavepolicyserializer(many=False)
     class Meta:
         model = models.Leaverequest
         fields = '__all__'

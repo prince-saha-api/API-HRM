@@ -58,6 +58,7 @@ def addaddress(request):
         request.data,
         required_fields=required_fields
         )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -129,6 +130,7 @@ def addbankaccounttype(request):
         unique_fields=unique_fields,
         required_fields=required_fields
         )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])

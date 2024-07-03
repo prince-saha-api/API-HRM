@@ -34,7 +34,15 @@ def addfacility(request):
     unique_fields = ['title']
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields = ['title']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_FACI.Facility, PSRLZER_FACI.Facilityserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_FACI.Facility,
+        PSRLZER_FACI.Facilityserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        extra_fields=extra_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])

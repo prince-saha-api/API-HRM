@@ -210,9 +210,9 @@ class Generichelps(Minihelps):
                 if 'address' in salaryAndLeaves['bank_account']['address']: salaryAndLeaves['bank_account']['address']['address'] = salaryAndLeaves['bank_account']['address']['address'][0]
 
 
-    def createuser(self, classOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, required_fields, created_by):
+    def createuser(self, classOBJpackage, serializerOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, required_fields, created_by):
         response = {'flag': True, 'message': []}
-        details = self.getuserdetails(classOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, created_by)
+        details = self.getuserdetails(classOBJpackage, serializerOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, created_by)
         if not details['flag']:
             response['message'].extend(details['message'])
             response['flag'] = False

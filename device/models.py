@@ -15,6 +15,7 @@ class Device(Basic):
 
 class Devicegroup(Basic):
     title = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True, null=True)
     device = models.ManyToManyField(Device, blank=True)
 
     def __str__(self):

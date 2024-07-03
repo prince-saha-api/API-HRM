@@ -40,7 +40,16 @@ def addpayrollearning(request):
         {'name': 'day', 'values': [item[1] for item in CHOICE.AMOUNT_TYPE]}
     ]
     required_fields = ['title', 'amount']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrollearning, PSRLZER_PAYR.Payrollearningserializer, request.data, unique_fields=[], extra_fields=extra_fields, choice_fields=choice_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_PAYR.Payrollearning, 
+        PSRLZER_PAYR.Payrollearningserializer, 
+        request.data, 
+        unique_fields=[], 
+        extra_fields=extra_fields, 
+        choice_fields=choice_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -90,7 +99,15 @@ def addpayrolldeduction(request):
         {'name': 'day', 'values': [item[1] for item in CHOICE.AMOUNT_TYPE]}
     ]
     required_fields = ['title', 'amount']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolldeduction, PSRLZER_PAYR.Payrolldeductionserializer, request.data, extra_fields=extra_fields, choice_fields=choice_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_PAYR.Payrolldeduction, 
+        PSRLZER_PAYR.Payrolldeductionserializer, 
+        request.data, 
+        extra_fields=extra_fields, 
+        choice_fields=choice_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -138,7 +155,15 @@ def addpayrolltax(request):
     unique_fields = ['title']
     required_fields = ['title', 'min_income', 'max_income', 'percentage']
     if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_PAYR.Payrolltax, PSRLZER_PAYR.Payrolltaxserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_PAYR.Payrolltax, 
+        PSRLZER_PAYR.Payrolltaxserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        extra_fields=extra_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])

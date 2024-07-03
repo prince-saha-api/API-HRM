@@ -33,7 +33,16 @@ def addoffday(request):
     choice_fields = [
         {'name': 'day', 'values': [item[1] for item in CHOICE.DAYS]}
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(MODELS_OFFI.Offday, PSRLZER_OFFI.Offdayserializer, request.data, unique_fields=unique_fields, extra_fields=extra_fields, choice_fields=choice_fields, required_fields=required_fields)
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_OFFI.Offday, 
+        PSRLZER_OFFI.Offdayserializer, 
+        request.data, 
+        unique_fields=unique_fields, 
+        extra_fields=extra_fields, 
+        choice_fields=choice_fields, 
+        required_fields=required_fields
+        )
+    if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])

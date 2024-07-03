@@ -1,5 +1,4 @@
 from django.db import models
-from officialoffday.models import Offday
 from user.models import Grade, User, Ethnicgroup
 from django.contrib.postgres.fields import ArrayField
 from helps.common.generic import Generichelps as ghelp
@@ -7,7 +6,7 @@ from helps.abstract.abstractclass import Basic
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from helps.choice.common import LEAVE_TYPE, STATUS
-from hrm_settings.models import Fiscalyear
+from hrm_settings.models import Generalsettings
 
 def generate_unique_code():
     return ghelp().getUniqueCodePattern()
@@ -23,6 +22,14 @@ def uploadfile(instance, filename):
         return "files/{user}/leaveattachment/image/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
     else:
         return "files/{user}/leaveattachment/others/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
+    
+def uploadfileallocationrequest(instance, filename):
+    if '.pdf' in filename:
+        return "files/{user}/leallocationrequest/pdf/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
+    elif '.jpg' in filename or '.jpeg' in filename or '.png' in filename or '.PNG' in filename or '.gif':
+        return "files/{user}/leallocationrequest/image/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
+    else:
+        return "files/{user}/leallocationrequest/others/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
 
 
 class Holiday(Basic):
@@ -94,7 +101,8 @@ class Leavesummary(Basic):
     total_allocation = models.IntegerField(validators=[MinValueValidator(1)])
     total_consumed = models.IntegerField(validators=[MinValueValidator(0)])
     total_left  = models.IntegerField(validators=[MinValueValidator(0)])
-    fiscal_year = models.ForeignKey(Fiscalyear, on_delete=models.CASCADE)
+    # fiscal_year = models.ForeignKey(Fiscalyear, on_delete=models.CASCADE)
+    general_settings = models.ForeignKey(Generalsettings, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.total_left} - {self.user.username} - { self.leavepolicy.name}'
@@ -106,6 +114,7 @@ class Leaveallocationrequest(Basic):
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
     no_of_days = models.IntegerField()
     reason = models.TextField(blank=True, null=True)
+    attachment = models.FileField(upload_to=uploadfileallocationrequest, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
 
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leaveallocationrequesttwo')
