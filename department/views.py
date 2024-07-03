@@ -110,7 +110,7 @@ def updatedepartment(request, departmentid=None):
             del departmentObj['address']
         fields_regex = [
             {'field': 'email', 'type': 'email'},
-            {'field': 'phone', 'type': 'phone'}
+            {'field': 'phone', 'type': 'phonenumber'}
         ]
         response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
             MODELS_DEPA.Department, 

@@ -697,9 +697,9 @@ def addemployee(request):
 
     if ghelp().ifallrecordsexistornot(MODELS_LEAV.Leavepolicy, salaryAndLeaves.get('leavepolicy')):
 
-        fiscal_year_salaryAndLeaves = MODELS_SETT.Fiscalyear.objects.all().order_by('id')
-        if fiscal_year_salaryAndLeaves.exists():
-            fiscal_year_salaryAndLeaves = fiscal_year_salaryAndLeaves.last()
+        general_settings_salaryAndLeaves = MODELS_SETT.Fiscalyear.objects.all().order_by('id')
+        if general_settings_salaryAndLeaves.exists():
+            general_settings_salaryAndLeaves = general_settings_salaryAndLeaves.last()
 
             official_id = officialDetails.get('official_id')
             if official_id:
@@ -773,7 +773,8 @@ def addemployee(request):
                                 MODELS_LEAV.Leavesummary.objects.create(
                                     user=userinstance,
                                     leavepolicy=leavepolicy,
-                                    fiscal_year=fiscal_year_salaryAndLeaves,
+                                    # fiscal_year=fiscal_year_salaryAndLeaves,
+                                    general_settings=general_settings_salaryAndLeaves,
                                     total_allocation=leavepolicy.allocation_days,
                                     total_consumed=0,
                                     total_left=leavepolicy.allocation_days
