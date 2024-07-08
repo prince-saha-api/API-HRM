@@ -9,7 +9,7 @@ from django.contrib.postgres.fields import ArrayField
 from contribution import models as CNTRIB
 from helps.choice import common as CHOICE
 from django.db.models import Sum
-from device.models import Device, Devicegroup
+from device.models import Device
 from helps.validators.common import validate_phone_number, validate_office_id
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
@@ -24,55 +24,49 @@ def getmonth():
     return ghelp().getMonth()
 
 def uploadphoto(instance, filename):
-    return "files/{user}/profilepic/{uniquecode}uniquevalue{filename}".format(user=instance.username, uniquecode=generate_unique_code(), filename=filename)
+    return "user/{unique}/profilepic/{uniquecode}uniquevalue{filename}".format(unique=instance.uniqueid, uniquecode=generate_unique_code(), filename=filename)
 
 def uploaddocs(instance, filename):
     if '.pdf' in filename:
-        return "files/{user}/userdocs/pdf/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
+        return "user/{unique}/userdocs/pdf/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
     elif '.csv' in filename:
-        return "files/{user}/userdocs/csv/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
+        return "user/{unique}/userdocs/csv/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
     elif '.zip' in filename:
-        return "files/{user}/userdocs/zip/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
+        return "user/{unique}/userdocs/zip/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
     elif '.jpg' in filename or '.jpeg' in filename or '.png' in filename or '.PNG' in filename or '.gif':
-        return "files/{user}/userdocs/image/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
+        return "user/{unique}/userdocs/image/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
     else:
-        return "files/{user}/userdocs/others/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
-
+        return "user/{unique}/userdocs/others/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
 
 class Responsibility(Basic):
     title = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return f'{self.title} - {self.is_active}'
-    
+
+
 class Requiredskill(Basic):
     title = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
-        return f'{self.title} - {self.is_active}'
+        return f'{self.title} - {self.is_active}'  
 
-# class Designation(Basic):
-#     name = models.CharField(max_length=50, unique=True)
-#     responsibility = models.ManyToManyField(Responsibility, blank=True)
-#     required_skill = models.ManyToManyField(Requiredskill, blank=True)
 
-#     def __str__(self):
-#         return f'{self.name} - {self.is_active}'
-    
-    
 class Permission(Basic):
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return f'{self.id} - {self.name} - {self.is_active}'
-    
+
+
 class Rolepermission(Basic):
     name = models.CharField(max_length=50, unique=True)
     permission = models.ManyToManyField(Permission, blank=True)
 
     def __str__(self):
         return f'{self.name} - {self.is_active}'
-    
+
+
 class Grade(Basic):
     name = models.CharField(max_length=50, unique=True)
 
@@ -110,6 +104,8 @@ class Religion(Basic):
         return f'{self.name}'
 
 class User(AbstractUser, Timedetailscode):
+    uniqueid = models.CharField(max_length=18, unique=True, default=generate_unique_code)
+
     designation = models.ForeignKey(Designation, on_delete=models.SET_NULL, blank=True, null=True)
     ###
     dob = models.DateField(blank=True, null=True)
@@ -129,7 +125,7 @@ class User(AbstractUser, Timedetailscode):
     tin_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
     bank_account = models.OneToOneField(CNTRIB.Bankaccount, on_delete=models.SET_NULL, blank=True, null=True)
     #####
-    #######
+    ######
     official_id = models.CharField(max_length=11, validators=[validate_office_id], unique=True, blank=True, null=True)
     official_email = models.EmailField(blank=True)
     official_phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
@@ -222,12 +218,12 @@ class Ethnicgroup(Basic):
     def __str__(self):
         return f'{self.name}'
 
-class Groupofdevicegroup(Basic):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    devicegroup = models.ManyToManyField(Devicegroup, blank=True)
+# class Groupofdevicegroup(Basic):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     devicegroup = models.ManyToManyField(Devicegroup, blank=True)
 
-    def __str__(self):
-        return f'{self.user.username}'
+#     def __str__(self):
+#         return f'{self.user.username}'
 
 class Shiftchangelog(Basic):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shiftchangelogone')

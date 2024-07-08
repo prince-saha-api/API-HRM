@@ -13,10 +13,18 @@ class Device(Basic):
     def __str__(self):
         return f'{self.code} - {self.title}'
 
-class Devicegroup(Basic):
+class Group(Basic):
     title = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True, null=True)
-    device = models.ManyToManyField(Device, blank=True)
 
     def __str__(self):
-        return f'{self.title} - {[item.title for item in self.device.all()]}'
+        return f'{self.code} - {self.title}'
+
+
+class Devicegroup(Basic):
+    title = models.CharField(max_length=50, unique=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    device = models.ForeignKey(Device, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.title} - {self.group.title} - {self.device.title}'

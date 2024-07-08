@@ -137,11 +137,13 @@ def addbankaccounttype(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updatebankaccounttype(request, bankaccounttypeid=None):
+    unique_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         MODELS_CONT.Bankaccounttype, 
         PSRLZER_CONT.Bankaccounttypeserializer,
         bankaccounttypeid,
-        request.data
+        request.data,
+        unique_fields=unique_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -164,9 +166,32 @@ def deletebankaccounttype(request, bankaccounttypeid=None):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getbankaccounts(request):
-    bankaccounts = MODELS_CONT.Bankaccount.objects.all()
+    filter_fields = [
+                        {'name': 'id', 'convert': None, 'replace':'id'},
+                        {'name': 'bank_name', 'convert': None, 'replace':'bank_name__icontains'},
+                        {'name': 'branch_name', 'convert': None, 'replace':'branch_name__icontains'},
+                        {'name': 'account_type', 'convert': None, 'replace':'account_type'},
+                        {'name': 'account_no', 'convert': None, 'replace':'account_no__icontains'},
+                        {'name': 'routing_no', 'convert': None, 'replace':'routing_no__icontains'},
+                        {'name': 'swift_bic', 'convert': None, 'replace':'swift_bic__icontains'},
+                        {'name': 'address', 'convert': None, 'replace':'address'}
+                    ]
+    bankaccounts = MODELS_CONT.Bankaccount.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: bankaccounts = bankaccounts.order_by(column_accessor)
+    
+    total_count = bankaccounts.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: bankaccounts = bankaccounts[(page-1)*page_size:page*page_size]
+
     bankaccountserializers = SRLZER_CONT.Bankaccountserializer(bankaccounts, many=True)
-    return Response(bankaccountserializers.data, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': bankaccountserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

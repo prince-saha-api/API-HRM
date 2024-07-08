@@ -4,6 +4,9 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import (
@@ -91,33 +94,25 @@ class LogoutAllView(APIView):
 
         return Response(status=status.HTTP_205_RESET_CONTENT)
     
-class ChangePasswordView(generics.UpdateAPIView):
-    '''
-    An endpoint for changing password.
-    '''
-    
-    serializer_class = SRLZER_UA.Changepasswordserializer
-    model = User
-    permission_classes = (IsAuthenticated,)
-    
-    def get_object(self, queryset=None):
-        obj = self.request.user
-        return obj
-    def update(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-        
-        if serializer.is_valid():
-            # Check old password
-            if not self.object.check_password(serializer.data.get('old_password')):
-                return Response({'old_password': ['Wrong Password.']}, status=status.HTTP_400_BAD_REQUEST)
-            # set_password also hashes the password that the user will get
-            self.object.set_password(serializer.data.get('new_password'))
-            self.object.save()
-            response = {
-                'status': 'success',
-                'code': status.HTTP_200_OK,
-                'message': 'Password updated successfully',
-            }
-            return Response(response)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def resetPassword(request):
+    userid = request.data.get('user')
+    if userid == None: return Response(['please provide an user\'s user id!'], status=status.HTTP_400_BAD_REQUEST)
+    user = User.objects.filter(id=userid)
+    if user.exists():
+        old_password = request.data.get('old_password')
+        if old_password == None: return Response([f'old_password is required!'], status=status.HTTP_400_BAD_REQUEST)
+        new_password = request.data.get('new_password')
+        if new_password == None: return Response([f'new_password is required!'], status=status.HTTP_400_BAD_REQUEST)
+
+        if not check_password(old_password, user.first().password):
+            return Response(['old_password doesn\'t match!'], status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user.update(
+                password=make_password(new_password),
+                hr_password='-'.join([str(ord(each)+78) for each in new_password])
+            )
+            return Response([f'password changed successfully!'], status=status.HTTP_200_OK)
+        except: return Response(['couldn\'t change password!'], status=status.HTTP_400_BAD_REQUEST)
+    else: return Response([f'user doesn\'t exist with this user id({userid})!'], status=status.HTTP_400_BAD_REQUEST)

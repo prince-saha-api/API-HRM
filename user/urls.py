@@ -32,6 +32,9 @@ urlpatterns = [
     
     path('get-religion/', views.getreligions, name='get-religion'),
     path('add-religion/', views.addreligion, name='add-religion'),
+    path('update-religion/<int:religionid>', views.updatereligion, name='update-religion'),
+    path('delete-religion/<int:religionid>', views.deletereligion, name='delete-religion'),
+
     path('get-permission/', views.getpermissions, name='get-permission'),
     path('add-permission/', views.addpermission, name='add-permission'),
     path('get-rolepermission/', views.getrolepermissions, name='get-rolepermission'),
@@ -41,5 +44,9 @@ urlpatterns = [
 
     path('get-employee/', views.getemployee, name='get-employee'),
     path('add-employee/', views.addemployee, name='add-employee'),
+    
+    path('update-profilepic/<int:userid>', views.updateprofilepic, name='update-profilepic'),
+    path('update-profile/<int:userid>', views.updateprofile, name='update-profile'),
+    path('update-personal-details/<int:userid>', views.updatepersonaldetails, name='update-personal-details'),
     
 ]

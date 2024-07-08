@@ -18,19 +18,30 @@ from user import models as MODELS_USER
 # @deco.get_permission(['get company info', 'all'])
 def getmanualattendence(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'date', 'convert': None, 'replace':'date'},
-                        {'name': 'in_time', 'convert': None, 'replace':'in_time'},
-                        {'name': 'out_time', 'convert': None, 'replace':'out_time'},
-                        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
-                        {'name': 'requested_by', 'convert': None, 'replace':'requested_by'},
-                        {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'date', 'convert': None, 'replace':'date'},
+        {'name': 'in_time', 'convert': None, 'replace':'in_time'},
+        {'name': 'out_time', 'convert': None, 'replace':'out_time'},
+        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+        {'name': 'requested_by', 'convert': None, 'replace':'requested_by'},
+        {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
+    ]
     requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: requestmanualattendances = requestmanualattendances.order_by(column_accessor)
+
+    total_count = requestmanualattendances.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: requestmanualattendances = requestmanualattendances[(page-1)*page_size:page*page_size]
+
     requestmanualattendanceserializers = SRLZER_ATTE.Requestmanualattendanceserializer(requestmanualattendances, many=True)
-    return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': requestmanualattendanceserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -174,8 +185,19 @@ def getremotelog(request):
     remotelogs = MODELS_ATTE.Remotelogs.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: remotelogs = remotelogs.order_by(column_accessor)
+
+    total_count = remotelogs.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: remotelogs = remotelogs[(page-1)*page_size:page*page_size]
+
     remotelogsserializers = SRLZER_ATTE.Remotelogsserializer(remotelogs, many=True)
-    return Response({'status': 'success', 'message': '', 'data': remotelogsserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': remotelogsserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -257,8 +279,20 @@ def getremoteattendance(request):
     requestremoteattendances = MODELS_ATTE.Requestremoteattendance.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: requestremoteattendances = requestremoteattendances.order_by(column_accessor)
+
+    total_count = requestremoteattendances.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: requestremoteattendances = requestremoteattendances[(page-1)*page_size:page*page_size]
+
     requestremoteattendanceserializers = SRLZER_ATTE.Requestremoteattendanceserializer(requestremoteattendances, many=True)
-    return Response({'status': 'success', 'message': '', 'data': requestremoteattendanceserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': requestremoteattendanceserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

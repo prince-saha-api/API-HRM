@@ -28,8 +28,20 @@ def getcompanys(request):
     companys = MODELS_COMP.Company.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: companys = companys.order_by(column_accessor)
+
+    total_count = companys.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: companys = companys[(page-1)*page_size:page*page_size]
+
     companyserializers = SRLZER_COMP.Companyserializer(companys, many=True)
-    return Response({'status': 'success', 'message': '', 'data': companyserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': companyserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -67,12 +79,41 @@ def updatecompany(request, companyid=None):
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getbasicinformations(request):
-    basicinformations = MODELS_COMP.Basicinformation.objects.all()
+    filter_fields = [
+                    {'name': 'id', 'convert': None, 'replace':'id'},
+                    {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+                    {'name': 'legal_name', 'convert': None, 'replace':'legal_name__icontains'},
+                    {'name': 'establishment_date', 'convert': None, 'replace':'establishment_date__icontains'},
+                    {'name': 'industry_type', 'convert': None, 'replace':'industry_type'},
+                    {'name': 'business_registration_number', 'convert': None, 'replace':'business_registration_number__icontains'},
+                    {'name': 'tax_id_number', 'convert': None, 'replace':'tax_id_number__icontains'},
+                    {'name': 'bin_no', 'convert': None, 'replace':'bin_no__icontains'},
+                    {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+                    {'name': 'website_url', 'convert': None, 'replace':'website_url__icontains'},
+                    {'name': 'primary_email', 'convert': None, 'replace':'primary_email__icontains'},
+                    {'name': 'primary_phone_number', 'convert': None, 'replace':'primary_phone_number__icontains'},
+                    {'name': 'fax', 'convert': None, 'replace':'fax__icontains'},
+                    {'name': 'address', 'convert': None, 'replace':'address'}
+                ]
+    basicinformations = MODELS_COMP.Basicinformation.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: basicinformations = basicinformations.order_by(column_accessor)
+
+    total_count = basicinformations.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: basicinformations = basicinformations[(page-1)*page_size:page*page_size]
+
     basicinformationserializers = SRLZER_COMP.Basicinformationserializer(basicinformations, many=True)
-    return Response(basicinformationserializers.data, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': basicinformationserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
@@ -311,6 +352,7 @@ def updatebasicinformation(request, basicinformationid=None):
     if logo: extra_fields.update({'logo': logo})
     
     if extra_fields:
+        unique_fields = ['name', 'business_registration_number', 'tax_id_number', 'bin_no', 'website_url', 'primary_email', 'primary_phone_number', 'fax']
         fields_regex = [
             {'field': 'establishment_date', 'type': 'date'},
             {'field': 'primary_email', 'type': 'email'}
@@ -320,6 +362,7 @@ def updatebasicinformation(request, basicinformationid=None):
             PSRLZER_COMP.Basicinformationserializer, 
             basicinformationid, 
             basic_dict,
+            unique_fields=unique_fields,
             extra_fields=extra_fields,
             fields_regex=fields_regex
             )
@@ -338,20 +381,32 @@ def getcompanytypes(request):
                     {'name': 'created_by', 'convert': None, 'replace':'created_by'},
                     {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
                 ]
+    
     companytypes = MODELS_COMP.Companytype.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: companytypes = companytypes.order_by(column_accessor)
+
+    total_count = companytypes.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: companytypes = companytypes[(page-1)*page_size:page*page_size]
+
     companytypeserializers = SRLZER_COMP.Companytypeserializer(companytypes, many=True)
-    return Response({'status': 'success', 'message': '', 'data': companytypeserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': companytypeserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addcompanytype(request):
     userid = request.user.id
     extra_fields = {}
-    unique_fields = []
     if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields = ['name']
+    unique_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
         MODELS_COMP.Companytype,
         PSRLZER_COMP.Companytypeserializer, 
@@ -368,6 +423,7 @@ def addcompanytype(request):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updatecompanytype(request, companytypeid=None):
     userid = request.user.id
+    unique_fields = ['name']
     extra_fields = {}
     if userid: extra_fields.update({'updated_by': userid})
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
@@ -375,6 +431,7 @@ def updatecompanytype(request, companytypeid=None):
         PSRLZER_COMP.Companytypeserializer,
         companytypeid,
         request.data,
+        unique_fields=unique_fields,
         extra_fields=extra_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

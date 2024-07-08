@@ -5,6 +5,20 @@ from helps.abstract.abstractclass import Basic
 from helps.choice import common as CHOICE
 from django.db import models
 
+class Fiscalyear(Basic):
+    from_month = models.CharField(max_length=20, choices=CHOICE.MONTHS)
+    from_year = models.IntegerField(validators=[MinValueValidator(1900)])
+    to_month = models.CharField(max_length=20, choices=CHOICE.MONTHS)
+    to_year = models.IntegerField(validators=[MinValueValidator(1900)])
+
+    from_date = models.DateField()
+    to_date = models.DateField()
+    
+    def __str__(self):
+        return f'{self.from_month} {self.from_year} from {self.to_month} {self.to_year}'
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['from_month', 'to_month'], name='Fiscalyear_from_month_to_month')]
+
 class Weekdays(Basic):
     day = models.CharField(max_length=10, choices=CHOICE.DAYS, unique=True)
     def __str__(self):
@@ -17,6 +31,7 @@ class Weeklyholiday(Basic):
     
 class Generalsettings(Basic):
     fiscalyear_month = models.CharField(max_length=20, choices=CHOICE.MONTHS)
+    fiscalyear = models.ForeignKey(Fiscalyear, on_delete=models.CASCADE)
     weekly_holiday = models.ForeignKey(Weeklyholiday, on_delete=models.CASCADE)
     workingday_starts_at = models.TimeField()
     holiday_as_workingday = models.BooleanField(default=False)

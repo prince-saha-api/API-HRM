@@ -23,8 +23,19 @@ def getfacilitys(request):
     facilitys = MODELS_FACI.Facility.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: facilitys = facilitys.order_by(column_accessor)
+
+    total_count = facilitys.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: facilitys = facilitys[(page-1)*page_size:page*page_size]
+
     facilityserializers = SRLZER_FACI.Facilityserializer(facilitys, many=True)
-    return Response({'status': 'success', 'message': '', 'data': facilityserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': facilityserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -52,11 +63,13 @@ def updatefacility(request, facilityid=None):
     # userid = request.user.id
     extra_fields = {}
     # if userid: extra_fields.update({'updated_by': userid})
+    unique_fields=['title']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         MODELS_FACI.Facility,
         PSRLZER_FACI.Facilityserializer,
         facilityid,
         request.data,
-        extra_fields=extra_fields
+        extra_fields=extra_fields,
+        unique_fields=unique_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

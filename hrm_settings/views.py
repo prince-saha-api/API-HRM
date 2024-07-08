@@ -115,11 +115,47 @@ def addgeneralsettings(request):
             weekdaysinstance = MODELS_SETT.Weekdays.objects.filter(id__in=weekly_holiday)
 
     if not response_message:
+        delete_instances = []
         weeklyholiday = MODELS_SETT.Weeklyholiday.objects.create()
         weeklyholiday.day.set(weekdaysinstance)
+        delete_instances.append(weeklyholiday)
+
+        if 'fiscalyear_month' in requesteddata:
+            from_date, to_date = ghelp().getFiscalyearBoundary(requesteddata['fiscalyear_month'], CHOICE.MONTHS_D)
+            if from_date:
+                required_fields = ['from_month', 'from_year', 'to_month', 'to_year', 'from_date', 'to_date']
+                fields_regex = [
+                    {'field': 'from_date', 'type': 'date'},
+                    {'field': 'to_date', 'type': 'date'}
+                ]
+                choice_fields = [
+                    {'name': 'from_month', 'values': [item[1] for item in CHOICE.MONTHS]},
+                    {'name': 'to_month', 'values': [item[1] for item in CHOICE.MONTHS]},
+                ]
+                from_datesplit = [int(each) for each in f'{from_date}'.split('-')]
+                to_datesplit = [int(each) for each in f'{to_date}'.split('-')]
+                fiscalyeardata = {
+                    'from_month': CHOICE.MONTHS_DR[f'{from_datesplit[1]}'],
+                    'from_year': from_datesplit[0],
+                    'to_month': CHOICE.MONTHS_DR[f'{to_datesplit[1]}'],
+                    'to_year': to_datesplit[0],
+                    'from_date': f'{from_date}',
+                    'to_date': f'{to_date}'
+                } 
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                    MODELS_SETT.Fiscalyear, 
+                    PSRLZER_SETT.Fiscalyearserializer, 
+                    fiscalyeardata, 
+                    required_fields=required_fields,
+                    fields_regex=fields_regex,
+                    choice_fields=choice_fields
+                )
+                if responsesuccessflag == 'success':
+                    requesteddata.update({'fiscalyear': responsedata.data['id']})
+                    delete_instances.append(responsedata.instance)
 
         requesteddata.update({'weekly_holiday': weeklyholiday.id})
-        required_fields = ['fiscalyear_month', 'weekly_holiday', 'workingday_starts_at', 'consider_attendance_on_holidays']
+        required_fields = ['fiscalyear_month', 'fiscalyear', 'weekly_holiday', 'workingday_starts_at', 'consider_attendance_on_holidays']
         fields_regex = [
             {'field': 'workingday_starts_at', 'type': 'time'}
         ]
@@ -142,7 +178,8 @@ def addgeneralsettings(request):
             response_status = responsestatus
         elif responsesuccessflag == 'error':
             response_message.extend(responsemessage)
-            if weeklyholiday: weeklyholiday.delete()
+            for delete_instance in delete_instances:
+                delete_instance.delete()
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -172,10 +209,40 @@ def updategeneralsettings(request, generalsettingsid=None):
                         elif isinstance(value, int): weekly_holiday.append(value)
                 weekdaysinstance = MODELS_SETT.Weekdays.objects.filter(id__in=weekly_holiday)
 
+        if 'fiscalyear_month' in requesteddata:
+            from_date, to_date = ghelp().getFiscalyearBoundary(requesteddata['fiscalyear_month'], CHOICE.MONTHS_D)
+            if from_date:
+                fields_regex = [
+                    {'field': 'from_date', 'type': 'date'},
+                    {'field': 'to_date', 'type': 'date'}
+                ]
+                choice_fields = [
+                    {'name': 'from_month', 'values': [item[1] for item in CHOICE.MONTHS]},
+                    {'name': 'to_month', 'values': [item[1] for item in CHOICE.MONTHS]},
+                ]
+                from_datesplit = [int(each) for each in f'{from_date}'.split('-')]
+                to_datesplit = [int(each) for each in f'{to_date}'.split('-')]
+                fiscalyeardata = {
+                    'from_month': CHOICE.MONTHS_DR[f'{from_datesplit[1]}'],
+                    'from_year': from_datesplit[0],
+                    'to_month': CHOICE.MONTHS_DR[f'{to_datesplit[1]}'],
+                    'to_year': to_datesplit[0],
+                    'from_date': f'{from_date}',
+                    'to_date': f'{to_date}'
+                }
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                    MODELS_SETT.Fiscalyear, 
+                    PSRLZER_SETT.Fiscalyearserializer, 
+                    generalsettings.first().fiscalyear.id,
+                    fiscalyeardata,
+                    choice_fields=choice_fields,
+                    fields_regex=fields_regex
+                )
         if update_weekly_holiday:
             generalsettings.first().weekly_holiday.day.clear()
             generalsettings.first().weekly_holiday.day.set(weekdaysinstance)
             requesteddata.update({'weekly_holiday': generalsettings.first().weekly_holiday.id})
+            
         fields_regex = [
             {'field': 'workingday_starts_at', 'type': 'time'}
         ]

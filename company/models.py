@@ -26,7 +26,7 @@ class Updatecompanytypeconfig(Basic):
         super().save(*args, **kwargs)
 
 class Companytype(Basic):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     created_by = models.IntegerField(blank=True, null=True)
     updated_by = models.IntegerField(blank=True, null=True)
 
@@ -55,6 +55,7 @@ class Updatecompanytype(Basic):
 #         if self.id is not None: Updatebasicinformationconfig.objects.exclude().delete()
 #         else: Updatebasicinformationconfig.objects.all().delete()
 #         super().save(*args, **kwargs)
+
 
 class Basicinformation(Basic):
     name = models.CharField(max_length=100, unique=True)

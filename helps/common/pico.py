@@ -2,6 +2,7 @@ from django.contrib.auth.hashers import make_password
 from datetime import datetime, date, timedelta
 import random
 import pytz
+import os
 
 original_timezone = pytz.timezone('Asia/Dhaka')
 class Picohelps:
@@ -74,82 +75,7 @@ class Picohelps:
       end = int(current.timestamp())
       
       return start, end
-    
-   def generateOBJSalaryCalculation(self, salary_info):
-      return {
-         "gross_salary":salary_info.gross_salary,
-         "payable_salary":salary_info.gross_salary,
-         "deduction": {
-               "leave_cost":{
-                  "total_cost_of_employee":0,
-                  "total_leave_taken":0,
-                  "total_cost_of_company":0,
-                  "per_day_cost":0,
-                  "details":[
-                           {
-                              "name":"",
-                              "company_will_bare":0,
-                              "employee_will_bare":0
-                           }
-                  ]
-               },
-               "attendance_cost":{
-                  "cost": 0,
-                  "penalty_based_on_total_minutes": 0,
-                  "absent": {
-                     "absent_count": 0,
-                     "details": []
-                     },
-                  "fine_in_days": {
-                     "fine_count": 0,
-                     "details": {}
-                  }
-               }
-         },
-         "earnings": {
-               "total_earnings": 0,
-         },
-      }
-    
-   def generateOBJAttendanceReport(self, total_working_days_ideal):
-      return {
-         'total_working_days_ideal': total_working_days_ideal,
-         'attendance': {
-               'attendance_count': 0,
-               'details': {}
-         },
-         'absent': {
-               'absent_count': 0,
-               'details': []
-         },
-         'late_attendance_based_on_buffer_count': 0,
-         'total_minutes': 0,
-         'penalty_based_on_total_minutes': 0,
-         'late_entry_fine': {
-               'fine_in_days': 0,
-               'details': {}
-         }
-      }
 
-   def prepareDetailsAttendanceReport(self, employeeworkingdate_idealcase, attendance):
-      return {
-         employeeworkingdate_idealcase: {
-               'intime': self.convertTimeformat_STR_h_m_s(attendance.in_time),
-               'outtime': self.convertTimeformat_STR_h_m_s(attendance.out_time),
-               'total_minutes': attendance.total_minutes,
-               'late_in_based_on_buffertime': attendance.late_in_based_on_buffertime,
-               'shift': attendance.shift_time,
-               'buffer_time': attendance.buffer_time_minutes
-               }}
-    
-   def generateOBJLeaveCost(self):
-      return {
-         'total_cost_of_employee': 0,
-         'total_leave_taken': 0,
-         'total_cost_of_company': 0,
-         'per_day_cost': 0,
-         'details': []
-      }
     
    def getUniqueCodePattern(self):
       return f"{datetime.now().strftime('%Y%m%d%H%M%S%f')}"[:18]
@@ -184,55 +110,6 @@ class Picohelps:
                   else: field_value = False
                kwargs.update({field['replace']: field_value})
       return kwargs
-   
-   def getAddressfields(self, data):
-      addressObject = {}
-
-      if 'name' in data:
-            if data['name']:
-               if data['name'][0]:
-                  addressObject.update({'name': data['name'][0]})
-
-      if 'alias' in data:
-            if data['alias']:
-               if data['alias'][0]:
-                  addressObject.update({'alias': data['alias'][0]})
-
-      if 'city' in data:
-            if data['city']:
-               if data['city'][0]:
-                  addressObject.update({'city': data['city'][0]})
-
-      if 'state_division' in data:
-            if data['state_division']:
-               if data['state_division'][0]:
-                  addressObject.update({'state_division': data['state_division'][0]})
-
-      if 'post_zip_code' in data:
-            if data['post_zip_code']:
-               if data['post_zip_code'][0]:
-                  addressObject.update({'post_zip_code': data['post_zip_code'][0]})
-
-      if 'country' in data:
-            if data['country']:
-               if data['country'][0]:
-                  addressObject.update({'country': data['country'][0]})
-
-      if 'address' in data:
-            if data['address']:
-               if data['address'][0]:
-                  addressObject.update({'address': data['address'][0]})
-
-      if 'latitude' in data:
-            if data['latitude']:
-               if data['latitude'][0]:
-                  addressObject.update({'latitude': data['latitude'][0]})
-
-      if 'longitude' in data:
-            if data['longitude']:
-               if data['longitude'][0]:
-                  addressObject.update({'longitude': data['longitude'][0]})
-      return addressObject
    
    def ifExistThanAddToDict(self, fromDict, key, replaceKey, toDict): # New
       if key in fromDict:
@@ -279,6 +156,7 @@ class Picohelps:
          'email': {'regex': '^[a-z._]*[a-z_0-9]@[a-z]*\.[a-z]*$', 'format': 'demo@demo.com (allowed chars a-z, 0-9, ., _)'},
          'phonenumber': {'regex': '^01[3456789][0-9]{8}$|^8801[3456789][0-9]{8}$|^\+8801[3456789][0-9]{8}$', 'format': '01700000000, 8801700000000, +8801700000000'},
          'username': {'regex': '^[a-z._]*[0-9]*$', 'format': 'alex (allowed chars a-z, 0-9, ., _)'},
+         'employeeid': {'regex': '^API[0-9]{7}$', 'format': 'API1234567'},
          'date': {'regex': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'format': '2024-01-01'},
          'time': {'regex': '^[0-9]{2}:[0-9]{2}:[0-9]{2}$', 'format': '15:12:13'},
          'datetime': {'regex': '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$', 'format': '2024-01-01 15:12:13'},
@@ -447,3 +325,10 @@ class Picohelps:
                   {'field': 'to_date', 'type': 'str'}
                ]
             }
+   
+   def removeFile(self, OBJ, key):
+      photo = getattr(OBJ, key, None)
+      if photo:
+         if photo.path:
+               if os.path.exists(photo.path):
+                  os.remove(photo.path)

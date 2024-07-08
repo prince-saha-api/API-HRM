@@ -16,7 +16,8 @@ from helps.common.generic import Generichelps as ghelp
 from helps.choice import common as CHOICE
 # from django.core.paginator import Paginator
 from drf_nested_forms.utils import NestedForm
-import json
+import random
+import os
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -29,8 +30,19 @@ def getresponsibilitys(request):
     responsibilitys = MODELS_USER.Responsibility.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: responsibilitys = responsibilitys.order_by(column_accessor)
+
+    total_count = responsibilitys.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: responsibilitys = responsibilitys[(page-1)*page_size:page*page_size]
+
     responsibilityserializers = SRLZER_USER.Responsibilityserializer(responsibilitys, many=True)
-    return Response({'data': responsibilityserializers.data, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': responsibilityserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -62,8 +74,20 @@ def getrequiredskills(request):
     requiredskills = MODELS_USER.Requiredskill.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: requiredskills = requiredskills.order_by(column_accessor)
+
+    total_count = requiredskills.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: requiredskills = requiredskills[(page-1)*page_size:page*page_size]
+
     requiredskillserializers = SRLZER_USER.Requiredskillserializer(requiredskills, many=True)
-    return Response({'status': 'success', 'message': [], 'data': requiredskillserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': requiredskillserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -131,11 +155,13 @@ def adddsignation(request):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updatedesignation(request, designationid=None):
     allowed_fields = ['name', 'grade']
+    unique_fields=['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         MODELS_USER.Designation,
         PSRLZER_USER.Designationserializer,
         designationid,
         request.data,
+        unique_fields=unique_fields,
         allowed_fields=allowed_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -201,11 +227,13 @@ def addgrade(request):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updategrade(request, gradeid=None):
     # userid = request.user.id
+    unique_fields=['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         MODELS_USER.Grade,
         PSRLZER_USER.Gradeserializer,
         gradeid,
-        request.data
+        request.data,
+        unique_fields=unique_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -289,11 +317,13 @@ def updateshift(request, shiftid=None):
         {'field': 'in_time', 'type': 'time'},
         {'field': 'out_time', 'type': 'time'},
     ]
+    unique_fields=['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         MODELS_USER.Shift, 
         PSRLZER_USER.Shiftserializer, 
         shiftid, 
-        request.data, 
+        request.data,
+        unique_fields=unique_fields,
         extra_fields=extra_fields, 
         fields_regex=fields_regex
         )
@@ -332,8 +362,19 @@ def getshiftchangerequest(request):
     shiftchangerequests = MODELS_USER.Shiftchangerequest.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: shiftchangerequests = shiftchangerequests.order_by(column_accessor)
+
+    total_count = shiftchangerequests.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: shiftchangerequests = shiftchangerequests[(page-1)*page_size:page*page_size]
+
     shiftchangerequestserializers = SRLZER_USER.Shiftchangerequestserializer(shiftchangerequests, many=True)
-    return Response({'data': shiftchangerequestserializers.data, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': shiftchangerequestserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -468,8 +509,19 @@ def getshiftchangelog(request):
     shiftchangelogs = MODELS_USER.Shiftchangelog.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: shiftchangelogs = shiftchangelogs.order_by(column_accessor)
+
+    total_count = shiftchangelogs.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: shiftchangelogs = shiftchangelogs[(page-1)*page_size:page*page_size]
+
     shiftchangelogserializers = SRLZER_USER.Shiftchangelogserializer(shiftchangelogs, many=True)
-    return Response({'data': shiftchangelogserializers.data, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': shiftchangelogserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -482,8 +534,20 @@ def getreligions(request):
     religions = MODELS_USER.Religion.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: religions = religions.order_by(column_accessor)
+
+    total_count = religions.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: religions = religions[(page-1)*page_size:page*page_size]
+
     religionserializers = SRLZER_USER.Religionserializer(religions, many=True)
-    return Response({'data': religionserializers.data, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': religionserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -505,8 +569,36 @@ def addreligion(request):
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatereligion(request, religionid=None):
+    unique_fields = ['name']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_USER.Religion,
+        PSRLZER_USER.Religionserializer,
+        religionid,
+        request.data,
+        unique_fields=unique_fields
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletereligion(request, religionid=None):
+    classOBJpackage_tocheck_assciaativity = [
+        {'model': MODELS_USER.User, 'fields': [{'field': 'religion', 'relation': 'foreignkey', 'records': []}]}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_USER.Religion,
+        religionid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getpermissions(request):
     filter_fields = [
@@ -516,8 +608,19 @@ def getpermissions(request):
     permissions = MODELS_USER.Permission.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: permissions = permissions.order_by(column_accessor)
+
+    total_count = permissions.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: permissions = permissions[(page-1)*page_size:page*page_size]
+
     permissionserializers = SRLZER_USER.Permissionserializer(permissions, many=True)
-    return Response({'data': permissionserializers.data, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': permissionserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
@@ -546,8 +649,19 @@ def getrolepermissions(request):
     rolepermissions = MODELS_USER.Rolepermission.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: rolepermissions = rolepermissions.order_by(column_accessor)
+
+    total_count = rolepermissions.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: rolepermissions = rolepermissions[(page-1)*page_size:page*page_size]
+
     rolepermissionserializers = SRLZER_USER.Rolepermissionserializer(rolepermissions, many=True)
-    return Response({'data': rolepermissionserializers.data, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': rolepermissionserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -576,8 +690,19 @@ def getethnicgroups(request):
     ethnicgroups = MODELS_USER.Ethnicgroup.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: ethnicgroups = ethnicgroups.order_by(column_accessor)
+
+    total_count = ethnicgroups.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: ethnicgroups = ethnicgroups[(page-1)*page_size:page*page_size]
+
     ethnicgroupserializers = SRLZER_USER.Ethnicgroupserializer(ethnicgroups, many=True)
-    return Response({'data': ethnicgroupserializers.data, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': ethnicgroupserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -646,6 +771,17 @@ def getemployee(request):
     if page and page_size: users = users[(page-1)*page_size:page*page_size]
 
     userserializers = SRLZER_USER.Userserializer(users, many=True)
+    chars = [['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']]
+    for userserializer in userserializers.data:
+        if userserializer['hr_password']:
+            splitpassword = [int(each)-78 for each in userserializer['hr_password'].split('-')]
+            password = ''
+            for value in splitpassword:
+                ran_number = random.randint(0, 25)
+                ch = chars[ran_number%2][ran_number]
+                password += ch+chr(value)+str(ord(ch))
+            userserializer['hr_password'] = password
+
     return Response({'data': {
         'count': total_count,
         'page': page,
@@ -657,50 +793,49 @@ def getemployee(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def addemployee(request):
+    generalsettings = MODELS_SETT.Generalsettings.objects.all().order_by('id')
+    if generalsettings.exists():
+        created_by = MODELS_USER.User.objects.get(id=request.user.id) if request.user.id != None else None
+        requestdata = dict(request.data)
+        # requestdata = ghelp().requestdata()
+        options = {
+            'allow_blank': True,
+            'allow_empty': False
+        }
+        
+        form = NestedForm(requestdata, **options)
+        form.is_nested(raise_exception=True)
 
-    created_by = MODELS_USER.User.objects.get(id=request.user.id) if request.user.id != None else None
-    requestdata = dict(request.data)
-    # requestdata = ghelp().requestdata()
-    options = {
-        'allow_blank': True,
-        'allow_empty': False
-    }
-    
-    form = NestedForm(requestdata, **options)
-    form.is_nested(raise_exception=True)
 
+        personalDetails = form.data.get('personalDetails')
+        personalDetails = ghelp().prepareData(personalDetails, 'personal')
 
-    personalDetails = form.data.get('personalDetails')
-    personalDetails = ghelp().prepareData(personalDetails, 'personal')
+        officialDetails = form.data.get('officialDetails')
+        officialDetails = ghelp().prepareData(officialDetails, 'office')
+        if 'official_id' not in officialDetails: return Response({'data': {}, 'message': ['official_id is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        if 'ethnic_group' not in officialDetails: return Response({'data': {}, 'message': ['ethnic_group is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
-    officialDetails = form.data.get('officialDetails')
-    officialDetails = ghelp().prepareData(officialDetails, 'office')
-    if 'official_id' not in officialDetails: return Response({'data': {}, 'message': ['official_id is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    if 'ethnic_group' not in officialDetails: return Response({'data': {}, 'message': ['ethnic_group is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        salaryAndLeaves = form.data.get('salaryAndLeaves')
+        ghelp().preparesalaryAndLeaves(salaryAndLeaves)
 
-    salaryAndLeaves = form.data.get('salaryAndLeaves')
-    ghelp().preparesalaryAndLeaves(salaryAndLeaves)
+        emergencyContact = form.data.get('emergencyContact')
+        emergencyContact = ghelp().prepareData(emergencyContact, 'emergencycontact')
+        academicRecord = form.data.get('academicRecord')
+        academicRecord = ghelp().prepareData(academicRecord, 'academicrecord')
+        previousExperience = form.data.get('previousExperience')
+        previousExperience = ghelp().prepareData(previousExperience, 'previousexperience')
 
-    emergencyContact = form.data.get('emergencyContact')
-    emergencyContact = ghelp().prepareData(emergencyContact, 'emergencycontact')
-    academicRecord = form.data.get('academicRecord')
-    academicRecord = ghelp().prepareData(academicRecord, 'academicrecord')
-    previousExperience = form.data.get('previousExperience')
-    previousExperience = ghelp().prepareData(previousExperience, 'previousexperience')
+        # uploadDocuments = form.data.get('uploadDocuments')
 
-    # uploadDocuments = form.data.get('uploadDocuments')
+        # লিভ-পলিসি যুক্ত করলে এথনিক-গ্রুপও দিতে হবে
+        leavepolicy_salaryAndLeaves = salaryAndLeaves.get('leavepolicy')
+        if leavepolicy_salaryAndLeaves:
+            if not ghelp().ifallrecordsexistornot(MODELS_USER.Ethnicgroup, officialDetails.get('ethnic_group')):
+                return Response({'data': {}, 'message': ['please add valid Ethnicgroup!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
-    leavepolicy_salaryAndLeaves = salaryAndLeaves.get('leavepolicy')
-    if leavepolicy_salaryAndLeaves:
-        if not ghelp().ifallrecordsexistornot(MODELS_USER.Ethnicgroup, officialDetails.get('ethnic_group')):
-            return Response({'data': {}, 'message': ['please add valid Ethnicgroup!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        if ghelp().ifallrecordsexistornot(MODELS_LEAV.Leavepolicy, salaryAndLeaves.get('leavepolicy')):
 
-    if ghelp().ifallrecordsexistornot(MODELS_LEAV.Leavepolicy, salaryAndLeaves.get('leavepolicy')):
-
-        general_settings_salaryAndLeaves = MODELS_SETT.Fiscalyear.objects.all().order_by('id')
-        if general_settings_salaryAndLeaves.exists():
-            general_settings_salaryAndLeaves = general_settings_salaryAndLeaves.last()
-
+            fiscal_year = generalsettings.first().fiscalyear
             official_id = officialDetails.get('official_id')
             if official_id:
                 classOBJpackage = {
@@ -773,8 +908,7 @@ def addemployee(request):
                                 MODELS_LEAV.Leavesummary.objects.create(
                                     user=userinstance,
                                     leavepolicy=leavepolicy,
-                                    # fiscal_year=fiscal_year_salaryAndLeaves,
-                                    general_settings=general_settings_salaryAndLeaves,
+                                    fiscal_year=fiscal_year,
                                     total_allocation=leavepolicy.allocation_days,
                                     total_consumed=0,
                                     total_left=leavepolicy.allocation_days
@@ -811,8 +945,126 @@ def addemployee(request):
                 # company_officialDetails = ghelp().getobject(MODELS_COM.Company, {'id': officialDetails.get('company')})
                 # branch_officialDetails = ghelp().getobject(MODELS_BR.Branch, {'id': officialDetails.get('branch')})
                 # department_officialDetails = ghelp().getobject('''MODELS_BR.Branch''', {'id': officialDetails.get('department')})
-                
+                    
                 return Response({'data': SRLZER_USER.Userserializer(userinstance, many=False).data, 'message': [], 'status': 'success'}, status=status.HTTP_201_CREATED)
             else: return Response({'data': {}, 'message': ['employee id is missing!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        else: return Response({'data': {}, 'message': ['please add fiscalyear first!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': ['please add valid Leavepolicy!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        else: return Response({'data': {}, 'message': ['please add valid Leavepolicy!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'data': {}, 'message': ['please add general settings first!!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updateprofilepic(request, userid=None):
+    user = MODELS_USER.User.objects.filter(id=userid)
+    if user.exists():
+        photo = request.FILES.get('photo')
+        if photo:
+            userserializer = PSRLZER_USER.Userserializer(instance=user.first(), data=request.data, partial=True)
+            if userserializer.is_valid():
+                try:
+                    ghelp().removeFile(user.first(), 'photo')
+                    userserializer.save()
+                    return Response({'data': {}, 'message': ['successfully uploaded the photo!'], 'status': 'success'}, status=status.HTTP_200_OK)
+                except: return Response({'data': {}, 'message': ['couldn\'t upload photo!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        else: return Response({'data': {}, 'message': ['photo doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updateprofile(request, userid=None):
+    requesteddata = request.data.copy()
+
+    department = None
+    if 'department' in requesteddata:
+        department = requesteddata['department']
+        if department:
+            if isinstance(department, str):
+                if department.isnumeric(): department = int(department)
+    if isinstance(department, int):
+        user = MODELS_USER.User.objects.filter(id=userid).first()
+        for departmentOBJ in user.departmenttwo.all():
+            departmentOBJ.user.remove(user)
+        department = MODELS_DEPA.Department.objects.filter(id=department)
+        if department.exists(): department.first().user.add(user)
+
+        del requesteddata['department']
+
+    if 'official_id' in requesteddata:
+        official_id = requesteddata['official_id']
+        if official_id:
+            requesteddata.update({'username': official_id})
+
+    allowed_fields = ['username', 'first_name', 'last_name', 'designation', 'official_id', 'joining_date', 'personal_phone', 'personal_email', 'dob', 'gender', 'blood_group', 'marital_status', 'spouse_name', 'supervisor']
+    unique_fields = ['official_id', 'personal_phone', 'personal_email']
+    choice_fields = [
+        {'name': 'gender', 'values': [item[1] for item in CHOICE.GENDER]},
+        {'name': 'blood_group', 'values': [item[1] for item in CHOICE.BLOOD_GROUP]},
+        {'name': 'marital_status', 'values': [item[1] for item in CHOICE.MARITAL_STATUS]}
+    ]
+    fields_regex = [
+        {'field': 'official_id', 'type': 'employeeid'},
+        {'field': 'personal_phone', 'type': 'phonenumber'},
+        {'field': 'personal_email', 'type': 'email'},
+        {'field': 'dob', 'type': 'date'}
+    ]
+
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_USER.User,
+        PSRLZER_USER.Userserializer,
+        userid,
+        requesteddata,
+        allowed_fields=allowed_fields,
+        unique_fields=unique_fields,
+        choice_fields=choice_fields,
+        fields_regex=fields_regex
+    )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatepersonaldetails(request, userid=None):
+
+    user = MODELS_USER.User.objects.filter(id=userid)
+    if user.exists():
+        requesteddata = request.data.copy()
+
+        present_address_flag = False
+        if 'present_address' in requesteddata:
+            presentaddressid = user.first().present_address.id
+            presentaddress = requesteddata['present_address']
+            response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+                MODELS_CONT.Address,
+                PSRLZER_CONT.Addressserializer,
+                presentaddressid,
+                presentaddress
+            )
+            del requesteddata['present_address']
+
+        if 'permanent_address' in requesteddata:
+            permanentaddressid = user.first().permanent_address
+            permanentaddress = requesteddata['permanent_address']
+            response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+                MODELS_CONT.Address,
+                PSRLZER_CONT.Addressserializer,
+                permanentaddressid,
+                permanentaddress
+            )
+            del requesteddata['permanent_address']
+
+        allowed_fields = ['fathers_name', 'mothers_name', 'spouse_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no']
+        unique_fields = ['nid_passport_no', 'tin_no']
+        response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+            MODELS_USER.User,
+            PSRLZER_USER.Userserializer,
+            userid,
+            requesteddata,
+            allowed_fields=allowed_fields,
+            unique_fields=unique_fields
+        )
+        if response_successflag == 'success':
+            return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+        elif response_successflag == 'error':
+            return Response({'data': {}, 'message': ['something went wrong!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)

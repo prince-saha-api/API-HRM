@@ -93,11 +93,13 @@ def updateleavepolicy(request, leavepolicyid=None):
         if not response_message:
             extra_fields = {}
             if userid: extra_fields.update({'updated_by': userid})
+            unique_fields=['name']
             response_data_, response_message_, response_successflag_, response_status_ = ghelp().updaterecord(
                 MODELS_LEAV.Leavepolicy,
                 PSRLZER_LEAV.Leavepolicyserializer,
                 leavepolicyid,
                 request.data,
+                unique_fields=unique_fields,
                 allowed_fields=allowed_fields,
                 extra_fields=extra_fields
                 )
@@ -160,38 +162,38 @@ def getassignleavepolicys(request):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def assignleavepolicy(request):
     check_mood = True
+    generalsettings = MODELS_SETT.Generalsettings.objects.all().order_by('id')
+    if generalsettings.exists():
+        leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
+        user = ghelp().getobject(MODELS_USER.User, {'id': request.data.get('user')})
+        if check_mood:
+            if leavepolicy == None: return Response({'data': {}, 'message': ['leavepolicy doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+            if user == None: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
-    fiscalyear = ghelp().getobject(MODELS_SETT.Fiscalyear, {'id': request.data.get('fiscalyear')})
-    leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
-    user = ghelp().getobject(MODELS_USER.User, {'id': request.data.get('user')})
-    if check_mood:
-        if fiscalyear == None: return Response({'data': {}, 'message': ['fiscalyear doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        if leavepolicy == None: return Response({'data': {}, 'message': ['leavepolicy doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        if user == None: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # if leavepolicy.applicable_for.name != 'all':
+        #     if user not in leavepolicy.applicable_for.user.all():
+        #         return Response({'data': {}, 'message': ['This user can\'t have this leave!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        
 
-    # if leavepolicy.applicable_for.name != 'all':
-    #     if user not in leavepolicy.applicable_for.user.all():
-    #         return Response({'data': {}, 'message': ['This user can\'t have this leave!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    
-
-    leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user, leavepolicy=leavepolicy)
-    if not leavepolicyassign.exists():
-        created_by = MODELS_USER.User.objects.get(id=request.user.id)
-        leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.create(user=user, leavepolicy=leavepolicy, created_by=created_by, updated_by=created_by)
-        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
-        if not leavesummary.exists():
-            MODELS_LEAV.Leavesummary.objects.create(
-                user=user,
-                leavepolicy=leavepolicy,
-                fiscal_year=fiscalyear,
-                total_allocation=leavepolicy.allocation_days,
-                total_consumed=0,
-                total_left=leavepolicy.allocation_days
-            )
-            return Response({'data': {}, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
-        else: return Response({'data': {}, 'message': ['this leavesummary is already exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': ['this leavepolicyassign is already exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user, leavepolicy=leavepolicy)
+        if not leavepolicyassign.exists():
+            created_by = MODELS_USER.User.objects.get(id=request.user.id)
+            leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.create(user=user, leavepolicy=leavepolicy, created_by=created_by, updated_by=created_by)
+            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
+            if not leavesummary.exists():
+                MODELS_LEAV.Leavesummary.objects.create(
+                    user=user,
+                    leavepolicy=leavepolicy,
+                    fiscal_year=generalsettings.first().fiscalyear,
+                    total_allocation=leavepolicy.allocation_days,
+                    total_consumed=0,
+                    total_left=leavepolicy.allocation_days
+                )
+                return Response({'data': {}, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+            else: return Response({'data': {}, 'message': ['this leavesummary is already exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        else: return Response({'data': {}, 'message': ['this leavepolicyassign is already exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'data': {}, 'message': ['please fillup general settings first!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -284,9 +286,10 @@ def addleaverequest(request):
     attachment = request.FILES.get('attachment')
 
     leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
-    fiscal_year_from_date, fiscal_year_to_date = ghelp().getFiscalyearBoundary(leavesummary.first().general_settings.fiscalyear_month)
     
     if leavesummary.exists():
+        fiscal_year_from_date = leavesummary.first().fiscal_year.from_date
+        fiscal_year_to_date = leavesummary.first().fiscal_year.to_date
 
         # Section to calculate date based on is_calendar_day
         daycount = (to_date - from_date).days + 1
@@ -294,23 +297,25 @@ def addleaverequest(request):
         if leavepolicy.is_calendar_day:
             for day in range(daycount):
                 
-                filter_date = from_date + timedelta(day)
-                if ghelp().is_date_in_range(filter_date, fiscal_year_from_date, fiscal_year_to_date):
-                    dates.append(filter_date)
+                date = from_date + timedelta(day)
+                if ghelp().is_date_in_range(date, fiscal_year_from_date, fiscal_year_to_date):
+                    dates.append(date)
                 else: return Response({'data': {}, 'message': [f'applied date is not in this fiscal year!({fiscal_year_from_date} - {fiscal_year_to_date})'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             for day in range(daycount):
                 date = from_date + timedelta(day)
-                # offday = MODELS_SETT.Weeklyholiday.objects.filter(day=ghelp().convert_y_m_d_STR_day(date))
-                offday = leavesummary.first().general_settings.weekly_holiday.day.all()
-                if not offday.exists():
-                    holiday = MODELS_LEAV.Holiday.objects.filter(date=date, employee_grade=user.grade)
-                    if not holiday.exists():
-                        filter_date = from_date + timedelta(day)
-                        if ghelp().is_date_in_range(filter_date, fiscal_year_from_date, fiscal_year_to_date):
-                            dates.append(filter_date)
-                        else: return Response({'data': {}, 'message': [f'applied date is not in this fiscal year!({fiscal_year_from_date} - {fiscal_year_to_date})'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-
+                generalsettings = MODELS_SETT.Generalsettings.objects.filter(fiscalyear=leavesummary.first().fiscal_year.id)
+                if generalsettings.exists():
+                    offdays = [each.day for each in generalsettings.first().weekly_holiday.day.all()]
+                    if offdays:
+                        if date.strftime("%A") not in offdays:
+                            holidays = [each.date for each in MODELS_LEAV.Holiday.objects.filter(date=date, employee_grade=user.grade)]
+                            if holidays:
+                                if date in holidays:
+                                    if ghelp().is_date_in_range(date, fiscal_year_from_date, fiscal_year_to_date):
+                                        dates.append(date)
+                                    else: return Response({'data': {}, 'message': [f'applied date is not in this fiscal year!({fiscal_year_from_date} - {fiscal_year_to_date})'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+                else: return Response({'data': {}, 'message': ['please add general settings first!!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
         if leavepolicy.max_consecutive_days == 0 or len(dates)<=leavepolicy.max_consecutive_days:
             total_left = leavesummary.first().total_left
             if len(dates)<=total_left:

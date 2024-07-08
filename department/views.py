@@ -112,12 +112,14 @@ def updatedepartment(request, departmentid=None):
             {'field': 'email', 'type': 'email'},
             {'field': 'phone', 'type': 'phonenumber'}
         ]
+        unique_fields = ['email', 'phone', 'fax']
         response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
             MODELS_DEPA.Department, 
             PSRLZER_DEPA.Departmentserializer, 
             departmentid, 
             departmentObj,
-            fields_regex=fields_regex
+            fields_regex=fields_regex,
+            unique_fields=unique_fields
             )
 
         return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

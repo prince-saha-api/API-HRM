@@ -1,12 +1,11 @@
 from django.db import models
-from user.models import User, Shiftchangelog
+from user import models as MODELS_USER
 from helps.choice.common import ATTENDANCE_FROM, STATUS
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from hrm_settings import models as MODELS_HRMS
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Timedetails, Timedetailscode
-from workingshift.models import Globalbuffertime
 
 class Attendance(Timedetails):
     date = models.DateField()
@@ -28,7 +27,7 @@ class Attendance(Timedetails):
     # holiday = models.ForeignKey(Holiday, on_delete=models.SET_NULL, null=True, blank=True)
     # office_off_day = models.ForeignKey(MODELS_HRMS.Weeklyholiday, on_delete=models.SET_NULL, null=True, blank=True)
     buffer_time_minutes = models.CharField(max_length=25, null=True, blank=True)
-    employee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    employee = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, null=True, blank=True)
     attendance_from = models.CharField(max_length=20, choices=ATTENDANCE_FROM)
 
     class Meta:
@@ -49,13 +48,13 @@ class Attendance(Timedetails):
             if self.in_time: self.in_out_times.append(self.in_time)
             if self.out_time: self.in_out_times.append(self.out_time)
 
-        shiftchangelog = Shiftchangelog.objects.filter(date=self.date, user=self.employee)
+        shiftchangelog = MODELS_USER.Shiftchangelog.objects.filter(date=self.date, user=self.employee)
 
         if shiftchangelog.exists():
             shiftchangelog = shiftchangelog.first()
             shift = shiftchangelog.newshift
 
-            details = ghelp().getattendancedetails(Globalbuffertime, MODELS_HRMS.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
+            details = ghelp().getattendancedetails(MODELS_HRMS.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
             self.in_negative_minutes = details['in_negative_minutes']
             self.in_positive_minutes = details['in_positive_minutes']
             self.out_negative_minutes = details['out_negative_minutes']
@@ -69,7 +68,7 @@ class Attendance(Timedetails):
         else:
             shift = self.employee.shift
 
-            details = ghelp().getattendancedetails(Globalbuffertime, MODELS_HRMS.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
+            details = ghelp().getattendancedetails(MODELS_HRMS.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
             self.in_negative_minutes = details['in_negative_minutes']
             self.in_positive_minutes = details['in_positive_minutes']
             self.out_negative_minutes = details['out_negative_minutes']
@@ -87,7 +86,7 @@ class Attendance(Timedetails):
 class Devicelogs(Timedetails):
     date = models.DateField()
     in_time = models.TimeField()
-    employee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    employee = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['employee', 'date', 'in_time'], name='Devicelogs_employee_date_in_time')]
@@ -104,7 +103,7 @@ class Remotelogs(Timedetails):
     device = models.CharField(max_length=50, blank=True, null=True)
     model = models.CharField(max_length=50, blank=True, null=True)
     
-    employee = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    employee = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['employee', 'date', 'time'], name='Remotelogs_employee_date_time')]
@@ -121,8 +120,8 @@ class Requestremoteattendance(Timedetailscode):
     status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
     reject_reason = models.CharField(max_length=200, blank=True, null=True)
 
-    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestremoteattendanceone')
-    decisioned_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestremoteattendancetwo')
+    requested_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestremoteattendanceone')
+    decisioned_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestremoteattendancetwo')
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['requested_by', 'date'], name='Requestremoteattendance_requested_by_date')]
@@ -154,8 +153,8 @@ class Requestmanualattendance(Timedetailscode):
     status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
     reject_reason = models.CharField(max_length=200, blank=True, null=True)
 
-    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestmanualattendanceone')
-    decisioned_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestmanualattendancetwo')
+    requested_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestmanualattendanceone')
+    decisioned_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestmanualattendancetwo')
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['requested_by', 'date'], name='Requestmanualattendance_requested_by_date')]

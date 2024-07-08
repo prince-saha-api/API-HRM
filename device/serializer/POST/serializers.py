@@ -6,6 +6,11 @@ class Deviceserializer(serializers.ModelSerializer):
         model = models.Device
         fields = '__all__'
 
+class Groupserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Group
+        fields = '__all__'
+
 class Devicegroupserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Devicegroup

@@ -9,4 +9,6 @@ urlpatterns = [
     
     path('get-operatinghour/', views.getoperatinghours, name='get-operatinghour'),
     path('add-operatinghour/', views.addoperatinghour, name='add-operatinghour'),
+    path('update-operatinghour/<int:operatinghourid>', views.updateoperatinghour, name='update-operatinghour'),
+    path('delete-operatinghour/<int:operatinghourid>', views.deleteoperatinghour, name='delete-operatinghour'),
 ]

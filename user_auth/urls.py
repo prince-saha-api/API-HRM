@@ -15,6 +15,5 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='auth_logout'),
     path('logout_all/', views.LogoutAllView.as_view(), name='auth_logout_all'),
     
-    path('change-password/', views.ChangePasswordView.as_view(), name='change-password'),
-    path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
+    path('reset-password/', views.resetPassword, name='reset-password'),
 ]

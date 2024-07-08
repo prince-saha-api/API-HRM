@@ -27,8 +27,20 @@ def getoperatinghours(request):
     operatinghours = MODELS_BRAN.Operatinghour.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: operatinghours = operatinghours.order_by(column_accessor)
+
+    total_count = operatinghours.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: operatinghours = operatinghours[(page-1)*page_size:page*page_size]
+
     operatinghourserializers = SRLZER_BRAN.Operatinghourserializer(operatinghours, many=True)
-    return Response(operatinghourserializers.data, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': operatinghourserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
@@ -38,6 +50,38 @@ def addoperatinghour(request):
         operatinghourserializers.save()
         return Response({'status': 'success', 'message': [], 'data': operatinghourserializers.data}, status=status.HTTP_201_CREATED)
     else: return Response({'status': 'error', 'message': [], 'data': operatinghourserializers.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updateoperatinghour(request, operatinghourid=None):
+    fields_regex = [
+        {'field': 'operating_hour_from', 'type': 'time'},
+        {'field': 'operating_hour_to', 'type': 'time'}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        MODELS_BRAN.Operatinghour, 
+        PSRLZER_BRAN.Operatinghourserializer, 
+        operatinghourid, 
+        request.data,
+        fields_regex=fields_regex
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deleteoperatinghour(request, operatinghourid=None):
+    classOBJpackage_tocheck_assciaativity = [
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_BRAN.Operatinghour,
+        operatinghourid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -137,11 +181,13 @@ def updatebranch(request, branchid=None):
             {'field': 'email', 'type': 'email'},
             {'field': 'phone', 'type': 'phonenumber'}
         ]
+        unique_fields = ['email', 'phone', 'fax']
         response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
             MODELS_BRAN.Branch, 
             PSRLZER_BRAN.Branchserializer, 
             branchid, 
             branchObj,
+            unique_fields=unique_fields,
             fields_regex=fields_regex
             )
 

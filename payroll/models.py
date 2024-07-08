@@ -51,7 +51,6 @@ class Payrolldeductionassign(Basic):
     def __str__(self):
         return f'{self.payrolldeduction} -- {self.user}'
 
-
 class Payrolltax(Basic):
     title = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)

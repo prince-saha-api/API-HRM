@@ -124,14 +124,6 @@ class Nanohelps(Picohelps):
 
         return offday.first() if offday.exists() else None
     
-    def removedoublequotation(self, string):
-        if string:
-            if string[0] == '"':
-                if string[len(string)-1] == '"':
-                    string = string[1:len(string)]
-                    string = string[0:len(string)-1]
-        return string
-    
     def filterAllowedFields(self, allowed_fields, data, preparedata): # New
         if isinstance(allowed_fields, str):
             if allowed_fields == '__all__':
@@ -147,9 +139,8 @@ class Nanohelps(Picohelps):
         for field in unique_fields:
             uniquevalue = preparedata.get(field)
             if uniquevalue: uniquekeyvalue.update({field: uniquevalue})
-
         for key, value in uniquekeyvalue.items():
-            if classOBJ.objects.filter(**{key:value}).exists(): response_message.append(f'{value} is already exist!')
+            if classOBJ.objects.filter(**{key:value}).exists(): response_message.append(f'{key}({value}) is already exist!')
 
     def filterChoiceFields(self, choice_fields, preparedata, response_message): # New
         for choice_field in choice_fields:
@@ -193,7 +184,10 @@ class Nanohelps(Picohelps):
                     objvalue = getattr(classobj.first(), key, '')
                     if objvalue not in value: response_message.append(f'{key} (it\'s already {objvalue}.)')
 
-    def getFiscalyearBoundary(self, month): # New
-        from_date = datetime(self.getYear(), int(month), 1).date()
-        to_date = from_date + timedelta(days=364)
-        return from_date, to_date
+    def getFiscalyearBoundary(self, month, monthdict): # New
+        month = monthdict.get(month)
+        if month:
+            from_date = datetime(self.getYear(), month, 1).date()
+            to_date = from_date + timedelta(days=364)
+            return from_date, to_date
+        else: return None, None

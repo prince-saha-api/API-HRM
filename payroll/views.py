@@ -25,10 +25,22 @@ def getpayrollearnings(request):
                     {'name': 'created_by', 'convert': None, 'replace':'created_by'}
                 ]
     payrollearnings = MODELS_PAYR.Payrollearning.objects.filter(**ghelp().KWARGS(request, filter_fields))
+
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: payrollearnings = payrollearnings.order_by(column_accessor)
+    
+    total_count = payrollearnings.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: payrollearnings=payrollearnings[(page-1)*page_size:page*page_size]
+
     payrollearningserializers = SRLZER_PAYR.Payrollearningserializer(payrollearnings, many=True)
-    return Response({'status': 'success', 'message': '', 'data': payrollearningserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': payrollearningserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -86,8 +98,19 @@ def getpayrolldeductions(request):
     payrolldeductions = MODELS_PAYR.Payrolldeduction.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: payrolldeductions = payrolldeductions.order_by(column_accessor)
+
+    total_count = payrolldeductions.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: payrolldeductions = payrolldeductions[(page-1)*page_size:page*page_size]
+
     payrolldeductionserializers = SRLZER_PAYR.Payrolldeductionserializer(payrolldeductions, many=True)
-    return Response({'status': 'success', 'message': '', 'data': payrolldeductionserializers.data}, status=status.HTTP_200_OK)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': payrolldeductionserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -126,7 +149,7 @@ def updatepayrolldeduction(request, payrolldeductionid=None):
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
-@api_view(['GET'])
+
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getpayrolltaxs(request):
@@ -173,11 +196,13 @@ def updatepayrolltax(request, payrolltaxid=None):
     userid = request.user.id
     extra_fields = {}
     if userid: extra_fields.update({'updated_by': userid})
+    unique_fields=['title']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         MODELS_PAYR.Payrolltax,
         PSRLZER_PAYR.Payrolltaxserializer,
         payrolltaxid,
         request.data,
+        unique_fields=unique_fields,
         extra_fields=extra_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
