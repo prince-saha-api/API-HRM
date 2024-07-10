@@ -350,8 +350,11 @@ def approveleaverequest(request, leaverequestid=None):
         if leaverequest.exists():
             leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=leaverequest.first().user, leavepolicy=leaverequest.first().leavepolicy)
             if leavesummary.exists():
-                if leavesummary.first().total_left >= len(leaverequest.first().valid_leave_dates):
-                    for date in leaverequest.first().valid_leave_dates:
+                copydates = leaverequest.first().valid_leave_dates.copy()
+                copydates.sort()
+                if leavesummary.first().total_left >= len(copydates):
+                    lastdate = copydates[len(copydates)-1]
+                    for date in copydates:
 
                         if leaverequest.first().status == CHOICE.STATUS[2][1]:
                             todaysdate = ghelp().getToday()
