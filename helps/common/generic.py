@@ -21,14 +21,6 @@ class Generichelps(Minihelps):
                 else: kwargs.update({'{0}'.format(key): request.GET[key]})
         objects = Object.objects.filter(**kwargs)
         return objects
-
-    def set_settings(self, ConfigClass, BackupClass, code):
-        will_be_deleted_after_nth_records = self.getFirstObjectIfExistOrNot(ConfigClass).backup_will_be_deleted_after_nth_records
-        backupclass = BackupClass.objects.filter(code=code).order_by('-id')
-        if backupclass.count()>will_be_deleted_after_nth_records-1:
-            objects_to_keep = backupclass[:will_be_deleted_after_nth_records-1]
-            backupclass.exclude(pk__in=objects_to_keep).delete()
-        return code
     
     def getattendancedetails(self, Offday, shift, date, actual_in_time, actual_out_time): # New
 
@@ -36,7 +28,6 @@ class Generichelps(Minihelps):
         flag_details = self.claculateinoutflag(shiftandactualinoutdetails)
         entranceexitdetails = self.claculateentranceexitdetails(flag_details, shiftandactualinoutdetails)
         ateattendancedetails = self.claculateattendancedetails(entranceexitdetails)
-        # bufferdetails = self.claculatebuffertime(GlobalBufferTime, entranceexitdetails)
 
         offday = self.getofficeoffday(Offday, date)
         
@@ -49,9 +40,6 @@ class Generichelps(Minihelps):
             'in_positive_minutes': ateattendancedetails['in_positive_minutes'],
             'out_negative_minutes': ateattendancedetails['out_negative_minutes'],
             'out_positive_minutes': ateattendancedetails['out_positive_minutes'],
-            # 'late_in_based_on_buffertime': bufferdetails['late_in_based_on_buffertime'],
-            # 'early_leave_based_on_buffertime': bufferdetails['early_leave_based_on_buffertime'],
-            # 'buffer_time_minutes': bufferdetails['buffer_time_minutes'],
             'total_minutes': total_minutes,
             'office_off_day': offday
         }

@@ -376,10 +376,7 @@ def updatebasicinformation(request, basicinformationid=None):
 def getcompanytypes(request):
     filter_fields = [
                     {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-                    {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
-                    {'name': 'created_by', 'convert': None, 'replace':'created_by'},
-                    {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
+                    {'name': 'name', 'convert': None, 'replace':'name__icontains'}
                 ]
     
     companytypes = MODELS_COMP.Companytype.objects.filter(**ghelp().KWARGS(request, filter_fields))
@@ -402,9 +399,6 @@ def getcompanytypes(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def addcompanytype(request):
-    userid = request.user.id
-    extra_fields = {}
-    if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields = ['name']
     unique_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
@@ -412,7 +406,6 @@ def addcompanytype(request):
         PSRLZER_COMP.Companytypeserializer, 
         request.data,
         unique_fields=unique_fields, 
-        extra_fields=extra_fields, 
         required_fields=required_fields
         )
     if response_data: response_data = response_data.data
@@ -422,16 +415,26 @@ def addcompanytype(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updatecompanytype(request, companytypeid=None):
-    userid = request.user.id
     unique_fields = ['name']
-    extra_fields = {}
-    if userid: extra_fields.update({'updated_by': userid})
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         MODELS_COMP.Companytype,
         PSRLZER_COMP.Companytypeserializer,
         companytypeid,
         request.data,
-        unique_fields=unique_fields,
-        extra_fields=extra_fields
+        unique_fields=unique_fields
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletecompanytype(request, companytypeid=None):
+    classOBJpackage_tocheck_assciaativity = [
+        {'model': MODELS_COMP.Basicinformation, 'fields': [{'field': 'industry_type', 'relation': 'foreignkey', 'records': []}]}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        MODELS_COMP.Companytype,
+        companytypeid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

@@ -48,5 +48,7 @@ urlpatterns = [
     path('update-profilepic/<int:userid>', views.updateprofilepic, name='update-profilepic'),
     path('update-profile/<int:userid>', views.updateprofile, name='update-profile'),
     path('update-personal-details/<int:userid>', views.updatepersonaldetails, name='update-personal-details'),
+    # path('update-official-details/<int:userid>', views.updateofficialdetails, name='update-official-details'),
+    path('update-salary-leaves/<int:userid>', views.updatesalaryleaves, name='update-salary-leaves'),
     
 ]

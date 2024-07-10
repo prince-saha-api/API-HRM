@@ -898,21 +898,23 @@ def addemployee(request):
                             if object.name != 'all': object.user.add(userinstance)
 
                 leavepolicy_salaryAndLeaves = salaryAndLeaves.get('leavepolicy')
-                if leavepolicy_salaryAndLeaves:
-                    for id in leavepolicy_salaryAndLeaves:
-                        leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': id})
-                        # if userinstance in leavepolicy.applicable_for.user.all() or leavepolicy.applicable_for.name == 'all':
-                        if not MODELS_LEAV.Leavepolicyassign.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
-                            MODELS_LEAV.Leavepolicyassign.objects.create(user=userinstance, leavepolicy=leavepolicy)
-                            if not MODELS_LEAV.Leavesummary.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
-                                MODELS_LEAV.Leavesummary.objects.create(
-                                    user=userinstance,
-                                    leavepolicy=leavepolicy,
-                                    fiscal_year=fiscal_year,
-                                    total_allocation=leavepolicy.allocation_days,
-                                    total_consumed=0,
-                                    total_left=leavepolicy.allocation_days
-                                )
+                if isinstance(leavepolicy_salaryAndLeaves, list):
+                    if leavepolicy_salaryAndLeaves:
+                        for id in leavepolicy_salaryAndLeaves:
+                            leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': id})
+                            if leavepolicy:
+                                # if userinstance in leavepolicy.applicable_for.user.all() or leavepolicy.applicable_for.name == 'all':
+                                if not MODELS_LEAV.Leavepolicyassign.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
+                                    MODELS_LEAV.Leavepolicyassign.objects.create(user=userinstance, leavepolicy=leavepolicy)
+                                    if not MODELS_LEAV.Leavesummary.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
+                                        MODELS_LEAV.Leavesummary.objects.create(
+                                            user=userinstance,
+                                            leavepolicy=leavepolicy,
+                                            fiscal_year=fiscal_year,
+                                            total_allocation=leavepolicy.allocation_days,
+                                            total_consumed=0,
+                                            total_left=leavepolicy.allocation_days
+                                        )
                 emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, PSRLZER_USER.Employeecontactserializer, MODELS_CONT.Address, PSRLZER_CONT.Addressserializer, userinstance, emergencyContact)
                 academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, PSRLZER_USER.Employeeacademichistoryserializer, userinstance, academicRecord)
                 previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, PSRLZER_USER.Employeeexperiencehistoryserializer, userinstance, previousExperience)
@@ -1030,7 +1032,6 @@ def updatepersonaldetails(request, userid=None):
     if user.exists():
         requesteddata = request.data.copy()
 
-        present_address_flag = False
         if 'present_address' in requesteddata:
             presentaddressid = user.first().present_address.id
             presentaddress = requesteddata['present_address']
@@ -1062,6 +1063,134 @@ def updatepersonaldetails(request, userid=None):
             requesteddata,
             allowed_fields=allowed_fields,
             unique_fields=unique_fields
+        )
+        if response_successflag == 'success':
+            return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+        elif response_successflag == 'error':
+            return Response({'data': {}, 'message': ['something went wrong!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# # @deco.get_permission(['Get Permission list Details', 'all'])
+# def updateofficialdetails(request, userid=None):
+
+#     user = MODELS_USER.User.objects.filter(id=userid)
+#     if user.exists():
+#         requesteddata = request.data.copy()
+        
+#         if 'company' in requesteddata:
+#             company = requesteddata['company']
+
+#         # company
+#         # branch
+
+#         # official_phone
+#         # employee_type
+#         # shift
+#         # grade
+#         # role_permission
+#         # joining_date
+#         # expense_approver
+#         # leave_approver
+#         # shift_request_approver
+#     else: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatesalaryleaves(request, userid=None):
+
+    user = MODELS_USER.User.objects.filter(id=userid)
+    if user.exists():
+        requesteddata = request.data.copy()
+
+        if 'bankaccount' in requesteddata:
+            bankaccount = requesteddata['bankaccount']
+            bankaccountid = user.first().bank_account.id
+
+            response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+                MODELS_CONT.Bankaccount,
+                PSRLZER_CONT.Bankaccountserializer,
+                bankaccountid,
+                bankaccount
+            )
+
+            if 'address' in bankaccount:
+                address = bankaccount['address']
+                addressid = user.first().bank_account.address.id
+                response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+                    MODELS_CONT.Address,
+                    PSRLZER_CONT.Addressserializer,
+                    addressid,
+                    address
+                )
+            del requesteddata['bankaccount']
+
+        # leavepolicy
+        couldnotremoveleavepolicy = []
+        if 'leavepolicy' in requesteddata:
+            leavepolicy = requesteddata['leavepolicy']
+            if isinstance(leavepolicy, list):
+                if leavepolicy:
+                    fiscalyear = MODELS_SETT.Generalsettings.objects.all().order_by('id').last().fiscalyear
+                    keepleavepolicy = []
+                    for id in leavepolicy:
+                        leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': id})
+                        if leavepolicy:
+                            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=leavepolicy)
+                            if not leavesummary.exists():
+                                leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=leavepolicy)
+                                if leavepolicyassign.exists():
+                                    MODELS_LEAV.Leavesummary.objects.create(
+                                        user=user.first(),
+                                        leavepolicy=leavepolicy,
+                                        fiscal_year=fiscalyear,
+                                        total_allocation=leavepolicy.allocation_days,
+                                        total_consumed=0,
+                                        total_left=leavepolicy.allocation_days
+                                    )
+                                else:
+                                    MODELS_LEAV.Leavepolicyassign.objects.create(
+                                        user=user.first(),
+                                        leavepolicy=leavepolicy
+                                    )
+                                    MODELS_LEAV.Leavesummary.objects.create(
+                                        user=user.first(),
+                                        leavepolicy=leavepolicy,
+                                        fiscal_year=fiscalyear,
+                                        total_allocation=leavepolicy.allocation_days,
+                                        total_consumed=0,
+                                        total_left=leavepolicy.allocation_days
+                                    )
+                                keepleavepolicy.append(leavepolicy)
+                    leavepolicyassigns = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first())
+                    for leavepolicyassign in leavepolicyassigns:
+                        if leavepolicyassign.leavepolicy not in keepleavepolicy:
+                            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=leavepolicyassign.leavepolicy)
+                            if leavesummary.exists():
+                                if leavesummary.first().total_consumed:
+                                    couldnotremoveleavepolicy.append(leavepolicyassign.leavepolicy)
+                                else:
+                                    leavesummary.delete()
+                                    leavepolicyassign.delete()
+                            else: leavepolicyassign.delete()
+            del requesteddata['leavepolicy']
+        # earningpolicy
+        # deductionpolicy
+        
+        allowed_fields = ['payment_in', 'gross_salary']
+        choice_fields = [
+            {'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}
+        ]
+        response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+            MODELS_USER.User,
+            PSRLZER_USER.Userserializer,
+            userid,
+            requesteddata,
+            allowed_fields=allowed_fields,
+            choice_fields=choice_fields
         )
         if response_successflag == 'success':
             return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

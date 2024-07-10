@@ -1,7 +1,5 @@
 from datetime import timedelta
 from django.db import models
-from django.db.models import JSONField
-from helps.model.modelhelps import setSettings
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Basic, Timedetailscode
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -9,7 +7,6 @@ from django.contrib.postgres.fields import ArrayField
 from contribution import models as CNTRIB
 from helps.choice import common as CHOICE
 from django.db.models import Sum
-from device.models import Device
 from helps.validators.common import validate_phone_number, validate_office_id
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
@@ -107,6 +104,8 @@ class User(AbstractUser, Timedetailscode):
     uniqueid = models.CharField(max_length=18, unique=True, default=generate_unique_code)
 
     designation = models.ForeignKey(Designation, on_delete=models.SET_NULL, blank=True, null=True)
+    # company = models.ForeignKey(MODELS_COMP.Company, on_delete=models.SET_NULL, blank=True, null=True)
+    # branch = models.ForeignKey(MODELS_BRAN.Branch, on_delete=models.SET_NULL, blank=True, null=True)
     ###
     dob = models.DateField(blank=True, null=True)
     blood_group = models.CharField(max_length=25, choices=CHOICE.BLOOD_GROUP, blank=True, null=True)
@@ -131,7 +130,7 @@ class User(AbstractUser, Timedetailscode):
     official_phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
     employee_type = models.CharField(max_length=30, choices=CHOICE.EMPLOYEE_TYPE, blank=True, null=True)
     gross_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
-    payment_in = models.CharField(max_length=50, blank=True, null=True)
+    payment_in = models.CharField(max_length=50, choices=CHOICE.PAYMENT_IN, blank=True, null=True)
     #######
     #########
     supervisor = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='userone')

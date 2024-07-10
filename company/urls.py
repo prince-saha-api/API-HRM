@@ -13,4 +13,5 @@ urlpatterns = [
     path('get-companytype/', views.getcompanytypes, name='get-companytype'),
     path('add-companytype/', views.addcompanytype, name='add-companytype'),
     path('update-companytype/<int:companytypeid>', views.updatecompanytype, name='update-companytype'),
+    path('delete-companytype/<int:companytypeid>', views.deletecompanytype, name='delete-companytype')
 ]

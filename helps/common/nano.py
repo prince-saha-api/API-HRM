@@ -78,7 +78,6 @@ class Nanohelps(Picohelps):
             'in_negative_minutes': in_negative_minutes,
             'out_positive_minutes': out_positive_minutes,
             'out_negative_minutes': out_negative_minutes
-
         }
     
     def claculateinoutflag(self, shiftandactualinoutdetails):
@@ -95,27 +94,6 @@ class Nanohelps(Picohelps):
             'in_diff': in_diff,
             'out_flag': out_flag,
             'out_diff': out_diff
-        }
-    
-    def claculatebuffertime(self, GlobalBufferTime, entranceexitdetails):
-        globalbuffertime = GlobalBufferTime.objects.all()
-        if globalbuffertime.count() == 0: GlobalBufferTime.objects.create()
-        globalbuffertime = GlobalBufferTime.objects.filter(is_active=True).first()
-
-        late_in_based_on_buffertime = 0
-        if entranceexitdetails['late_entrance']>globalbuffertime.buffer_time_for_enter_minutes:
-            late_in_based_on_buffertime = (entranceexitdetails['late_entrance']-globalbuffertime.buffer_time_for_enter_minutes)/60
-
-        early_leave_based_on_buffertime = 0
-        if entranceexitdetails['early_exit']>globalbuffertime.buffer_time_for_leave_minutes:
-            early_leave_based_on_buffertime = (entranceexitdetails['early_exit']-globalbuffertime.buffer_time_for_leave_minutes)/60
-
-        buffer_time_minutes = f'{globalbuffertime.buffer_time_for_enter_minutes} - {globalbuffertime.buffer_time_for_leave_minutes}'
-        
-        return {
-            'late_in_based_on_buffertime': late_in_based_on_buffertime,
-            'early_leave_based_on_buffertime': early_leave_based_on_buffertime,
-            'buffer_time_minutes': buffer_time_minutes
         }
     
     def getofficeoffday(self, Offday, date):

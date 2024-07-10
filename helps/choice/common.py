@@ -11,6 +11,7 @@ AMOUNT_TYPE = (('Fixed Amount', 'Fixed Amount'), ('Percentage', 'Percentage'),)
 LOAN_TYPE = (('Advance Salary', 'Advance Salary'), ('Loan', 'Loan'), ('Fine', 'Fine'),)
 ADJUSTMENT_TYPE = (('From Salary', 'From Salary'), ('By Cash', 'By Cash'),)
 ATTENDANCE_OVERTIME = (('Disabled', 'Disabled'), ('Overtime', 'Overtime'),)
+PAYMENT_IN = (('Cash','Cash'), ('Cheque', 'Cheque'), ('Bank', 'Bank'))
 JOB_STATUS = (
     ('OnGoing', 'OnGoing'),
     ('Resigned', 'Resigned'),

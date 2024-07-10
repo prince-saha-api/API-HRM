@@ -14,7 +14,7 @@ urlpatterns = [
     
     path('get-leaverequest/', views.getleaverequest, name='get-leaverequest'),
     path('add-leaverequest/', views.addleaverequest, name='add-leaverequest'),
-    path('approve-leaverequest/<int:leaverequest>', views.approveleaverequest, name='approve-leaverequest'),
+    path('approve-leaverequest/<int:leaverequestid>', views.approveleaverequest, name='approve-leaverequest'),
 
     path('get-leaveallocationrequest/', views.getleaveallocationrequest, name='get-leaveallocationrequest'),
     path('add-leaveallocationrequest/', views.addleaveallocationrequest, name='add-leaveallocationrequest'),

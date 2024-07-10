@@ -1,6 +1,5 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from helps.common.generic import Generichelps as ghelp
-from django.core.exceptions import ValidationError
 from helps.abstract.abstractclass import Basic
 from helps.choice import common as CHOICE
 from django.db import models

@@ -1,11 +1,11 @@
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Basic
+from user import models as MODELS_USER
 from django.db import models
 from facility.models import *
 from user.models import User
 from company.models import Company
 from helps.validators.common import validate_phone_number
-from django.core.validators import MinValueValidator, MaxValueValidator
 from contribution import models as CNTRIB
 
 class Operatinghour(Basic):
@@ -32,7 +32,7 @@ class Branch(Basic):
 class Branchphonenumber(Basic):
     phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
-
+    
     def __str__(self):
         return f'{self.branch.company.basic_information.name} - {self.branch.name} - {self.phone}'
 
