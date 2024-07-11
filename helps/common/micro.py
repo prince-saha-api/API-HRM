@@ -49,7 +49,7 @@ class Microhelps(Nanohelps):
 
             preparedata = {}
             self.filterAllowedFields(allowed_fields, data, preparedata)
-            self.filterUniqueFields(classOBJ, unique_fields, preparedata, response_message)
+            self.filterUniqueFields(classOBJ, unique_fields, preparedata, response_message, recordid=classobj.first().id)
             if extra_fields: preparedata.update(extra_fields)
             self.filterFreezFields(classobj, freez_update, response_message)
             self.filterContinueFields(classobj, continue_update, response_message)

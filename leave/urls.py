@@ -7,14 +7,16 @@ urlpatterns = [
     path('update-leavepolicy/<int:leavepolicyid>', views.updateleavepolicy, name='update-leavepolicy'),
     path('delete-leavepolicy/<int:leavepolicyid>', views.deleteleavepolicy, name='delete-leavepolicy'),
 
-    path('assign-leavepolicy/', views.assignleavepolicy, name='assign-leave-policy'),
     path('get-assign-leavepolicy/', views.getassignleavepolicys, name='get-assign-leave-policy'),
+    path('assign-leavepolicy/', views.assignleavepolicy, name='assign-leave-policy'),
+    path('remove-assigned-leavepolicy/<int:leavepolicyassignid>', views.removeassignedleavepolicy, name='remove-assigned-leavepolicy'),
     
     path('get-leavesummary/', views.getleavesummarys, name='get-leavesummary'),
     
     path('get-leaverequest/', views.getleaverequest, name='get-leaverequest'),
     path('add-leaverequest/', views.addleaverequest, name='add-leaverequest'),
     path('approve-leaverequest/<int:leaverequestid>', views.approveleaverequest, name='approve-leaverequest'),
+    path('reject-leaverequest/<int:leaverequestid>', views.rejectleaverequest, name='reject-leaverequest'),
 
     path('get-leaveallocationrequest/', views.getleaveallocationrequest, name='get-leaveallocationrequest'),
     path('add-leaveallocationrequest/', views.addleaveallocationrequest, name='add-leaveallocationrequest'),

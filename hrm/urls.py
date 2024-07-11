@@ -5,10 +5,6 @@ from django.urls import path, include
 
 
 
-
-
-
-
 from user import models as MODELS_USER
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -23,11 +19,6 @@ def createUser(request, username=None, password=None):
             MODELS_USER.User.objects.create_user(username='admin', password='admin')
             return Response({'message': 'User created!', 'username': 'admin', 'password': 'admin'}, status=status.HTTP_201_CREATED)
     except: return Response({'message': 'Couldn\'t create user!', 'username': '', 'password': ''}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
 
 
 urlpatterns = [

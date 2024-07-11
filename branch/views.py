@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from branch import models as MODELS_BRAN
@@ -9,7 +8,6 @@ from branch.serializer.POST import serializers as PSRLZER_BRAN
 from contribution.serializer.POST import serializers as PSRLZER_CONT
 from helps.common.generic import Generichelps as ghelp
 from rest_framework.response import Response
-from drf_nested_forms.utils import NestedForm
 from rest_framework import status
 
 
@@ -41,16 +39,15 @@ def getoperatinghours(request):
         'result': operatinghourserializers.data
     }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
-
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
 def addoperatinghour(request):
     operatinghourserializers = PSRLZER_BRAN.Operatinghourserializer(data=request.data, many=False)
     if operatinghourserializers.is_valid():
         operatinghourserializers.save()
         return Response({'status': 'success', 'message': [], 'data': operatinghourserializers.data}, status=status.HTTP_201_CREATED)
     else: return Response({'status': 'error', 'message': [], 'data': operatinghourserializers.errors}, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -81,7 +78,6 @@ def deleteoperatinghour(request, operatinghourid=None):
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -115,9 +111,13 @@ def getbranchs(request):
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
 def addbranch(request):
-    # userid = request.user.id
+    response_data = {}
     response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
     branchObj = request.data
 
     if 'address' in branchObj:
@@ -129,8 +129,11 @@ def addbranch(request):
             PSRLZER_CONT.Addressserializer,
             addressobj,
             required_fields=required_fields
-            )
+        )
         if responsesuccessflag == 'success': branchObj.update({'address': responsedata.data['id']})
+        elif responsesuccessflag == 'error':
+            response_message.extend(responsemessage)
+            del branchObj['address']
 
     required_fields = ['name', 'company']
     unique_fields = ['email', 'phone', 'fax']
@@ -138,61 +141,71 @@ def addbranch(request):
         {'field': 'email', 'type': 'email'},
         {'field': 'phone', 'type': 'phonenumber'}
     ]
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
         MODELS_BRAN.Branch,
         PSRLZER_BRAN.Branchserializer,
         branchObj,
         unique_fields=unique_fields,
         required_fields=required_fields,
         fields_regex=fields_regex
-        )
-    if response_successflag == 'error':
-        if 'address' in branchObj:
-            address = MODELS_CONT.Address.objects.filter(id=branchObj['address'])
-            if address.exists(): address.delete()
-    if response_data: response_data = response_data.data
+    )
+    if responsesuccessflag == 'success':
+        response_data = responsedata.data
+        response_successflag = responsesuccessflag
+        response_status = responsestatus
+    elif responsesuccessflag == 'error':
+        response_message.extend(responsemessage)
+
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updatebranch(request, branchid=None):
-    branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
-    if branch.exists():
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
 
-        address_id = None
-        branch = branch.first()
-        if branch.address: address_id = branch.address.id
-
-        branchObj = request.data
-
-        addressObj = None
-        if 'address' in branchObj:
-            addressObj = branchObj['address']
-            if address_id:
-                response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-                    MODELS_CONT.Address,
-                    PSRLZER_CONT.Addressserializer,
-                    address_id,
-                    addressObj
+    if branchid:
+        branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
+        if branch.exists():
+            branchObj = request.data
+            if 'address' in branchObj:
+                addressObj = branchObj['address']
+                addressid = branch.first().address.id
+                if addressid:
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                        MODELS_CONT.Address,
+                        PSRLZER_CONT.Addressserializer,
+                        addressid,
+                        addressObj
                     )
-            del branchObj['address']
-        fields_regex = [
-            {'field': 'email', 'type': 'email'},
-            {'field': 'phone', 'type': 'phonenumber'}
-        ]
-        unique_fields = ['email', 'phone', 'fax']
-        response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-            MODELS_BRAN.Branch, 
-            PSRLZER_BRAN.Branchserializer, 
-            branchid, 
-            branchObj,
-            unique_fields=unique_fields,
-            fields_regex=fields_regex
-            )
+                    if responsesuccessflag == 'error': response_message.extend(responsemessage)
+                del branchObj['address']
 
-        return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-    else: return Response({'data': {}, 'message': ['branch doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+            fields_regex = [
+                {'field': 'email', 'type': 'email'},
+                {'field': 'phone', 'type': 'phonenumber'}
+            ]
+            unique_fields = ['email', 'phone', 'fax']
+            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                MODELS_BRAN.Branch, 
+                PSRLZER_BRAN.Branchserializer, 
+                branchid, 
+                branchObj,
+                unique_fields=unique_fields,
+                fields_regex=fields_regex
+            )
+            if responsesuccessflag == 'success':
+                response_data = responsedata
+                response_successflag = responsesuccessflag
+                response_status = responsestatus
+            if responsesuccessflag == 'error':
+                response_message.extend(responsemessage)
+        else: response_message.append('branch doesn\'t exist!')
+    else: response_message.append('please provide a branch id!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])

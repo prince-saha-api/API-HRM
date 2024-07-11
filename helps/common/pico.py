@@ -326,6 +326,31 @@ class Picohelps:
                ]
             }
    
+   def getBasicInfoData(self):
+      return {
+               'fieldlist': [
+                  {'field': 'name', 'type': 'str'},
+                  {'field': 'legal_name', 'type': 'str'},
+                  {'field': 'establishment_date', 'type': 'str'},
+                  {'field': 'industry_type', 'type': 'int'},
+                  {'field': 'business_registration_number', 'type': 'str'},
+                  {'field': 'tax_id_number', 'type': 'str'},
+                  {'field': 'bin_no', 'type': 'str'},
+                  {'field': 'description', 'type': 'str'},
+                  {'field': 'website_url', 'type': 'str'},
+                  {'field': 'primary_email', 'type': 'str'},
+                  {'field': 'primary_phone_number', 'type': 'str'},
+                  {'field': 'fax', 'type': 'str'},
+                  {'field': 'logo', 'type': 'str'}
+               ],
+               'nestedfields': [
+                  {
+                        'field': 'address',
+                        'fieldlist': [{'field': 'city', 'type': 'str'}, {'field': 'state_division', 'type': 'str'}, {'field': 'post_zip_code', 'type': 'str'}, {'field': 'country', 'type': 'str'}, {'field': 'address', 'type': 'str'}]
+                  }
+               ]
+            }
+   
    def removeFile(self, OBJ, key):
       photo = getattr(OBJ, key, None)
       if photo:

@@ -53,6 +53,7 @@ class Generichelps(Minihelps):
         elif fieldsname == 'emergencycontact': fields = self.getEmergencyContactData()
         elif fieldsname == 'academicrecord': fields = self.getAcademicRecordData()
         elif fieldsname == 'previousexperience': fields = self.getPreviousExperienceData()
+        elif fieldsname == 'basicinfo': fields = self.getBasicInfoData()
 
         if isinstance(objects, dict):
             preparedData.append(self.getOBJDetails(objects, fields))

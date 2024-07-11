@@ -112,13 +112,18 @@ class Nanohelps(Picohelps):
                 fieldvalue = data.get(field)
                 if fieldvalue != None: preparedata.update({field: fieldvalue})
 
-    def filterUniqueFields(self, classOBJ, unique_fields, preparedata, response_message): # New
+    def filterUniqueFields(self, classOBJ, unique_fields, preparedata, response_message, recordid=None): # New
         uniquekeyvalue = {}
         for field in unique_fields:
             uniquevalue = preparedata.get(field)
             if uniquevalue: uniquekeyvalue.update({field: uniquevalue})
         for key, value in uniquekeyvalue.items():
-            if classOBJ.objects.filter(**{key:value}).exists(): response_message.append(f'{key}({value}) is already exist!')
+            classobj = classOBJ.objects.filter(**{key:value})
+            if classobj.exists():
+                if recordid:
+                    if classobj.first().id != recordid:
+                        response_message.append(f'{key}({value}) is already exist!')
+                else: response_message.append(f'{key}({value}) is already exist!')
 
     def filterChoiceFields(self, choice_fields, preparedata, response_message): # New
         for choice_field in choice_fields:
