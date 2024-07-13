@@ -180,6 +180,17 @@ WSGI_APPLICATION = 'hrm.wsgi.application'
 #     }
 # }
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'apihrm',
+        'USER': 'postgres',
+        'PASSWORD': 'API#2024@ltd',
+        'HOST': '10.10.20.20',
+        'PORT': '5432',
+    }
+}
+
 
 DATABASES = {
     'default': {
