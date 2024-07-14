@@ -7,7 +7,7 @@ import re
 class Microhelps(Nanohelps):
 
     
-    def addtocolass(self, classOBJ, classSrializer, data, instance=False, allowed_fields='__all__', unique_fields=[], required_fields=[], extra_fields={}, choice_fields=[], fields_regex=[]): # New
+    def addtocolass(self, classOBJ, classSrializer, data, allowed_fields='__all__', unique_fields=[], required_fields=[], extra_fields={}, choice_fields=[], fields_regex=[]): # New
         response_data = None
         response_message = []
         response_data = {}
@@ -38,7 +38,7 @@ class Microhelps(Nanohelps):
                 response_message.append('something went wrong!')
         return response_data, response_message, response_successflag, response_status
     
-    def updaterecord(self, classOBJ, classSrializer, idtofilter, data, allowed_fields='__all__', unique_fields=[], freez_update=[], continue_update=[], extra_fields={}, choice_fields=[], fields_regex=[]): # New
+    def updaterecord(self, classOBJ, classSrializer, idtofilter, data, allowed_fields='__all__', unique_fields=[], freez_update=[], continue_update=[], extra_fields={}, choice_fields=[], fields_regex=[], static_fields=[]): # New
         response_data = {}
         response_message = []
         response_successflag = 'error'
@@ -59,13 +59,17 @@ class Microhelps(Nanohelps):
                 classsrializer = classSrializer(instance=classobj.first(), data=preparedata, partial=True)
                 if classsrializer.is_valid():
                     try:
+                        for static_field in static_fields:
+                            self.removeFile(classobj.first(), static_field)
                         classsrializer.save()
 
                         response_data = classsrializer.data
                         response_successflag = 'success'
                         response_status = status.HTTP_200_OK
                     except: response_message.append('unique combination is already exist!')
-                else: response_message.append('Something Went wrong!')
+                else:
+                    print(classsrializer.errors)
+                    response_message.append('Something Went wrong!')
         else: response_message.append('doesn\'t exist!')
         return response_data, response_message, response_successflag, response_status
     

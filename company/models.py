@@ -12,7 +12,7 @@ def generate_unique_code():
     return ghelp().getUniqueCodePattern()
 
 def uploadcompanylogo(instance, filename):
-    return "files/company/{name}/logo/{uniquecode}uniquevalue{filename}".format(name=instance.name, uniquecode=generate_unique_code(), filename=filename)
+    return "company/{name}/logo/{uniquecode}uniquevalue{filename}".format(name=instance.name, uniquecode=generate_unique_code(), filename=filename)
 
 
 class Basicinformation(Basic):
@@ -58,7 +58,7 @@ class Company(Basic):
     company_owner = models.ManyToManyField(MODELS_USER.User, blank=True)
 
     def __str__(self):
-        return f'{self.basic_information.name}'
+        return f'{self.id} - {self.basic_information}'
 
 class Bankinformation(Basic):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)

@@ -43,11 +43,20 @@ def getoperatinghours(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def addoperatinghour(request):
-    operatinghourserializers = PSRLZER_BRAN.Operatinghourserializer(data=request.data, many=False)
-    if operatinghourserializers.is_valid():
-        operatinghourserializers.save()
-        return Response({'status': 'success', 'message': [], 'data': operatinghourserializers.data}, status=status.HTTP_201_CREATED)
-    else: return Response({'status': 'error', 'message': [], 'data': operatinghourserializers.errors}, status=status.HTTP_400_BAD_REQUEST)
+    required_fields = ['operating_hour_from', 'operating_hour_to']
+    fields_regex = [
+        {'field': 'operating_hour_from', 'type': 'time'},
+        {'field': 'operating_hour_to', 'type': 'time'},
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        MODELS_BRAN.Operatinghour, 
+        PSRLZER_BRAN.Operatinghourserializer, 
+        request.data, 
+        required_fields=required_fields,
+        fields_regex=fields_regex
+        )
+    if response_data: response_data = response_data.data
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -84,14 +93,14 @@ def deleteoperatinghour(request, operatinghourid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def getbranchs(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-                        {'name': 'company', 'convert': None, 'replace':'company__id'},
-                        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                        {'name': 'email', 'convert': None, 'replace':'email__icontains'},
-                        {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
-                        {'name': 'fax', 'convert': None, 'replace':'fax__icontains'}
-                    ]
+                {'name': 'id', 'convert': None, 'replace':'id'},
+                {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+                {'name': 'company', 'convert': None, 'replace':'company__id'},
+                {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+                {'name': 'email', 'convert': None, 'replace':'email__icontains'},
+                {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
+                {'name': 'fax', 'convert': None, 'replace':'fax__icontains'}
+            ]
     branchs = MODELS_BRAN.Branch.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: branchs = branchs.order_by(column_accessor)

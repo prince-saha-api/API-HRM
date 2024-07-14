@@ -27,7 +27,7 @@ class Branch(Basic):
     address = models.OneToOneField(CNTRIB.Address, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
-        return f'{self.company.basic_information.name} - {self.name}'
+        return f'{self.id} - {self.name}'
 
 class Branchphonenumber(Basic):
     phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
