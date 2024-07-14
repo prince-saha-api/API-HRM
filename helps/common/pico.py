@@ -332,7 +332,7 @@ class Picohelps:
                   {'field': 'name', 'type': 'str'},
                   {'field': 'legal_name', 'type': 'str'},
                   {'field': 'establishment_date', 'type': 'str'},
-                  {'field': 'industry_type', 'type': 'int'},
+                  {'field': 'industry_type', 'type': 'str'},
                   {'field': 'business_registration_number', 'type': 'str'},
                   {'field': 'tax_id_number', 'type': 'str'},
                   {'field': 'bin_no', 'type': 'str'},

@@ -14,17 +14,12 @@ def generate_unique_code():
 def uploadcompanylogo(instance, filename):
     return "files/company/{name}/logo/{uniquecode}uniquevalue{filename}".format(name=instance.name, uniquecode=generate_unique_code(), filename=filename)
 
-class Companytype(Basic):
-    name = models.CharField(max_length=50, unique=True)
-    def __str__(self):
-        return f'{self.id} - {self.code} - {self.name}'
-
 
 class Basicinformation(Basic):
     name = models.CharField(max_length=100, unique=True)
     legal_name = models.CharField(max_length=100, blank=True, null=True)
     establishment_date = models.DateField(blank=True, null=True)
-    industry_type = models.ForeignKey(Companytype, on_delete=models.SET_NULL, blank=True, null=True)
+    industry_type = models.CharField(max_length=50, blank=True, null=True)
     business_registration_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
     tax_id_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
     bin_no = models.CharField(max_length=50, unique=True, blank=True, null=True)

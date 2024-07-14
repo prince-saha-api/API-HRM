@@ -73,7 +73,7 @@ def getbasicinformations(request):
                     {'name': 'name', 'convert': None, 'replace':'name__icontains'},
                     {'name': 'legal_name', 'convert': None, 'replace':'legal_name__icontains'},
                     {'name': 'establishment_date', 'convert': None, 'replace':'establishment_date__icontains'},
-                    {'name': 'industry_type', 'convert': None, 'replace':'industry_type'},
+                    {'name': 'industry_type', 'convert': None, 'replace':'industry_type__icontains'},
                     {'name': 'business_registration_number', 'convert': None, 'replace':'business_registration_number__icontains'},
                     {'name': 'tax_id_number', 'convert': None, 'replace':'tax_id_number__icontains'},
                     {'name': 'bin_no', 'convert': None, 'replace':'bin_no__icontains'},
@@ -217,75 +217,4 @@ def updatebasicinformation(request, basicinformationid=None):
             elif responsesuccessflag == 'error': response_message.extend(responsemessage)
     else: response_message.append(f'Basic Information doean\'t exist with this id({basicinformationid})')
     
-    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-# @deco.get_permission(['Get Single Permission Details', 'all'])
-def getcompanytypes(request):
-    filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'}
-                ]
-    
-    companytypes = MODELS_COMP.Companytype.objects.filter(**ghelp().KWARGS(request, filter_fields))
-    column_accessor = request.GET.get('column_accessor')
-    if column_accessor: companytypes = companytypes.order_by(column_accessor)
-
-    total_count = companytypes.count()
-    page = int(request.GET.get('page')) if request.GET.get('page') else 1
-    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
-    if page and page_size: companytypes = companytypes[(page-1)*page_size:page*page_size]
-
-    companytypeserializers = SRLZER_COMP.Companytypeserializer(companytypes, many=True)
-    return Response({'data': {
-        'count': total_count,
-        'page': page,
-        'page_size': page_size,
-        'result': companytypeserializers.data
-    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-# @deco.get_permission(['Get Single Permission Details', 'all'])
-def addcompanytype(request):
-    required_fields = ['name']
-    unique_fields = ['name']
-    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_COMP.Companytype,
-        PSRLZER_COMP.Companytypeserializer, 
-        request.data,
-        unique_fields=unique_fields, 
-        required_fields=required_fields
-        )
-    if response_data: response_data = response_data.data
-    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-# @deco.get_permission(['Get Permission list Details', 'all'])
-def updatecompanytype(request, companytypeid=None):
-    unique_fields = ['name']
-    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_COMP.Companytype,
-        PSRLZER_COMP.Companytypeserializer,
-        companytypeid,
-        request.data,
-        unique_fields=unique_fields
-        )
-    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-# @deco.get_permission(['Get Permission list Details', 'all'])
-def deletecompanytype(request, companytypeid=None):
-    classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_COMP.Basicinformation, 'fields': [{'field': 'industry_type', 'relation': 'foreignkey', 'records': []}]}
-    ]
-    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_COMP.Companytype,
-        companytypeid,
-        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
-        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
