@@ -126,8 +126,8 @@ def deletecompany(request, companyid=None):
         {'model': MODELS_DEPA.Department, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_COMP.Company,
-        companyid,
+        classOBJ=MODELS_COMP.Company,
+        id=companyid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
     )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -199,10 +199,10 @@ def updatebasicinformation(request, basicinformationid=None):
             del basicinfo['address']
 
             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                MODELS_CONT.Address, 
-                PSRLZER_CONT.Addressserializer,
-                addressid, 
-                address
+                classOBJ=MODELS_CONT.Address, 
+                Serializer=PSRLZER_CONT.Addressserializer,
+                id=addressid, 
+                data=address
             )
             if responsesuccessflag == 'error': response_message.extend(responsemessage)
         
@@ -220,10 +220,10 @@ def updatebasicinformation(request, basicinformationid=None):
                 else: del basicinfo['logo']
 
             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                MODELS_COMP.Basicinformation, 
-                PSRLZER_COMP.Basicinformationserializer, 
-                basicinformationid, 
-                basicinfo,
+                classOBJ=MODELS_COMP.Basicinformation, 
+                Serializer=PSRLZER_COMP.Basicinformationserializer, 
+                id=basicinformationid, 
+                data=basicinfo,
                 unique_fields=unique_fields,
                 fields_regex=fields_regex,
                 static_fields=static_fields
@@ -247,8 +247,8 @@ def deletebasicinformation(request, basicinformationid=None):
         {'model': MODELS_COMP.Company, 'fields': [{'field': 'basic_information', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_COMP.Basicinformation,
-        basicinformationid,
+        classOBJ=MODELS_COMP.Basicinformation,
+        id=basicinformationid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
     )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

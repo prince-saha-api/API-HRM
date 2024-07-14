@@ -102,11 +102,11 @@ def updatedepartment(request, departmentid=None):
             addressObj = departmentObj['address']
             if address_id:
                 response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-                    MODELS_CONT.Address,
-                    PSRLZER_CONT.Addressserializer,
-                    address_id,
-                    addressObj
-                    )
+                    classOBJ=MODELS_CONT.Address,
+                    Serializer=PSRLZER_CONT.Addressserializer,
+                    id=address_id,
+                    data=addressObj
+                )
             del departmentObj['address']
         fields_regex = [
             {'field': 'email', 'type': 'email'},
@@ -114,10 +114,10 @@ def updatedepartment(request, departmentid=None):
         ]
         unique_fields = ['email', 'phone', 'fax']
         response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-            MODELS_DEPA.Department, 
-            PSRLZER_DEPA.Departmentserializer, 
-            departmentid, 
-            departmentObj,
+            classOBJ=MODELS_DEPA.Department, 
+            Serializer=PSRLZER_DEPA.Departmentserializer, 
+            id=departmentid, 
+            data=departmentObj,
             fields_regex=fields_regex,
             unique_fields=unique_fields
             )
@@ -135,8 +135,8 @@ def deletedepartment(request, departmentid=None):
         {'model': MODELS_DEPA.Departmentimage, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_DEPA.Department,
-        departmentid,
+        classOBJ=MODELS_DEPA.Department,
+        id=departmentid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

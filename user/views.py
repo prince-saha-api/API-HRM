@@ -157,13 +157,13 @@ def updatedesignation(request, designationid=None):
     allowed_fields = ['name', 'grade']
     unique_fields=['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_USER.Designation,
-        PSRLZER_USER.Designationserializer,
-        designationid,
-        request.data,
+        classOBJ=MODELS_USER.Designation,
+        Serializer=PSRLZER_USER.Designationserializer,
+        id=designationid,
+        data=request.data,
         unique_fields=unique_fields,
         allowed_fields=allowed_fields
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -174,8 +174,8 @@ def deletedesignation(request, designationid=None):
         {'model': MODELS_USER.User, 'fields': [{'field': 'designation', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_USER.Designation,
-        designationid,
+        classOBJ=MODELS_USER.Designation,
+        id=designationid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -229,12 +229,12 @@ def updategrade(request, gradeid=None):
     # userid = request.user.id
     unique_fields=['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_USER.Grade,
-        PSRLZER_USER.Gradeserializer,
-        gradeid,
-        request.data,
+        classOBJ=MODELS_USER.Grade,
+        Serializer=PSRLZER_USER.Gradeserializer,
+        id=gradeid,
+        data=request.data,
         unique_fields=unique_fields
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -247,8 +247,8 @@ def deletegrade(request, gradeid=None):
         {'model': MODELS_USER.User, 'fields': [{'field': 'grade', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_USER.Grade,
-        gradeid,
+        classOBJ=MODELS_USER.Grade,
+        id=gradeid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -319,10 +319,10 @@ def updateshift(request, shiftid=None):
     ]
     unique_fields=['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_USER.Shift, 
-        PSRLZER_USER.Shiftserializer, 
-        shiftid, 
-        request.data,
+        classOBJ=MODELS_USER.Shift, 
+        Serializer=PSRLZER_USER.Shiftserializer, 
+        id=shiftid, 
+        data=request.data,
         unique_fields=unique_fields,
         extra_fields=extra_fields, 
         fields_regex=fields_regex
@@ -339,8 +339,8 @@ def deleteshift(request, shiftid=None):
         {'model': MODELS_USER.Shiftchangerequest, 'fields': [{'field': 'reqshiftid', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_USER.Shift,
-        shiftid,
+        classOBJ=MODELS_USER.Shift,
+        id=shiftid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -418,15 +418,15 @@ def updateshiftchangerequest(request, shiftchangerequestid=None):
         {'field': 'todate', 'type': 'date'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_USER.Shiftchangerequest, 
-        PSRLZER_USER.Shiftchangerequestserializer, 
-        shiftchangerequestid, 
-        request.data, 
+        classOBJ=MODELS_USER.Shiftchangerequest, 
+        Serializer=PSRLZER_USER.Shiftchangerequestserializer, 
+        id=shiftchangerequestid, 
+        data=request.data, 
         allowed_fields=allowed_fields, 
         freez_update=freez_update, 
         extra_fields=extra_fields, 
         fields_regex=fields_regex
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -444,15 +444,15 @@ def approveshiftchangerequest(request, shiftchangerequestid=None):
         {'field': 'todate', 'type': 'date'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_USER.Shiftchangerequest, 
-        PSRLZER_USER.Shiftchangerequestserializer, 
-        shiftchangerequestid, 
-        request.data, 
+        classOBJ=MODELS_USER.Shiftchangerequest, 
+        Serializer=PSRLZER_USER.Shiftchangerequestserializer, 
+        id=shiftchangerequestid, 
+        data=request.data, 
         allowed_fields=allowed_fields, 
         continue_update=continue_update, 
         extra_fields=extra_fields, 
         fields_regex=fields_regex
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -470,15 +470,15 @@ def rejectshiftchangerequest(request, shiftchangerequestid=None):
         {'field': 'todate', 'type': 'date'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_USER.Shiftchangerequest, 
-        PSRLZER_USER.Shiftchangerequestserializer, 
-        shiftchangerequestid, 
-        request.data, 
+        classOBJ=MODELS_USER.Shiftchangerequest, 
+        Serializer=PSRLZER_USER.Shiftchangerequestserializer, 
+        id=shiftchangerequestid, 
+        data=request.data, 
         allowed_fields=allowed_fields, 
         continue_update=continue_update, 
         extra_fields=extra_fields, 
         fields_regex=fields_regex
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -488,8 +488,8 @@ def deleteshiftchangerequest(request, shiftchangerequestid=None):
     # freez_delete = [{'status': [CHOICE.STATUS[1][1], CHOICE.STATUS[2][1]]}]
     continue_delete = [{'status': [CHOICE.STATUS[0][1]]}]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_USER.Shiftchangerequest,
-        shiftchangerequestid,
+        classOBJ=MODELS_USER.Shiftchangerequest,
+        id=shiftchangerequestid,
         continue_delete=continue_delete)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -575,12 +575,12 @@ def addreligion(request):
 def updatereligion(request, religionid=None):
     unique_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_USER.Religion,
-        PSRLZER_USER.Religionserializer,
-        religionid,
-        request.data,
+        classOBJ=MODELS_USER.Religion,
+        Serializer=PSRLZER_USER.Religionserializer,
+        id=religionid,
+        data=request.data,
         unique_fields=unique_fields
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -591,8 +591,8 @@ def deletereligion(request, religionid=None):
         {'model': MODELS_USER.User, 'fields': [{'field': 'religion', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_USER.Religion,
-        religionid,
+        classOBJ=MODELS_USER.Religion,
+        id=religionid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -1012,10 +1012,10 @@ def updateprofile(request, userid=None):
     ]
 
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_USER.User,
-        PSRLZER_USER.Userserializer,
-        userid,
-        requesteddata,
+        classOBJ=MODELS_USER.User,
+        Serializer=PSRLZER_USER.Userserializer,
+        id=userid,
+        data=requesteddata,
         allowed_fields=allowed_fields,
         unique_fields=unique_fields,
         choice_fields=choice_fields,
@@ -1036,10 +1036,10 @@ def updatepersonaldetails(request, userid=None):
             presentaddressid = user.first().present_address.id
             presentaddress = requesteddata['present_address']
             response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-                MODELS_CONT.Address,
-                PSRLZER_CONT.Addressserializer,
-                presentaddressid,
-                presentaddress
+                classOBJ=MODELS_CONT.Address,
+                Serializer=PSRLZER_CONT.Addressserializer,
+                id=presentaddressid,
+                data=presentaddress
             )
             del requesteddata['present_address']
 
@@ -1047,20 +1047,20 @@ def updatepersonaldetails(request, userid=None):
             permanentaddressid = user.first().permanent_address
             permanentaddress = requesteddata['permanent_address']
             response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-                MODELS_CONT.Address,
-                PSRLZER_CONT.Addressserializer,
-                permanentaddressid,
-                permanentaddress
+                classOBJ=MODELS_CONT.Address,
+                Serializer=PSRLZER_CONT.Addressserializer,
+                id=permanentaddressid,
+                data=permanentaddress
             )
             del requesteddata['permanent_address']
 
         allowed_fields = ['fathers_name', 'mothers_name', 'spouse_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no']
         unique_fields = ['nid_passport_no', 'tin_no']
         response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-            MODELS_USER.User,
-            PSRLZER_USER.Userserializer,
-            userid,
-            requesteddata,
+            classOBJ=MODELS_USER.User,
+            Serializer=PSRLZER_USER.Userserializer,
+            id=userid,
+            data=requesteddata,
             allowed_fields=allowed_fields,
             unique_fields=unique_fields
         )
@@ -1111,20 +1111,20 @@ def updatesalaryleaves(request, userid=None):
             bankaccountid = user.first().bank_account.id
 
             response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-                MODELS_CONT.Bankaccount,
-                PSRLZER_CONT.Bankaccountserializer,
-                bankaccountid,
-                bankaccount
+                classOBJ=MODELS_CONT.Bankaccount,
+                Serializer=PSRLZER_CONT.Bankaccountserializer,
+                id=bankaccountid,
+                data=bankaccount
             )
 
             if 'address' in bankaccount:
                 address = bankaccount['address']
                 addressid = user.first().bank_account.address.id
                 response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-                    MODELS_CONT.Address,
-                    PSRLZER_CONT.Addressserializer,
-                    addressid,
-                    address
+                    classOBJ=MODELS_CONT.Address,
+                    Serializer=PSRLZER_CONT.Addressserializer,
+                    id=addressid,
+                    data=address
                 )
             del requesteddata['bankaccount']
 
@@ -1185,10 +1185,10 @@ def updatesalaryleaves(request, userid=None):
             {'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}
         ]
         response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-            MODELS_USER.User,
-            PSRLZER_USER.Userserializer,
-            userid,
-            requesteddata,
+            classOBJ=MODELS_USER.User,
+            Serializer=PSRLZER_USER.Userserializer,
+            id=userid,
+            data=requesteddata,
             allowed_fields=allowed_fields,
             choice_fields=choice_fields
         )

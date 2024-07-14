@@ -66,10 +66,10 @@ def addaddress(request):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updateaddress(request, addressid=None):
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_CONT.Address, 
-        PSRLZER_CONT.Addressserializer,
-        addressid,
-        request.data
+        classOBJ=MODELS_CONT.Address, 
+        Serializer=PSRLZER_CONT.Addressserializer,
+        id=addressid,
+        data=request.data
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -87,8 +87,8 @@ def deleteaddress(request, addressid=None):
         {'model': MODELS_USER.Employeecontact, 'fields': [{'field': 'address', 'relation': 'onetoonefield', 'records': []}]},
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_CONT.Address,
-        addressid,
+        classOBJ=MODELS_CONT.Address,
+        id=addressid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -139,10 +139,10 @@ def addbankaccounttype(request):
 def updatebankaccounttype(request, bankaccounttypeid=None):
     unique_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_CONT.Bankaccounttype, 
-        PSRLZER_CONT.Bankaccounttypeserializer,
-        bankaccounttypeid,
-        request.data,
+        classOBJ=MODELS_CONT.Bankaccounttype, 
+        Serializer=PSRLZER_CONT.Bankaccounttypeserializer,
+        id=bankaccounttypeid,
+        data=request.data,
         unique_fields=unique_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -156,8 +156,8 @@ def deletebankaccounttype(request, bankaccounttypeid=None):
         {'model': MODELS_CONT.Bankaccount, 'fields': [{'field': 'account_type', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_CONT.Bankaccounttype,
-        bankaccounttypeid,
+        classOBJ=MODELS_CONT.Bankaccounttype,
+        id=bankaccounttypeid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

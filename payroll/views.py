@@ -72,12 +72,12 @@ def updatepayrollearning(request, payrollearningid=None):
     extra_fields = {}
     if userid: extra_fields.update({'updated_by': userid})
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_PAYR.Payrollearning,
-        PSRLZER_PAYR.Payrollearningserializer,
-        payrollearningid,
-        request.data,
+        classOBJ=MODELS_PAYR.Payrollearning,
+        Serializer=PSRLZER_PAYR.Payrollearningserializer,
+        id=payrollearningid,
+        data=request.data,
         extra_fields=extra_fields
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -141,12 +141,12 @@ def updatepayrolldeduction(request, payrolldeductionid=None):
     extra_fields = {}
     if userid: extra_fields.update({'updated_by': userid})
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_PAYR.Payrolldeduction,
-        PSRLZER_PAYR.Payrolldeductionserializer,
-        payrolldeductionid,
-        request.data,
+        classOBJ=MODELS_PAYR.Payrolldeduction,
+        Serializer=PSRLZER_PAYR.Payrolldeductionserializer,
+        id=payrolldeductionid,
+        data=request.data,
         extra_fields=extra_fields
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -198,11 +198,11 @@ def updatepayrolltax(request, payrolltaxid=None):
     if userid: extra_fields.update({'updated_by': userid})
     unique_fields=['title']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_PAYR.Payrolltax,
-        PSRLZER_PAYR.Payrolltaxserializer,
-        payrolltaxid,
-        request.data,
+        classOBJ=MODELS_PAYR.Payrolltax,
+        Serializer=PSRLZER_PAYR.Payrolltaxserializer,
+        id=payrolltaxid,
+        data=request.data,
         unique_fields=unique_fields,
         extra_fields=extra_fields
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

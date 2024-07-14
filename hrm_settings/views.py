@@ -62,10 +62,10 @@ def getweekdays(request):
 #     allowed_fields = ['name', 'grade']
 #     choice_fields = [{'name': 'day', 'values': [item[1] for item in CHOICE.DAYS]}]
 #     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-#         MODELS_SETT.Weekdays, 
-#         SRLZER_SETT.Weekdaysserializer, 
-#         weekdaysid,
-#         request.data,
+#         classOBJ=MODELS_SETT.Weekdays, 
+#         Serializer=SRLZER_SETT.Weekdaysserializer, 
+#         id=weekdaysid,
+#         data=request.data,
 #         allowed_fields=allowed_fields,
 #         choice_fields=choice_fields
 #         )
@@ -79,8 +79,8 @@ def getweekdays(request):
 #         {'model': MODELS_SETT.Weeklyholiday, 'fields': [{'field': 'day', 'relation': 'manytomanyfield', 'records': MODELS_SETT.Weekdays.objects.filter(id=weekdaysid).first().weeklyholiday_set.all()}]}
 #     ]
 #     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-#         MODELS_SETT.Weekdays,
-#         weekdaysid,
+#         classOBJ=MODELS_SETT.Weekdays,
+#         id=weekdaysid,
 #         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
 #         )
 #     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -231,10 +231,10 @@ def updategeneralsettings(request, generalsettingsid=None):
                     'to_date': f'{to_date}'
                 }
                 responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                    MODELS_SETT.Fiscalyear, 
-                    PSRLZER_SETT.Fiscalyearserializer, 
-                    generalsettings.first().fiscalyear.id,
-                    fiscalyeardata,
+                    classOBJ=MODELS_SETT.Fiscalyear, 
+                    Serializer=PSRLZER_SETT.Fiscalyearserializer, 
+                    id=generalsettings.first().fiscalyear.id,
+                    data=fiscalyeardata,
                     choice_fields=choice_fields,
                     fields_regex=fields_regex
                 )
@@ -251,10 +251,10 @@ def updategeneralsettings(request, generalsettingsid=None):
             {'name': 'consider_attendance_on_holidays', 'values': [item[1] for item in CHOICE.ATTENDANCE_OVERTIME]},
         ]
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-            MODELS_SETT.Generalsettings, 
-            PSRLZER_SETT.Generalsettingsserializer, 
-            generalsettingsid,
-            requesteddata,
+            classOBJ=MODELS_SETT.Generalsettings, 
+            Serializer=PSRLZER_SETT.Generalsettingsserializer, 
+            id=generalsettingsid,
+            data=requesteddata,
             choice_fields=choice_fields,
             fields_regex=fields_regex
         )

@@ -67,10 +67,10 @@ def updateoperatinghour(request, operatinghourid=None):
         {'field': 'operating_hour_to', 'type': 'time'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_BRAN.Operatinghour, 
-        PSRLZER_BRAN.Operatinghourserializer, 
-        operatinghourid, 
-        request.data,
+        classOBJ=MODELS_BRAN.Operatinghour, 
+        Serializer=PSRLZER_BRAN.Operatinghourserializer, 
+        id=operatinghourid, 
+        data=request.data,
         fields_regex=fields_regex
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -82,8 +82,8 @@ def deleteoperatinghour(request, operatinghourid=None):
     classOBJpackage_tocheck_assciaativity = [
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_BRAN.Operatinghour,
-        operatinghourid,
+        classOBJ=MODELS_BRAN.Operatinghour,
+        id=operatinghourid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -185,10 +185,10 @@ def updatebranch(request, branchid=None):
                 addressid = branch.first().address.id
                 if addressid:
                     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                        MODELS_CONT.Address,
-                        PSRLZER_CONT.Addressserializer,
-                        addressid,
-                        addressObj
+                        classOBJ=MODELS_CONT.Address,
+                        Serializer=PSRLZER_CONT.Addressserializer,
+                        id=addressid,
+                        data=addressObj
                     )
                     if responsesuccessflag == 'error': response_message.extend(responsemessage)
                 del branchObj['address']
@@ -199,10 +199,10 @@ def updatebranch(request, branchid=None):
             ]
             unique_fields = ['email', 'phone', 'fax']
             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                MODELS_BRAN.Branch, 
-                PSRLZER_BRAN.Branchserializer, 
-                branchid, 
-                branchObj,
+                classOBJ=MODELS_BRAN.Branch, 
+                Serializer=PSRLZER_BRAN.Branchserializer, 
+                id=branchid, 
+                data=branchObj,
                 unique_fields=unique_fields,
                 fields_regex=fields_regex
             )
@@ -227,8 +227,8 @@ def deletebranch(request, branchid=None):
         {'model': MODELS_DEPA.Department, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_BRAN.Branch,
-        branchid,
+        classOBJ=MODELS_BRAN.Branch,
+        id=branchid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

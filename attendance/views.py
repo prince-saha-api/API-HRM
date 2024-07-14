@@ -95,10 +95,10 @@ def updatemanualattendence(request, manualattendenceid=None):
         {'field': 'out_time', 'type': 'time'},
     ]
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_ATTE.Requestmanualattendance, 
-        SRLZER_ATTE.Requestmanualattendanceserializer, 
-        manualattendenceid, 
-        request.data, 
+        classOBJ=MODELS_ATTE.Requestmanualattendance, 
+        Serializer=SRLZER_ATTE.Requestmanualattendanceserializer, 
+        id=manualattendenceid, 
+        data=request.data, 
         allowed_fields=allowed_fields,
         fields_regex=fields_regex
         )

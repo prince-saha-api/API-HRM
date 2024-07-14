@@ -95,14 +95,14 @@ def updateleavepolicy(request, leavepolicyid=None):
             if userid: extra_fields.update({'updated_by': userid})
             unique_fields=['name']
             response_data_, response_message_, response_successflag_, response_status_ = ghelp().updaterecord(
-                MODELS_LEAV.Leavepolicy,
-                PSRLZER_LEAV.Leavepolicyserializer,
-                leavepolicyid,
-                request.data,
+                classOBJ=MODELS_LEAV.Leavepolicy,
+                Serializer=PSRLZER_LEAV.Leavepolicyserializer,
+                id=leavepolicyid,
+                data=request.data,
                 unique_fields=unique_fields,
                 allowed_fields=allowed_fields,
                 extra_fields=extra_fields
-                )
+            )
             response_data.update(response_data_)
             response_message.extend(response_message_)
             response_successflag = response_successflag_
@@ -122,8 +122,8 @@ def deleteleavepolicy(request, leavepolicyid=None):
         {'model': MODELS_LEAV.Leaverequest, 'fields': [{'field': 'leavepolicy', 'relation': 'foreignkey', 'records': []}]},
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_LEAV.Leavepolicy,
-        leavepolicyid,
+        classOBJ=MODELS_LEAV.Leavepolicy,
+        id=leavepolicyid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -661,10 +661,10 @@ def updateholiday(request, holidayid=None):
         {'field': 'date', 'type': 'date'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_LEAV.Holiday,
-        PSRLZER_LEAV.Holidayserializer,
-        holidayid,
-        request.data,
+        classOBJ=MODELS_LEAV.Holiday,
+        Serializer=PSRLZER_LEAV.Holidayserializer,
+        id=holidayid,
+        data=request.data,
         extra_fields=extra_fields,
         fields_regex=fields_regex
     )
@@ -676,7 +676,7 @@ def updateholiday(request, holidayid=None):
 def deleteholiday(request, holidayid=None):
 
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_LEAV.Holiday,
-        holidayid
+        classOBJ=MODELS_LEAV.Holiday,
+        id=holidayid
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

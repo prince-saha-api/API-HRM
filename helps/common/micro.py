@@ -38,68 +38,78 @@ class Microhelps(Nanohelps):
                 response_message.append('something went wrong!')
         return response_data, response_message, response_successflag, response_status
     
-    def updaterecord(self, classOBJ, classSrializer, idtofilter, data, allowed_fields='__all__', unique_fields=[], freez_update=[], continue_update=[], extra_fields={}, choice_fields=[], fields_regex=[], static_fields=[]): # New
+    def updaterecord(self, classOBJ=None, Serializer=None, id=None, data={}, allowed_fields='__all__', unique_fields=[], freez_update=[], continue_update=[], extra_fields={}, choice_fields=[], fields_regex=[], static_fields=[]): # New
         response_data = {}
         response_message = []
         response_successflag = 'error'
         response_status = status.HTTP_400_BAD_REQUEST
+        if classOBJ:
+            if Serializer:
+                if id:
+                    if data:
+                        classobj = classOBJ.objects.filter(id=id)
+                        if classobj.exists():
+                            preparedata = {}
+                            self.filterAllowedFields(allowed_fields, data, preparedata)
+                            self.filterUniqueFields(classOBJ, unique_fields, preparedata, response_message, recordid=classobj.first().id)
+                            if extra_fields: preparedata.update(extra_fields)
+                            self.filterFreezFields(classobj, freez_update, response_message)
+                            self.filterContinueFields(classobj, continue_update, response_message)
+                            self.filterChoiceFields(choice_fields, preparedata, response_message)
+                            self.filterRegexFields(fields_regex, preparedata, response_message)
+                            if not response_message:
+                                serializer = Serializer(instance=classobj.first(), data=preparedata, partial=True)
+                                if serializer.is_valid():
+                                    try:
+                                        for static_field in static_fields:
+                                            self.removeFile(classobj.first(), static_field)
+                                        serializer.save()
 
-        classobj = classOBJ.objects.filter(id=idtofilter)
-        if classobj.exists():
-
-            preparedata = {}
-            self.filterAllowedFields(allowed_fields, data, preparedata)
-            self.filterUniqueFields(classOBJ, unique_fields, preparedata, response_message, recordid=classobj.first().id)
-            if extra_fields: preparedata.update(extra_fields)
-            self.filterFreezFields(classobj, freez_update, response_message)
-            self.filterContinueFields(classobj, continue_update, response_message)
-            self.filterChoiceFields(choice_fields, preparedata, response_message)
-            self.filterRegexFields(fields_regex, preparedata, response_message)
-            if not response_message:
-                classsrializer = classSrializer(instance=classobj.first(), data=preparedata, partial=True)
-                if classsrializer.is_valid():
-                    try:
-                        for static_field in static_fields:
-                            self.removeFile(classobj.first(), static_field)
-                        classsrializer.save()
-
-                        response_data = classsrializer.data
-                        response_successflag = 'success'
-                        response_status = status.HTTP_200_OK
-                    except: response_message.append('unique combination is already exist!')
-                else:
-                    print(classsrializer.errors)
-                    response_message.append('Something Went wrong!')
-        else: response_message.append('doesn\'t exist!')
+                                        response_data = serializer.data
+                                        response_successflag = 'success'
+                                        response_status = status.HTTP_200_OK
+                                    except: response_message.append('unique combination is already exist!')
+                                else:
+                                    print(serializer.errors)
+                                    response_message.append('Something Went wrong!')
+                        else: response_message.append('doesn\'t exist!')
+                    else: response_message.append('provide data!')
+                else: response_message.append('please provide an id!')
+            else: response_message.append('provide serializer!')
+        else: response_message.append('please provide an id!')
         return response_data, response_message, response_successflag, response_status
     
-    def deleterecord(self, classOBJ, idtofilter, classOBJpackage_tocheck_assciaativity=[], freez_delete=[], continue_delete=[]): # New
+    def deleterecord(self, classOBJ=None, id=None, classOBJpackage_tocheck_assciaativity=[], freez_delete=[], continue_delete=[]): # New
         response_data = {}
         response_message = []
         response_successflag = 'error'
         response_status = status.HTTP_409_CONFLICT
-        classobj = classOBJ.objects.filter(id=idtofilter)
-        if classobj.exists():
-            for classOBJpackage in classOBJpackage_tocheck_assciaativity:
-                for field in classOBJpackage['fields']:
-                    if field['relation'] == 'onetoonefield':
-                        if classOBJpackage['model'].objects.filter(**{field['field']: classobj.first()}).exists():
-                            response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
-                    if field['relation'] == 'foreignkey':
-                        if classOBJpackage['model'].objects.filter(**{field['field']: classobj.first()}).exists():
-                            response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
-                    if field['relation'] == 'manytomanyfield':
-                        if field['records']: response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
-            
-            self.filterFreezFields(classobj, freez_delete, response_message)
-            self.filterContinueFields(classobj, continue_delete, response_message)
-            if not response_message:
-                try:
-                    classobj.delete()
-                    response_successflag = 'success'
-                    response_status = status.HTTP_202_ACCEPTED
-                except: response_message.append('something went wrong!')
-        else: response_message.append('doesn\'t exist!')
+        if id:
+            if classOBJ:
+                classobj = classOBJ.objects.filter(id=id)
+                if classobj.exists():
+                    for classOBJpackage in classOBJpackage_tocheck_assciaativity:
+                        for field in classOBJpackage['fields']:
+                            if field['relation'] == 'onetoonefield':
+                                if classOBJpackage['model'].objects.filter(**{field['field']: classobj.first()}).exists():
+                                    response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
+                            if field['relation'] == 'foreignkey':
+                                if classOBJpackage['model'].objects.filter(**{field['field']: classobj.first()}).exists():
+                                    response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
+                            if field['relation'] == 'manytomanyfield':
+                                if field['records']: response_message.append(f"can\'t delete, associated to {classOBJpackage['model'].__name__} class and exist record!")
+                    
+                    self.filterFreezFields(classobj, freez_delete, response_message)
+                    self.filterContinueFields(classobj, continue_delete, response_message)
+                    if not response_message:
+                        try:
+                            classobj.delete()
+                            response_successflag = 'success'
+                            response_status = status.HTTP_202_ACCEPTED
+                        except: response_message.append('something went wrong!')
+                else: response_message.append('doesn\'t exist!')
+            else: response_message.append('please provide a Model!')
+        else: response_message.append('please provide an id!')
         return response_data, response_message, response_successflag, response_status
 
     def addbankaccount(self, classOBJpackage, serializerOBJpackage, data, createdInstance=None): # New

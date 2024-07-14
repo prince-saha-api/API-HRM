@@ -65,10 +65,10 @@ def updatefacility(request, facilityid=None):
     # if userid: extra_fields.update({'updated_by': userid})
     unique_fields=['title']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_FACI.Facility,
-        PSRLZER_FACI.Facilityserializer,
-        facilityid,
-        request.data,
+        classOBJ=MODELS_FACI.Facility,
+        Serializer=PSRLZER_FACI.Facilityserializer,
+        id=facilityid,
+        data=request.data,
         extra_fields=extra_fields,
         unique_fields=unique_fields
         )

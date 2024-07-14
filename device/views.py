@@ -71,10 +71,10 @@ def updatedevice(request, deviceid=None):
     # if userid: extra_fields.update({'updated_by': userid})
     unique_fields = ['title']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_DEVI.Device,
-        PSRLZER_DEVI.Deviceserializer,
-        deviceid,
-        request.data,
+        classOBJ=MODELS_DEVI.Device,
+        Serializer=PSRLZER_DEVI.Deviceserializer,
+        id=deviceid,
+        data=request.data,
         extra_fields=extra_fields,
         unique_fields=unique_fields
         )
@@ -88,8 +88,8 @@ def deletedevice(request, deviceid=None):
         {'model': MODELS_DEVI.Devicegroup, 'fields': [{'field': 'device', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_DEVI.Device,
-        deviceid,
+        classOBJ=MODELS_DEVI.Device,
+        id=deviceid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -144,10 +144,10 @@ def addgroup(request):
 def updategroup(request, groupid=None):
     unique_fields = ['title']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_DEVI.Group,
-        PSRLZER_DEVI.Groupserializer,
-        groupid,
-        request.data,
+        classOBJ=MODELS_DEVI.Group,
+        Serializer=PSRLZER_DEVI.Groupserializer,
+        id=groupid,
+        data=request.data,
         unique_fields=unique_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -160,8 +160,8 @@ def deletegroup(request, groupid=None):
         {'model': MODELS_DEVI.Devicegroup, 'fields': [{'field': 'group', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_DEVI.Devicegroup,
-        groupid,
+        classOBJ=MODELS_DEVI.Devicegroup,
+        id=groupid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -217,10 +217,10 @@ def adddevicegroup(request):
 def updatedevicegroup(request, devicegroupid=None):
     unique_fields=['title']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        MODELS_DEVI.Devicegroup,
-        PSRLZER_DEVI.Devicegroupserializer,
-        devicegroupid,
-        request.data,
+        classOBJ=MODELS_DEVI.Devicegroup,
+        Serializer=PSRLZER_DEVI.Devicegroupserializer,
+        id=devicegroupid,
+        data=request.data,
         unique_fields=unique_fields
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -233,8 +233,8 @@ def deletedevicegroup(request, devicegroupid=None):
     #     {'model': MODELS_DEVI.Devicegroup, 'fields': [{'field': 'group', 'relation': 'foreignkey', 'records': []}]}
     # ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        MODELS_DEVI.Devicegroup,
-        devicegroupid,
+        classOBJ=MODELS_DEVI.Devicegroup,
+        id=devicegroupid,
         # classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
