@@ -192,16 +192,16 @@ DATABASES = {
 }
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': env('DATABASE_ENGI'),
-        'NAME': env('DATABASE_NAME'),
-        'USER': env('DATABASE_USER'),
-        'PASSWORD': env('DATABASE_PASS'),
-        'HOST': env('DATABASE_HOST'),
-        'PORT': env('DATABASE_PORT'),
-    }
-}
+#DATABASES = {
+#    'default': {
+#        'ENGINE': env('DATABASE_ENGI'),
+#        'NAME': env('DATABASE_NAME'),
+#        'USER': env('DATABASE_USER'),
+#        'PASSWORD': env('DATABASE_PASS'),
+#        'HOST': env('DATABASE_HOST'),
+#        'PORT': env('DATABASE_PORT'),
+#    }
+#}
 
 
 # Password validation
