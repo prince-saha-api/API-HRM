@@ -18,17 +18,17 @@ from helps.common.generic import Generichelps as ghelp
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getaddresss(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-                        {'name': 'alias', 'convert': None, 'replace':'alias__icontains'},
-                        {'name': 'address', 'convert': None, 'replace':'address__icontains'},
-                        {'name': 'city', 'convert': None, 'replace':'city__icontains'},
-                        {'name': 'state_division', 'convert': None, 'replace':'state_division__icontains'},
-                        {'name': 'post_zip_code', 'convert': None, 'replace':'post_zip_code__icontains'},
-                        {'name': 'country', 'convert': None, 'replace':'country__icontains'},
-                        {'name': 'latitude', 'convert': None, 'replace':'latitude'},
-                        {'name': 'longitude', 'convert': None, 'replace':'longitude'},
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+        {'name': 'alias', 'convert': None, 'replace':'alias__icontains'},
+        {'name': 'address', 'convert': None, 'replace':'address__icontains'},
+        {'name': 'city', 'convert': None, 'replace':'city__icontains'},
+        {'name': 'state_division', 'convert': None, 'replace':'state_division__icontains'},
+        {'name': 'post_zip_code', 'convert': None, 'replace':'post_zip_code__icontains'},
+        {'name': 'country', 'convert': None, 'replace':'country__icontains'},
+        {'name': 'latitude', 'convert': None, 'replace':'latitude'},
+        {'name': 'longitude', 'convert': None, 'replace':'longitude'},
+    ]
     addresss = MODELS_CONT.Address.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: addresss = addresss.order_by(column_accessor)
@@ -48,16 +48,16 @@ def getaddresss(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
 def addaddress(request):
-    # userid = request.user.id
     required_fields = ['address', 'city', 'state_division', 'country']
 
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_CONT.Address, 
-        PSRLZER_CONT.Addressserializer, 
-        request.data,
+        classOBJ=MODELS_CONT.Address, 
+        Serializer=PSRLZER_CONT.Addressserializer, 
+        data=request.data,
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -124,12 +124,12 @@ def addbankaccounttype(request):
     required_fields = ['name']
     unique_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_CONT.Bankaccounttype,
-        PSRLZER_CONT.Bankaccounttypeserializer,
-        request.data,
+        classOBJ=MODELS_CONT.Bankaccounttype,
+        Serializer=PSRLZER_CONT.Bankaccounttypeserializer,
+        data=request.data,
         unique_fields=unique_fields,
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -167,15 +167,15 @@ def deletebankaccounttype(request, bankaccounttypeid=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getbankaccounts(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'bank_name', 'convert': None, 'replace':'bank_name__icontains'},
-                        {'name': 'branch_name', 'convert': None, 'replace':'branch_name__icontains'},
-                        {'name': 'account_type', 'convert': None, 'replace':'account_type'},
-                        {'name': 'account_no', 'convert': None, 'replace':'account_no__icontains'},
-                        {'name': 'routing_no', 'convert': None, 'replace':'routing_no__icontains'},
-                        {'name': 'swift_bic', 'convert': None, 'replace':'swift_bic__icontains'},
-                        {'name': 'address', 'convert': None, 'replace':'address'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'bank_name', 'convert': None, 'replace':'bank_name__icontains'},
+        {'name': 'branch_name', 'convert': None, 'replace':'branch_name__icontains'},
+        {'name': 'account_type', 'convert': None, 'replace':'account_type'},
+        {'name': 'account_no', 'convert': None, 'replace':'account_no__icontains'},
+        {'name': 'routing_no', 'convert': None, 'replace':'routing_no__icontains'},
+        {'name': 'swift_bic', 'convert': None, 'replace':'swift_bic__icontains'},
+        {'name': 'address', 'convert': None, 'replace':'address'}
+    ]
     bankaccounts = MODELS_CONT.Bankaccount.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: bankaccounts = bankaccounts.order_by(column_accessor)
@@ -194,6 +194,8 @@ def getbankaccounts(request):
     }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
 @permission_classes([IsAuthenticated])
 def addbankaccount(request):
     bankaccounts = request.data

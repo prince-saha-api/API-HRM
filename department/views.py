@@ -18,15 +18,15 @@ from rest_framework import status
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def getdepartments(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-                        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                        {'name': 'email', 'convert': None, 'replace':'email__icontains'},
-                        {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
-                        {'name': 'fax', 'convert': None, 'replace':'fax__icontains'},
-                        {'name': 'company', 'convert': None, 'replace':'company'},
-                        {'name': 'branch', 'convert': None, 'replace':'branch'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'email', 'convert': None, 'replace':'email__icontains'},
+        {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
+        {'name': 'fax', 'convert': None, 'replace':'fax__icontains'},
+        {'name': 'company', 'convert': None, 'replace':'company'},
+        {'name': 'branch', 'convert': None, 'replace':'branch'}
+    ]
     departments = MODELS_DEPA.Department.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: departments = departments.order_by(column_accessor)
@@ -46,6 +46,7 @@ def getdepartments(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
 def adddepartment(request):
     response_message = []
     departmentObj = request.data
@@ -55,11 +56,11 @@ def adddepartment(request):
 
         required_fields = ['address', 'city', 'state_division', 'country']
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-            MODELS_CONT.Address,
-            PSRLZER_CONT.Addressserializer,
-            addressobj,
+            classOBJ=MODELS_CONT.Address,
+            Serializer=PSRLZER_CONT.Addressserializer,
+            data=addressobj,
             required_fields=required_fields
-            )
+        )
         if responsesuccessflag == 'success':
             if responsedata: departmentObj.update({'address': responsedata.data['id']})
 
@@ -70,13 +71,13 @@ def adddepartment(request):
         {'field': 'phone', 'type': 'phonenumber'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_DEPA.Department, 
-        PSRLZER_DEPA.Departmentserializer, 
-        departmentObj, 
+        classOBJ=MODELS_DEPA.Department, 
+        Serializer=PSRLZER_DEPA.Departmentserializer, 
+        data=departmentObj, 
         unique_fields=unique_fields, 
         required_fields=required_fields,
         fields_regex=fields_regex
-        )
+    )
     if response_successflag == 'error':
         if 'address' in departmentObj:
             address = MODELS_CONT.Address.objects.filter(id=departmentObj['address'])

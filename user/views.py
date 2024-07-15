@@ -24,9 +24,9 @@ import os
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getresponsibilitys(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'title', 'convert': None, 'replace':'title__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'title', 'convert': None, 'replace':'title__icontains'}
+    ]
     responsibilitys = MODELS_USER.Responsibility.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: responsibilitys = responsibilitys.order_by(column_accessor)
@@ -46,6 +46,7 @@ def getresponsibilitys(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addresponsibility(request):
     # userid = request.user.id
     extra_fields = {}
@@ -53,13 +54,13 @@ def addresponsibility(request):
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields = ['title']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Responsibility, 
-        PSRLZER_USER.Responsibilityserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Responsibility, 
+        Serializer=PSRLZER_USER.Responsibilityserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         extra_fields=extra_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -68,9 +69,9 @@ def addresponsibility(request):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getrequiredskills(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'title', 'convert': None, 'replace':'title__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'title', 'convert': None, 'replace':'title__icontains'}
+    ]
     requiredskills = MODELS_USER.Requiredskill.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: requiredskills = requiredskills.order_by(column_accessor)
@@ -91,6 +92,7 @@ def getrequiredskills(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addrequiredskill(request):
     # userid = request.user.id
     extra_fields = {}
@@ -98,13 +100,13 @@ def addrequiredskill(request):
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     required_fields= ['title']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Requiredskill, 
-        PSRLZER_USER.Requiredskillserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Requiredskill, 
+        Serializer=PSRLZER_USER.Requiredskillserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         extra_fields=extra_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -113,10 +115,10 @@ def addrequiredskill(request):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getdsignations(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-                    {'name': 'grade', 'convert': None, 'replace':'grade'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+        {'name': 'grade', 'convert': None, 'replace':'grade'}
+    ]
     dsignations = MODELS_USER.Designation.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: dsignations = dsignations.order_by(column_accessor)
@@ -136,17 +138,18 @@ def getdsignations(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def adddsignation(request):
     # userid = request.user.id
     unique_fields = ['name']
     required_fields= ['name']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Designation, 
-        PSRLZER_USER.Designationserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Designation, 
+        Serializer=PSRLZER_USER.Designationserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -185,9 +188,9 @@ def deletedesignation(request, designationid=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getgrades(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'}
+    ]
     
     grades = MODELS_USER.Grade.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
@@ -208,17 +211,18 @@ def getgrades(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addgrade(request):
     # userid = request.user.id
     unique_fields = ['name']
     required_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Grade, 
-        PSRLZER_USER.Gradeserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Grade, 
+        Serializer=PSRLZER_USER.Gradeserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -259,12 +263,12 @@ def deletegrade(request, gradeid=None):
 def getshifts(request):
 
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-                    {'name': 'in_time', 'convert': None, 'replace':'in_time'},
-                    {'name': 'out_time', 'convert': None, 'replace':'out_time'},
-                    {'name': 'late_tolerance_time', 'convert': None, 'replace':'late_tolerance_time'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+        {'name': 'in_time', 'convert': None, 'replace':'in_time'},
+        {'name': 'out_time', 'convert': None, 'replace':'out_time'},
+        {'name': 'late_tolerance_time', 'convert': None, 'replace':'late_tolerance_time'}
+    ]
 
     shifts = MODELS_USER.Shift.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
@@ -284,6 +288,7 @@ def getshifts(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addshift(request):
     userid = request.user.id
     extra_fields = {}
@@ -295,14 +300,14 @@ def addshift(request):
         {'field': 'out_time', 'type': 'time'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Shift, 
-        PSRLZER_USER.Shiftserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Shift, 
+        Serializer=PSRLZER_USER.Shiftserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         extra_fields=extra_fields, 
         required_fields=required_fields,
         fields_regex=fields_regex
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -350,15 +355,15 @@ def deleteshift(request, shiftid=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getshiftchangerequest(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'user', 'convert': None, 'replace':'user'},
-                    {'name': 'reqshiftid', 'convert': None, 'replace':'reqshiftid'},
-                    {'name': 'fromdate', 'convert': None, 'replace':'fromdate'},
-                    {'name': 'todate', 'convert': None, 'replace':'todate'},
-                    {'name': 'reqnote', 'convert': None, 'replace':'reqnote__icontains'},
-                    {'name': 'status', 'convert': None, 'replace':'status__icontains'},
-                    {'name': 'adminnote', 'convert': None, 'replace':'adminnote__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'user', 'convert': None, 'replace':'user'},
+        {'name': 'reqshiftid', 'convert': None, 'replace':'reqshiftid'},
+        {'name': 'fromdate', 'convert': None, 'replace':'fromdate'},
+        {'name': 'todate', 'convert': None, 'replace':'todate'},
+        {'name': 'reqnote', 'convert': None, 'replace':'reqnote__icontains'},
+        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+        {'name': 'adminnote', 'convert': None, 'replace':'adminnote__icontains'}
+    ]
     shiftchangerequests = MODELS_USER.Shiftchangerequest.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: shiftchangerequests = shiftchangerequests.order_by(column_accessor)
@@ -378,6 +383,7 @@ def getshiftchangerequest(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addshiftchangerequest(request):
     userid = request.user.id
     extra_fields = {}
@@ -393,20 +399,21 @@ def addshiftchangerequest(request):
         {'field': 'todate', 'type': 'date'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Shiftchangerequest, 
-        PSRLZER_USER.Shiftchangerequestserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Shiftchangerequest, 
+        Serializer=PSRLZER_USER.Shiftchangerequestserializer, 
+        data=request.data, 
         allowed_fields=allowed_fields, 
         extra_fields=extra_fields, 
         choice_fields=choice_fields, 
         required_fields=required_fields,
         fields_regex=fields_regex
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def updateshiftchangerequest(request, shiftchangerequestid=None):
     userid = request.user.id
     extra_fields = {}
@@ -431,6 +438,7 @@ def updateshiftchangerequest(request, shiftchangerequestid=None):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def approveshiftchangerequest(request, shiftchangerequestid=None):
     userid = request.user.id
     extra_fields = {}
@@ -457,6 +465,7 @@ def approveshiftchangerequest(request, shiftchangerequestid=None):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def rejectshiftchangerequest(request, shiftchangerequestid=None):
     userid = request.user.id
     extra_fields = {}
@@ -498,14 +507,14 @@ def deleteshiftchangerequest(request, shiftchangerequestid=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getshiftchangelog(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'user', 'convert': None, 'replace':'user'},
-                    {'name': 'decision_by', 'convert': None, 'replace':'decision_by'},
-                    {'name': 'previouseshift', 'convert': None, 'replace':'previouseshift'},
-                    {'name': 'newshift', 'convert': None, 'replace':'newshift'},
-                    {'name': 'date', 'convert': None, 'replace':'date'},
-                    {'name': 'reason', 'convert': None, 'replace':'reason__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'user', 'convert': None, 'replace':'user'},
+        {'name': 'decision_by', 'convert': None, 'replace':'decision_by'},
+        {'name': 'previouseshift', 'convert': None, 'replace':'previouseshift'},
+        {'name': 'newshift', 'convert': None, 'replace':'newshift'},
+        {'name': 'date', 'convert': None, 'replace':'date'},
+        {'name': 'reason', 'convert': None, 'replace':'reason__icontains'}
+    ]
     shiftchangelogs = MODELS_USER.Shiftchangelog.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: shiftchangelogs = shiftchangelogs.order_by(column_accessor)
@@ -528,9 +537,9 @@ def getshiftchangelog(request):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getreligions(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'}
+    ]
     religions = MODELS_USER.Religion.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: religions = religions.order_by(column_accessor)
@@ -551,6 +560,7 @@ def getreligions(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addreligion(request):
     # userid = request.user.id
     extra_fields = {}
@@ -559,13 +569,13 @@ def addreligion(request):
     required_fields = ['name']
     
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Religion, 
-        PSRLZER_USER.Religionserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Religion, 
+        Serializer=PSRLZER_USER.Religionserializer, 
+        data=request.data, 
         extra_fields=extra_fields, 
         unique_fields=unique_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -602,9 +612,9 @@ def deletereligion(request, religionid=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getpermissions(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'}
+    ]
     permissions = MODELS_USER.Permission.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: permissions = permissions.order_by(column_accessor)
@@ -623,17 +633,18 @@ def getpermissions(request):
     }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addpermission(request):
     unique_fields = ['name']
     required_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Permission, 
-        PSRLZER_USER.Permissionserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Permission, 
+        Serializer=PSRLZER_USER.Permissionserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -643,9 +654,9 @@ def addpermission(request):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getrolepermissions(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'}
+    ]
     rolepermissions = MODELS_USER.Rolepermission.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: rolepermissions = rolepermissions.order_by(column_accessor)
@@ -665,16 +676,17 @@ def getrolepermissions(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addrolepermission(request):
     unique_fields = ['name']
     required_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Rolepermission, 
-        PSRLZER_USER.Rolepermissionserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Rolepermission, 
+        Serializer=PSRLZER_USER.Rolepermissionserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -684,9 +696,9 @@ def addrolepermission(request):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getethnicgroups(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'}
+    ]
     ethnicgroups = MODELS_USER.Ethnicgroup.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: ethnicgroups = ethnicgroups.order_by(column_accessor)
@@ -706,16 +718,17 @@ def getethnicgroups(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addethnicgroup(request):
     unique_fields = ['name']
     required_fields = ['name']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_USER.Ethnicgroup, 
-        PSRLZER_USER.Ethnicgroupserializer, 
-        request.data, 
+        classOBJ=MODELS_USER.Ethnicgroup, 
+        Serializer=PSRLZER_USER.Ethnicgroupserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -726,41 +739,39 @@ def addethnicgroup(request):
 def getemployee(request):
 
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'designation', 'convert': None, 'replace':'designation'},
-                        {'name': 'dob', 'convert': None, 'replace':'dob'},
-                        {'name': 'blood_group', 'convert': None, 'replace':'blood_group__icontains'},
-                        {'name': 'fathers_name', 'convert': None, 'replace':'fathers_name__icontains'},
-                        {'name': 'mothers_name', 'convert': None, 'replace':'mothers_name__icontains'},
-                        {'name': 'marital_status', 'convert': None, 'replace':'marital_status__icontains'},
-                        {'name': 'gender', 'convert': None, 'replace':'gender__icontains'},
-                        {'name': 'spouse_name', 'convert': None, 'replace':'spouse_name__icontains'},
-                        {'name': 'religion', 'convert': None, 'replace':'religion'},
-                        {'name': 'nationality', 'convert': None, 'replace':'nationality__icontains'},
-                        {'name': 'personal_email', 'convert': None, 'replace':'personal_email__icontains'},
-                        {'name': 'personal_phone', 'convert': None, 'replace':'personal_phone__icontains'},
-                        {'name': 'nid_passport_no', 'convert': None, 'replace':'nid_passport_no__icontains'},
-                        {'name': 'official_id', 'convert': None, 'replace':'official_id__icontains'},
-                        {'name': 'official_email', 'convert': None, 'replace':'official_email__icontains'},
-                        {'name': 'official_phone', 'convert': None, 'replace':'official_phone__icontains'},
-                        {'name': 'employee_type', 'convert': None, 'replace':'employee_type__icontains'},
-                        {'name': 'gross_salary', 'convert': None, 'replace':'gross_salary'},
-                        {'name': 'payment_in', 'convert': None, 'replace':'payment_in__icontains'},
-                        {'name': 'supervisor', 'convert': None, 'replace':'supervisor'},
-                        {'name': 'expense_approver', 'convert': None, 'replace':'expense_approver'},
-                        {'name': 'leave_approver', 'convert': None, 'replace':'leave_approver'},
-                        {'name': 'shift_request_approver', 'convert': None, 'replace':'shift_request_approver'},
-                        {'name': 'grade', 'convert': None, 'replace':'grade'},
-                        {'name': 'shift', 'convert': None, 'replace':'shift'},
-                        {'name': 'joining_date', 'convert': None, 'replace':'joining_date'},
-                        {'name': 'allow_overtime', 'convert': 'bool', 'replace':'allow_overtime'},
-                        {'name': 'allow_remote_checkin', 'convert': 'bool', 'replace':'allow_remote_checkin'},
-                        {'name': 'job_status', 'convert': None, 'replace':'job_status__icontains'},
-                        {'name': 'official_note', 'convert': None, 'replace':'official_note__icontains'},
-                        {'name': 'rfid', 'convert': None, 'replace':'rfid__icontains'},
-                        {'name': 'created_by', 'convert': None, 'replace':'created_by'},
-                        {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'designation', 'convert': None, 'replace':'designation'},
+        {'name': 'dob', 'convert': None, 'replace':'dob'},
+        {'name': 'blood_group', 'convert': None, 'replace':'blood_group__icontains'},
+        {'name': 'fathers_name', 'convert': None, 'replace':'fathers_name__icontains'},
+        {'name': 'mothers_name', 'convert': None, 'replace':'mothers_name__icontains'},
+        {'name': 'marital_status', 'convert': None, 'replace':'marital_status__icontains'},
+        {'name': 'gender', 'convert': None, 'replace':'gender__icontains'},
+        {'name': 'spouse_name', 'convert': None, 'replace':'spouse_name__icontains'},
+        {'name': 'religion', 'convert': None, 'replace':'religion'},
+        {'name': 'nationality', 'convert': None, 'replace':'nationality__icontains'},
+        {'name': 'personal_email', 'convert': None, 'replace':'personal_email__icontains'},
+        {'name': 'personal_phone', 'convert': None, 'replace':'personal_phone__icontains'},
+        {'name': 'nid_passport_no', 'convert': None, 'replace':'nid_passport_no__icontains'},
+        {'name': 'official_id', 'convert': None, 'replace':'official_id__icontains'},
+        {'name': 'official_email', 'convert': None, 'replace':'official_email__icontains'},
+        {'name': 'official_phone', 'convert': None, 'replace':'official_phone__icontains'},
+        {'name': 'employee_type', 'convert': None, 'replace':'employee_type__icontains'},
+        {'name': 'gross_salary', 'convert': None, 'replace':'gross_salary'},
+        {'name': 'payment_in', 'convert': None, 'replace':'payment_in__icontains'},
+        {'name': 'supervisor', 'convert': None, 'replace':'supervisor'},
+        {'name': 'expense_approver', 'convert': None, 'replace':'expense_approver'},
+        {'name': 'leave_approver', 'convert': None, 'replace':'leave_approver'},
+        {'name': 'shift_request_approver', 'convert': None, 'replace':'shift_request_approver'},
+        {'name': 'grade', 'convert': None, 'replace':'grade'},
+        {'name': 'shift', 'convert': None, 'replace':'shift'},
+        {'name': 'joining_date', 'convert': None, 'replace':'joining_date'},
+        {'name': 'allow_overtime', 'convert': 'bool', 'replace':'allow_overtime'},
+        {'name': 'allow_remote_checkin', 'convert': 'bool', 'replace':'allow_remote_checkin'},
+        {'name': 'job_status', 'convert': None, 'replace':'job_status__icontains'},
+        {'name': 'official_note', 'convert': None, 'replace':'official_note__icontains'},
+        {'name': 'rfid', 'convert': None, 'replace':'rfid__icontains'}
+    ]
     users = MODELS_USER.User.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: users = users.order_by(column_accessor)
@@ -797,7 +808,7 @@ def addemployee(request):
     if generalsettings.exists():
         created_by = MODELS_USER.User.objects.get(id=request.user.id) if request.user.id != None else None
         requestdata = dict(request.data)
-        # requestdata = ghelp().requestdata()
+        requestdata.update({'abcdef[abcdef]': ['abcdef']})
         options = {
             'allow_blank': True,
             'allow_empty': False
@@ -957,19 +968,30 @@ def addemployee(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updateprofilepic(request, userid=None):
-    user = MODELS_USER.User.objects.filter(id=userid)
-    if user.exists():
-        photo = request.FILES.get('photo')
-        if photo:
-            userserializer = PSRLZER_USER.Userserializer(instance=user.first(), data=request.data, partial=True)
-            if userserializer.is_valid():
-                try:
-                    ghelp().removeFile(user.first(), 'photo')
-                    userserializer.save()
-                    return Response({'data': {}, 'message': ['successfully uploaded the photo!'], 'status': 'success'}, status=status.HTTP_200_OK)
-                except: return Response({'data': {}, 'message': ['couldn\'t upload photo!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        else: return Response({'data': {}, 'message': ['photo doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
+    photo = request.FILES.get('photo')
+    if photo:
+        profilepicobj = {'photo': photo}
+        static_fields = ['photo']
+
+        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+            classOBJ=MODELS_USER.User,
+            Serializer=PSRLZER_USER.Userserializer,
+            id=userid,
+            data=profilepicobj,
+            static_fields=static_fields
+        )
+
+        response_data = responsedata
+        response_message.extend(responsemessage)
+        response_successflag = responsesuccessflag
+        response_status = responsestatus
+    else: response_message.append('photo doesn\'t exist!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -980,37 +1002,28 @@ def updateprofile(request, userid=None):
     department = None
     if 'department' in requesteddata:
         department = requesteddata['department']
-        if department:
-            if isinstance(department, str):
-                if department.isnumeric(): department = int(department)
+        if isinstance(department, str):
+            if department.isnumeric(): department = int(department)
     if isinstance(department, int):
         user = MODELS_USER.User.objects.filter(id=userid).first()
-        for departmentOBJ in user.departmenttwo.all():
-            departmentOBJ.user.remove(user)
+        for departmentOBJ in user.departmenttwo.all(): departmentOBJ.user.remove(user)
         department = MODELS_DEPA.Department.objects.filter(id=department)
         if department.exists(): department.first().user.add(user)
 
         del requesteddata['department']
 
-    if 'official_id' in requesteddata:
-        official_id = requesteddata['official_id']
-        if official_id:
-            requesteddata.update({'username': official_id})
-
-    allowed_fields = ['username', 'first_name', 'last_name', 'designation', 'official_id', 'joining_date', 'personal_phone', 'personal_email', 'dob', 'gender', 'blood_group', 'marital_status', 'spouse_name', 'supervisor']
-    unique_fields = ['official_id', 'personal_phone', 'personal_email']
+    allowed_fields = ['first_name', 'last_name', 'designation', 'joining_date', 'personal_phone', 'personal_email', 'dob', 'gender', 'blood_group', 'marital_status', 'spouse_name', 'supervisor']
+    unique_fields = ['personal_phone', 'personal_email']
     choice_fields = [
         {'name': 'gender', 'values': [item[1] for item in CHOICE.GENDER]},
         {'name': 'blood_group', 'values': [item[1] for item in CHOICE.BLOOD_GROUP]},
         {'name': 'marital_status', 'values': [item[1] for item in CHOICE.MARITAL_STATUS]}
     ]
     fields_regex = [
-        {'field': 'official_id', 'type': 'employeeid'},
         {'field': 'personal_phone', 'type': 'phonenumber'},
         {'field': 'personal_email', 'type': 'email'},
         {'field': 'dob', 'type': 'date'}
     ]
-
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         classOBJ=MODELS_USER.User,
         Serializer=PSRLZER_USER.Userserializer,
@@ -1027,31 +1040,34 @@ def updateprofile(request, userid=None):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updatepersonaldetails(request, userid=None):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
 
     user = MODELS_USER.User.objects.filter(id=userid)
     if user.exists():
         requesteddata = request.data.copy()
 
         if 'present_address' in requesteddata:
-            presentaddressid = user.first().present_address.id
-            presentaddress = requesteddata['present_address']
-            response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                 classOBJ=MODELS_CONT.Address,
                 Serializer=PSRLZER_CONT.Addressserializer,
-                id=presentaddressid,
-                data=presentaddress
+                id=user.first().present_address.id,
+                data=requesteddata['present_address']
             )
+            response_message.extend(responsemessage)
             del requesteddata['present_address']
 
         if 'permanent_address' in requesteddata:
-            permanentaddressid = user.first().permanent_address
-            permanentaddress = requesteddata['permanent_address']
-            response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                 classOBJ=MODELS_CONT.Address,
                 Serializer=PSRLZER_CONT.Addressserializer,
-                id=permanentaddressid,
-                data=permanentaddress
+                id=user.first().permanent_address.id,
+                data=requesteddata['permanent_address']
             )
+            response_message.extend(responsemessage)
             del requesteddata['permanent_address']
 
         allowed_fields = ['fathers_name', 'mothers_name', 'spouse_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no']
@@ -1068,7 +1084,7 @@ def updatepersonaldetails(request, userid=None):
             return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
         elif response_successflag == 'error':
             return Response({'data': {}, 'message': ['something went wrong!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: response_message.append('user doesn\'t exist!')
 
 
 # @api_view(['PUT'])

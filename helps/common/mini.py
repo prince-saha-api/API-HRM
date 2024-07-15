@@ -41,9 +41,9 @@ class Minihelps(Microhelps):
         if 'present_address' in personalDetails:
             required_fields = ['address', 'city', 'state_division', 'country']
             response_data, response_message, response_successflag, response_status = self.addtocolass(
-                classOBJpackage['Address'],
-                serializerOBJpackage['Address'],
-                personalDetails['present_address'],
+                classOBJ=classOBJpackage['Address'],
+                Serializer=serializerOBJpackage['Address'],
+                data=personalDetails['present_address'],
                 required_fields=required_fields
             )
             if response_successflag == 'success':
@@ -57,9 +57,9 @@ class Minihelps(Microhelps):
         if 'present_address' in personalDetails:
             required_fields = ['address', 'city', 'state_division', 'country']
             response_data, response_message, response_successflag, response_status = self.addtocolass(
-                classOBJpackage['Address'],
-                serializerOBJpackage['Address'],
-                personalDetails['present_address'],
+                classOBJ=classOBJpackage['Address'],
+                Serializer=serializerOBJpackage['Address'],
+                data=personalDetails['present_address'],
                 required_fields=required_fields
             )
             if response_successflag == 'success':
@@ -217,9 +217,9 @@ class Minihelps(Microhelps):
                 if 'address' in details:
                     required_fields = ['address', 'city', 'state_division', 'country']
                     responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
-                        Address,
-                        Addressserializer,
-                        details['address'],
+                        classOBJ=Address,
+                        Serializer=Addressserializer,
+                        data=details['address'],
                         required_fields=required_fields
                     )
 
@@ -233,9 +233,9 @@ class Minihelps(Microhelps):
 
                 required_fields = ['name', 'user']
                 response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    Employeecontact,
-                    Employeecontactserializer,
-                    details,
+                    classOBJ=Employeecontact,
+                    Serializer=Employeecontactserializer,
+                    data=details,
                     required_fields=required_fields
                 )
                 if response_successflag == 'success':
@@ -259,9 +259,9 @@ class Minihelps(Microhelps):
 
                 required_fields = ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
                 response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    Employeeacademichistory,
-                    Employeeacademichistoryserializer,
-                    details,
+                    classOBJ=Employeeacademichistory,
+                    Serializer=Employeeacademichistoryserializer,
+                    data=details,
                     required_fields=required_fields
                 )
                 if response_successflag == 'success':
@@ -287,9 +287,9 @@ class Minihelps(Microhelps):
                     {'field': 'to_date', 'type': 'date'}
                 ]
                 response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    Employeeexperiencehistory,
-                    Employeeexperiencehistoryserializer,
-                    details,
+                    classOBJ=Employeeexperiencehistory,
+                    Serializer=Employeeexperiencehistoryserializer,
+                    data=details,
                     required_fields=required_fields,
                     fields_regex=fields_regex
                 )

@@ -341,12 +341,12 @@ def getloggedinusersremoteattendence(request):
     userid = request.user.id
     if userid:
         filter_fields = [
-                            {'name': 'date', 'convert': None, 'replace':'date'},
-                            {'name': 'in_time', 'convert': None, 'replace':'in_time'},
-                            {'name': 'out_time', 'convert': None, 'replace':'out_time'},
-                            {'name': 'status', 'convert': None, 'replace':'status__icontains'},
-                            {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
-                        ]
+            {'name': 'date', 'convert': None, 'replace':'date'},
+            {'name': 'in_time', 'convert': None, 'replace':'in_time'},
+            {'name': 'out_time', 'convert': None, 'replace':'out_time'},
+            {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+            {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
+        ]
         kwargs = ghelp().KWARGS(request, filter_fields)
         kwargs.update({'requested_by': userid})
         requestremoteattendances = MODELS_ATTE.Requestremoteattendance.objects.filter(**kwargs)
@@ -421,9 +421,9 @@ def rejectremoteattendence(request, remoteattendenceid=None):
     else: return Response({'status': 'error', 'message': 'doesn\'t exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def addattendancefromlogsalldevices(request, minutes):
+def addattendancefromlogsalldevices(request, minutes=None):
 
     devices = Device.objects.filter(is_active=True)
     start , end = ghelp().getStarttimeEndtime(minutes)

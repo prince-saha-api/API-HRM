@@ -130,6 +130,7 @@ class User(AbstractUser, Timedetailscode):
     official_phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
     employee_type = models.CharField(max_length=30, choices=CHOICE.EMPLOYEE_TYPE, blank=True, null=True)
     gross_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
+    besic_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
     payment_in = models.CharField(max_length=50, choices=CHOICE.PAYMENT_IN, blank=True, null=True)
     #######
     #########

@@ -96,6 +96,7 @@ class LogoutAllView(APIView):
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def resetPassword(request):
     userid = request.data.get('user')
     if userid == None: return Response(['please provide an user\'s user id!'], status=status.HTTP_400_BAD_REQUEST)

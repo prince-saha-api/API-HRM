@@ -1,27 +1,25 @@
+from contribution.serializer.POST import serializers as PSRLZER_CONT
 from rest_framework.decorators import api_view, permission_classes
+from branch.serializer.POST import serializers as PSRLZER_BRAN
+from branch.serializer import serializers as SRLZER_BRAN
+from helps.common.generic import Generichelps as ghelp
 from rest_framework.permissions import IsAuthenticated
-from branch import models as MODELS_BRAN
 from contribution import models as MODELS_CONT
 from department import models as MODELS_DEPA
-from branch.serializer import serializers as SRLZER_BRAN
-from branch.serializer.POST import serializers as PSRLZER_BRAN
-from contribution.serializer.POST import serializers as PSRLZER_CONT
-from helps.common.generic import Generichelps as ghelp
 from rest_framework.response import Response
+from branch import models as MODELS_BRAN
 from rest_framework import status
 
 
-# Create your views here.
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getoperatinghours(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'operating_hour_from', 'convert': None, 'replace':'operating_hour_from'},
-                        {'name': 'operating_hour_to', 'convert': None, 'replace':'operating_hour_to'},
-                        {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'operating_hour_from', 'convert': None, 'replace':'operating_hour_from'},
+        {'name': 'operating_hour_to', 'convert': None, 'replace':'operating_hour_to'}
+    ]
     operatinghours = MODELS_BRAN.Operatinghour.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: operatinghours = operatinghours.order_by(column_accessor)
@@ -49,12 +47,12 @@ def addoperatinghour(request):
         {'field': 'operating_hour_to', 'type': 'time'},
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_BRAN.Operatinghour, 
-        PSRLZER_BRAN.Operatinghourserializer, 
-        request.data, 
+        classOBJ=MODELS_BRAN.Operatinghour,
+        Serializer=PSRLZER_BRAN.Operatinghourserializer,
+        data=request.data,
         required_fields=required_fields,
         fields_regex=fields_regex
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -72,20 +70,17 @@ def updateoperatinghour(request, operatinghourid=None):
         id=operatinghourid, 
         data=request.data,
         fields_regex=fields_regex
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deleteoperatinghour(request, operatinghourid=None):
-    classOBJpackage_tocheck_assciaativity = [
-    ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_BRAN.Operatinghour,
-        id=operatinghourid,
-        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
-        )
+        id=operatinghourid
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -93,14 +88,14 @@ def deleteoperatinghour(request, operatinghourid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def getbranchs(request):
     filter_fields = [
-                {'name': 'id', 'convert': None, 'replace':'id'},
-                {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-                {'name': 'company', 'convert': None, 'replace':'company__id'},
-                {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                {'name': 'email', 'convert': None, 'replace':'email__icontains'},
-                {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
-                {'name': 'fax', 'convert': None, 'replace':'fax__icontains'}
-            ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+        {'name': 'company', 'convert': None, 'replace':'company__id'},
+        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'email', 'convert': None, 'replace':'email__icontains'},
+        {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
+        {'name': 'fax', 'convert': None, 'replace':'fax__icontains'}
+    ]
     branchs = MODELS_BRAN.Branch.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: branchs = branchs.order_by(column_accessor)
@@ -128,15 +123,14 @@ def addbranch(request):
     response_status = status.HTTP_400_BAD_REQUEST
 
     branchObj = request.data
-
     if 'address' in branchObj:
         addressobj = branchObj['address']
 
         required_fields = ['address', 'city', 'state_division', 'country']
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-            MODELS_CONT.Address,
-            PSRLZER_CONT.Addressserializer,
-            addressobj,
+            classOBJ=MODELS_CONT.Address,
+            Serializer=PSRLZER_CONT.Addressserializer,
+            data=addressobj,
             required_fields=required_fields
         )
         if responsesuccessflag == 'success': branchObj.update({'address': responsedata.data['id']})
@@ -151,9 +145,9 @@ def addbranch(request):
         {'field': 'phone', 'type': 'phonenumber'}
     ]
     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-        MODELS_BRAN.Branch,
-        PSRLZER_BRAN.Branchserializer,
-        branchObj,
+        classOBJ=MODELS_BRAN.Branch,
+        Serializer=PSRLZER_BRAN.Branchserializer,
+        data=branchObj,
         unique_fields=unique_fields,
         required_fields=required_fields,
         fields_regex=fields_regex
@@ -176,44 +170,42 @@ def updatebranch(request, branchid=None):
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
 
-    if branchid:
-        branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
-        if branch.exists():
-            branchObj = request.data
-            if 'address' in branchObj:
-                addressObj = branchObj['address']
-                addressid = branch.first().address.id
-                if addressid:
-                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                        classOBJ=MODELS_CONT.Address,
-                        Serializer=PSRLZER_CONT.Addressserializer,
-                        id=addressid,
-                        data=addressObj
-                    )
-                    if responsesuccessflag == 'error': response_message.extend(responsemessage)
-                del branchObj['address']
+    branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
+    if branch.exists():
+        branchObj = request.data
+        if 'address' in branchObj:
+            addressObj = branchObj['address']
+            addressid = branch.first().address.id
+            if addressid:
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                    classOBJ=MODELS_CONT.Address,
+                    Serializer=PSRLZER_CONT.Addressserializer,
+                    id=addressid,
+                    data=addressObj
+                )
+                if responsesuccessflag == 'error': response_message.extend(responsemessage)
+            del branchObj['address']
 
-            fields_regex = [
-                {'field': 'email', 'type': 'email'},
-                {'field': 'phone', 'type': 'phonenumber'}
-            ]
-            unique_fields = ['email', 'phone', 'fax']
-            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                classOBJ=MODELS_BRAN.Branch, 
-                Serializer=PSRLZER_BRAN.Branchserializer, 
-                id=branchid, 
-                data=branchObj,
-                unique_fields=unique_fields,
-                fields_regex=fields_regex
-            )
-            if responsesuccessflag == 'success':
-                response_data = responsedata
-                response_successflag = responsesuccessflag
-                response_status = responsestatus
-            if responsesuccessflag == 'error':
-                response_message.extend(responsemessage)
-        else: response_message.append('branch doesn\'t exist!')
-    else: response_message.append('please provide a branch id!')
+        fields_regex = [
+            {'field': 'email', 'type': 'email'},
+            {'field': 'phone', 'type': 'phonenumber'}
+        ]
+        unique_fields = ['email', 'phone', 'fax']
+        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+            classOBJ=MODELS_BRAN.Branch, 
+            Serializer=PSRLZER_BRAN.Branchserializer, 
+            id=branchid, 
+            data=branchObj,
+            unique_fields=unique_fields,
+            fields_regex=fields_regex
+        )
+        if responsesuccessflag == 'success':
+            response_data = responsedata
+            response_successflag = responsesuccessflag
+            response_status = responsestatus
+        if responsesuccessflag == 'error':
+            response_message.extend(responsemessage)
+    else: response_message.append('branch doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])

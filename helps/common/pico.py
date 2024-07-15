@@ -94,10 +94,11 @@ class Picohelps:
    def getobject(self, classOBJ, kwargs, filter=False): # New
       object = None
       if id != None:
-         try:
-            if filter: object = classOBJ.objects.filter(**kwargs)
-            else: object = classOBJ.objects.get(**kwargs)
+         try: object = classOBJ.objects.filter(**kwargs)
          except: pass
+         if object.exists():
+            if not filter: object = object.first()
+         else: object = None
       return object
     
    def KWARGS(self, request, filter_fields):

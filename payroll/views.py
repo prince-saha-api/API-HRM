@@ -14,16 +14,16 @@ from rest_framework.permissions import IsAuthenticated
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getpayrollearnings(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'title', 'convert': None, 'replace':'title__icontains'},
-                    {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                    {'name': 'is_taxable', 'convert': 'bool', 'replace':'is_taxable'},
-                    {'name': 'depends_on_attendance', 'convert': 'bool', 'replace':'depends_on_attendance'},
-                    {'name': 'amount_type', 'convert': None, 'replace':'amount_type__icontains'},
-                    {'name': 'amount', 'convert': None, 'replace':'amount'},
-                    {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
-                    {'name': 'created_by', 'convert': None, 'replace':'created_by'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'title', 'convert': None, 'replace':'title__icontains'},
+        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'is_taxable', 'convert': 'bool', 'replace':'is_taxable'},
+        {'name': 'depends_on_attendance', 'convert': 'bool', 'replace':'depends_on_attendance'},
+        {'name': 'amount_type', 'convert': None, 'replace':'amount_type__icontains'},
+        {'name': 'amount', 'convert': None, 'replace':'amount'},
+        {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
+        {'name': 'created_by', 'convert': None, 'replace':'created_by'}
+    ]
     payrollearnings = MODELS_PAYR.Payrollearning.objects.filter(**ghelp().KWARGS(request, filter_fields))
 
     column_accessor = request.GET.get('column_accessor')
@@ -44,6 +44,7 @@ def getpayrollearnings(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
 def addpayrollearning(request):
     userid = request.user.id
     extra_fields = {}
@@ -53,14 +54,14 @@ def addpayrollearning(request):
     ]
     required_fields = ['title', 'amount']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_PAYR.Payrollearning, 
-        PSRLZER_PAYR.Payrollearningserializer, 
-        request.data, 
+        classOBJ=MODELS_PAYR.Payrollearning, 
+        Serializer=PSRLZER_PAYR.Payrollearningserializer, 
+        data=request.data, 
         unique_fields=[], 
         extra_fields=extra_fields, 
         choice_fields=choice_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -85,16 +86,14 @@ def updatepayrollearning(request, payrollearningid=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getpayrolldeductions(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'title', 'convert': None, 'replace':'title__icontains'},
-                    {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                    {'name': 'exempted_for_tax', 'convert': 'bool', 'replace':'exempted_for_tax'},
-                    {'name': 'depends_on_attendance', 'convert': 'bool', 'replace':'depends_on_attendance'},
-                    {'name': 'amount_type', 'convert': None, 'replace':'amount_type__icontains'},
-                    {'name': 'amount', 'convert': None, 'replace':'amount'},
-                    {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
-                    {'name': 'created_by', 'convert': None, 'replace':'created_by'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'title', 'convert': None, 'replace':'title__icontains'},
+        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'exempted_for_tax', 'convert': 'bool', 'replace':'exempted_for_tax'},
+        {'name': 'depends_on_attendance', 'convert': 'bool', 'replace':'depends_on_attendance'},
+        {'name': 'amount_type', 'convert': None, 'replace':'amount_type__icontains'},
+        {'name': 'amount', 'convert': None, 'replace':'amount'}
+    ]
     payrolldeductions = MODELS_PAYR.Payrolldeduction.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: payrolldeductions = payrolldeductions.order_by(column_accessor)
@@ -114,6 +113,7 @@ def getpayrolldeductions(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
 def addpayrolldeduction(request):
     userid = request.user.id
     extra_fields = {}
@@ -123,13 +123,13 @@ def addpayrolldeduction(request):
     ]
     required_fields = ['title', 'amount']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_PAYR.Payrolldeduction, 
-        PSRLZER_PAYR.Payrolldeductionserializer, 
-        request.data, 
+        classOBJ=MODELS_PAYR.Payrolldeduction, 
+        Serializer=PSRLZER_PAYR.Payrolldeductionserializer, 
+        data=request.data, 
         extra_fields=extra_fields, 
         choice_fields=choice_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -150,20 +150,21 @@ def updatepayrolldeduction(request, payrolldeductionid=None):
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getpayrolltaxs(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'title', 'convert': None, 'replace':'title__icontains'},
-                    {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                    {'name': 'min_income', 'convert': None, 'replace':'min_income'},
-                    {'name': 'max_income', 'convert': None, 'replace':'max_income'},
-                    {'name': 'ethnicgroup', 'convert': None, 'replace':'ethnicgroup'},
-                    {'name': 'percentage', 'convert': None, 'replace':'percentage'},
-                    {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
-                    {'name': 'created_by', 'convert': None, 'replace':'created_by'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'title', 'convert': None, 'replace':'title__icontains'},
+        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'min_income', 'convert': None, 'replace':'min_income'},
+        {'name': 'max_income', 'convert': None, 'replace':'max_income'},
+        {'name': 'ethnicgroup', 'convert': None, 'replace':'ethnicgroup'},
+        {'name': 'percentage', 'convert': None, 'replace':'percentage'},
+        {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
+        {'name': 'created_by', 'convert': None, 'replace':'created_by'}
+    ]
     payrolltaxs = MODELS_PAYR.Payrolltax.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: payrolltaxs = payrolltaxs.order_by(column_accessor)
@@ -172,6 +173,7 @@ def getpayrolltaxs(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
 def addpayrolltax(request):
     userid = request.user.id
     extra_fields = {}
@@ -179,13 +181,13 @@ def addpayrolltax(request):
     required_fields = ['title', 'min_income', 'max_income', 'percentage']
     if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_PAYR.Payrolltax, 
-        PSRLZER_PAYR.Payrolltaxserializer, 
-        request.data, 
+        classOBJ=MODELS_PAYR.Payrolltax, 
+        Serializer=PSRLZER_PAYR.Payrolltaxserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         extra_fields=extra_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 

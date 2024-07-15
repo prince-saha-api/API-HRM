@@ -17,17 +17,17 @@ from helps.choice import common as CHOICE
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getleavepolicys(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'user', 'convert': None, 'replace':'leavepolicyassign__user__id'},
-                        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-                        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                        {'name': 'allocation_days', 'convert': None, 'replace':'allocation_days'},
-                        {'name': 'leave_type', 'convert': None, 'replace':'leave_type__icontains'},
-                        {'name': 'max_consecutive_days', 'convert': None, 'replace':'max_consecutive_days'},
-                        {'name': 'require_attachment', 'convert': 'bool', 'replace':'require_attachment'},
-                        {'name': 'is_optional', 'convert': 'bool', 'replace':'is_optional'},
-                        {'name': 'is_calendar_day', 'convert': 'bool', 'replace':'is_calendar_day'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'user', 'convert': None, 'replace':'leavepolicyassign__user__id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'allocation_days', 'convert': None, 'replace':'allocation_days'},
+        {'name': 'leave_type', 'convert': None, 'replace':'leave_type__icontains'},
+        {'name': 'max_consecutive_days', 'convert': None, 'replace':'max_consecutive_days'},
+        {'name': 'require_attachment', 'convert': 'bool', 'replace':'require_attachment'},
+        {'name': 'is_optional', 'convert': 'bool', 'replace':'is_optional'},
+        {'name': 'is_calendar_day', 'convert': 'bool', 'replace':'is_calendar_day'}
+    ]
     leavepolicys = MODELS_LEAV.Leavepolicy.objects.filter(**ghelp().KWARGS(request, filter_fields))
 
     column_accessor = request.GET.get('column_accessor')
@@ -59,14 +59,14 @@ def addleavepolicy(request):
         {'name': 'leave_type', 'values': [item[1] for item in CHOICE.LEAVE_TYPE]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_LEAV.Leavepolicy, 
-        PSRLZER_LEAV.Leavepolicyserializer, 
-        request.data, 
+        classOBJ=MODELS_LEAV.Leavepolicy, 
+        Serializer=PSRLZER_LEAV.Leavepolicyserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         extra_fields=extra_fields, 
         choice_fields=choice_fields, 
         required_fields=required_fields
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -78,7 +78,7 @@ def updateleavepolicy(request, leavepolicyid=None):
     response_message = []
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
-    userid = request.user.id
+
     leavepolicys = MODELS_LEAV.Leavepolicy.objects.filter(id=leavepolicyid)
     if leavepolicys.exists():
         leavepolicys = leavepolicys.first()
@@ -92,9 +92,10 @@ def updateleavepolicy(request, leavepolicyid=None):
 
         if not response_message:
             extra_fields = {}
+            userid = request.user.id
             if userid: extra_fields.update({'updated_by': userid})
             unique_fields=['name']
-            response_data_, response_message_, response_successflag_, response_status_ = ghelp().updaterecord(
+            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                 classOBJ=MODELS_LEAV.Leavepolicy,
                 Serializer=PSRLZER_LEAV.Leavepolicyserializer,
                 id=leavepolicyid,
@@ -103,10 +104,10 @@ def updateleavepolicy(request, leavepolicyid=None):
                 allowed_fields=allowed_fields,
                 extra_fields=extra_fields
             )
-            response_data.update(response_data_)
-            response_message.extend(response_message_)
-            response_successflag = response_successflag_
-            response_status = response_status_
+            response_data.update(responsedata)
+            response_message.extend(responsemessage)
+            response_successflag = responsesuccessflag
+            response_status = responsestatus
     else: response_message.append('doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -125,7 +126,7 @@ def deleteleavepolicy(request, leavepolicyid=None):
         classOBJ=MODELS_LEAV.Leavepolicy,
         id=leavepolicyid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -134,12 +135,12 @@ def deleteleavepolicy(request, leavepolicyid=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getassignleavepolicys(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'user', 'convert': None, 'replace':'user'},
-                        {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
-                        {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
-                        {'name': 'created_by', 'convert': None, 'replace':'created_by'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'user', 'convert': None, 'replace':'user'},
+        {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
+        {'name': 'updated_by', 'convert': None, 'replace':'updated_by'},
+        {'name': 'created_by', 'convert': None, 'replace':'created_by'}
+    ]
     leavepolicyassigns = MODELS_LEAV.Leavepolicyassign.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: leavepolicyassigns = leavepolicyassigns.order_by(column_accessor)
@@ -161,44 +162,48 @@ def getassignleavepolicys(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def assignleavepolicy(request):
-    check_mood = True
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
     generalsettings = MODELS_SETT.Generalsettings.objects.all().order_by('id')
     if generalsettings.exists():
         leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
-        user = ghelp().getobject(MODELS_USER.User, {'id': request.data.get('user')})
-        if check_mood:
-            if leavepolicy == None: return Response({'data': {}, 'message': ['leavepolicy doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-            if user == None: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        if leavepolicy:
+            user = ghelp().getobject(MODELS_USER.User, {'id': request.data.get('user')})
+            if user:
+                # if leavepolicy.applicable_for.name != 'all':
+                #     if user not in leavepolicy.applicable_for.user.all():
+                #         return Response({'data': {}, 'message': ['This user can\'t have this leave!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+                
 
-
-        # if leavepolicy.applicable_for.name != 'all':
-        #     if user not in leavepolicy.applicable_for.user.all():
-        #         return Response({'data': {}, 'message': ['This user can\'t have this leave!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        
-
-        leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user, leavepolicy=leavepolicy)
-        if not leavepolicyassign.exists():
-            created_by = MODELS_USER.User.objects.get(id=request.user.id)
-            leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.create(user=user, leavepolicy=leavepolicy, created_by=created_by, updated_by=created_by)
-            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
-            if not leavesummary.exists():
-                MODELS_LEAV.Leavesummary.objects.create(
-                    user=user,
-                    leavepolicy=leavepolicy,
-                    fiscal_year=generalsettings.first().fiscalyear,
-                    total_allocation=leavepolicy.allocation_days,
-                    total_consumed=0,
-                    total_left=leavepolicy.allocation_days
-                )
-                return Response({'data': {}, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
-            else: return Response({'data': {}, 'message': ['this leavesummary is already exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        else: return Response({'data': {}, 'message': ['this leavepolicyassign is already exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': ['please fillup general settings first!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+                leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user, leavepolicy=leavepolicy)
+                if not leavepolicyassign.exists():
+                    created_by = MODELS_USER.User.objects.get(id=request.user.id)
+                    leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.create(user=user, leavepolicy=leavepolicy, created_by=created_by, updated_by=created_by)
+                    leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
+                    if not leavesummary.exists():
+                        MODELS_LEAV.Leavesummary.objects.create(
+                            user=user,
+                            leavepolicy=leavepolicy,
+                            fiscal_year=generalsettings.first().fiscalyear,
+                            total_allocation=leavepolicy.allocation_days,
+                            total_consumed=0,
+                            total_left=leavepolicy.allocation_days
+                        )
+                        response_successflag = 'success'
+                        response_status = status.HTTP_200_OK
+                    else: response_message.append('this leavesummary is already exist!')
+                else: response_message.append('this leavepolicyassign is already exist!')
+            else: response_message.append('user doesn\'t exist!')
+        else: response_message.append('leavepolicy doesn\'t exist!')
+    else: response_message.append('please fillup general settings first!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-
-# @deco.get_permission(['Get Permission list Details', 'all'])
+# @deco.get_permission(['get company info', 'all'])
 def removeassignedleavepolicy(request, leavepolicyassignid=None):
     response_data = {}
     response_message = []
@@ -247,14 +252,14 @@ def removeassignedleavepolicy(request, leavepolicyassignid=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getleavesummarys(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'user', 'convert': None, 'replace':'user'},
-                        {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
-                        {'name': 'total_allocation', 'convert': None, 'replace':'total_allocation'},
-                        {'name': 'total_consumed', 'convert': None, 'replace':'total_consumed'},
-                        {'name': 'total_left', 'convert': None, 'replace':'total_left'},
-                        {'name': 'fiscal_year', 'convert': None, 'replace':'fiscal_year'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'user', 'convert': None, 'replace':'user'},
+        {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
+        {'name': 'total_allocation', 'convert': None, 'replace':'total_allocation'},
+        {'name': 'total_consumed', 'convert': None, 'replace':'total_consumed'},
+        {'name': 'total_left', 'convert': None, 'replace':'total_left'},
+        {'name': 'fiscal_year', 'convert': None, 'replace':'fiscal_year'}
+    ]
     leavesummarys = MODELS_LEAV.Leavesummary.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: leavesummarys = leavesummarys.order_by(column_accessor)
@@ -278,15 +283,15 @@ def getleavesummarys(request):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def getleaverequest(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'user', 'convert': None, 'replace':'user'},
-                        {'name': 'from_date', 'convert': None, 'replace':'from_date'},
-                        {'name': 'to_date', 'convert': None, 'replace':'to_date'},
-                        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
-                        {'name': 'rejection_reason', 'convert': None, 'replace':'rejection_reason__icontains'},
-                        {'name': 'approved_by', 'convert': None, 'replace':'approved_by'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'user', 'convert': None, 'replace':'user'},
+        {'name': 'from_date', 'convert': None, 'replace':'from_date'},
+        {'name': 'to_date', 'convert': None, 'replace':'to_date'},
+        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+        {'name': 'rejection_reason', 'convert': None, 'replace':'rejection_reason__icontains'},
+        {'name': 'approved_by', 'convert': None, 'replace':'approved_by'}
+    ]
     leaverequests = MODELS_LEAV.Leaverequest.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: leaverequests = leaverequests.order_by(column_accessor)
@@ -305,11 +310,9 @@ def getleaverequest(request):
     }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# @deco.get_permission(['Get Permission list Details', 'all'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
 def addleaverequest(request):
-    check_mood = True
-  
     user = None
     userid = request.data.get('user')
     if userid:
@@ -320,8 +323,6 @@ def addleaverequest(request):
     if user == None: return Response({'data': {}, 'message': ['please provide an user!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
     leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
-    if check_mood:
-        if leavepolicy == None: return Response({'data': {}, 'message': ['leavepolicy doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
     from_date = request.data.get('from_date')
     try: from_date=ghelp().convert_STR_datetime_date(from_date)
@@ -510,14 +511,14 @@ def getfilteredleaverequest(request):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def getleaveallocationrequest(request):
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'user', 'convert': None, 'replace':'user'},
-                        {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
-                        {'name': 'no_of_days', 'convert': None, 'replace':'no_of_days'},
-                        {'name': 'reason', 'convert': None, 'replace':'reason__icontains'},
-                        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
-                        {'name': 'approved_by', 'convert': None, 'replace':'approved_by'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'user', 'convert': None, 'replace':'user'},
+        {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
+        {'name': 'no_of_days', 'convert': None, 'replace':'no_of_days'},
+        {'name': 'reason', 'convert': None, 'replace':'reason__icontains'},
+        {'name': 'status', 'convert': None, 'replace':'status__icontains'},
+        {'name': 'approved_by', 'convert': None, 'replace':'approved_by'}
+    ]
     leaveallocationrequests = MODELS_LEAV.Leaveallocationrequest.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: leaveallocationrequests = leaveallocationrequests.order_by(column_accessor)
@@ -539,11 +540,7 @@ def getleaveallocationrequest(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def addleaveallocationrequest(request):
-    check_mood = True
-    
     leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
-    if check_mood:
-        if leavepolicy == None: return Response({'data': {}, 'message': ['leavepolicy doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     
     user = None
     userid = request.data.get('user')
@@ -579,14 +576,10 @@ def addleaveallocationrequest(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def approverequestleaveallocation(request, leaveallocationrequest=None):
-    check_mood = True
-
     if leaveallocationrequest:
         approved_by = MODELS_USER.User.objects.get(id=request.user.id)
 
         leaveallocationrequest = ghelp().getobject(MODELS_LEAV.Leaveallocationrequest, {'id': leaveallocationrequest}, True)
-        if check_mood:
-            if not leaveallocationrequest.exists(): return Response({'status': 'error', 'message': ['leaveallocationrequest doesn\'t exist!'], 'data': []}, status=status.HTTP_400_BAD_REQUEST)
 
         leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=leaveallocationrequest.first().user, leavepolicy=leaveallocationrequest.first().leavepolicy)
         if leavesummary.exists():
@@ -603,13 +596,13 @@ def approverequestleaveallocation(request, leaveallocationrequest=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getholidays(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'title', 'convert': None, 'replace':'title__icontains'},
-                    {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                    {'name': 'date', 'convert': None, 'replace':'date'},
-                    {'name': 'is_recuring', 'convert': "bool", 'replace':'is_recuring'},
-                    {'name': 'employee_grade', 'convert': None, 'replace':'employee_grade'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'title', 'convert': None, 'replace':'title__icontains'},
+        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'date', 'convert': None, 'replace':'date'},
+        {'name': 'is_recuring', 'convert': "bool", 'replace':'is_recuring'},
+        {'name': 'employee_grade', 'convert': None, 'replace':'employee_grade'}
+    ]
     holidays = MODELS_LEAV.Holiday.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: holidays = holidays.order_by(column_accessor)
@@ -629,6 +622,7 @@ def getholidays(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
 def addholiday(request):
     userid = request.user.id
     extra_fields = {}
@@ -639,14 +633,14 @@ def addholiday(request):
         {'field': 'date', 'type': 'date'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        MODELS_LEAV.Holiday, 
-        PSRLZER_LEAV.Holidayserializer, 
-        request.data, 
+        classOBJ=MODELS_LEAV.Holiday, 
+        Serializer=PSRLZER_LEAV.Holidayserializer, 
+        data=request.data, 
         unique_fields=unique_fields, 
         extra_fields=extra_fields, 
         required_fields=required_fields,
         fields_regex=fields_regex
-        )
+    )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -674,9 +668,8 @@ def updateholiday(request, holidayid=None):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deleteholiday(request, holidayid=None):
-
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_LEAV.Holiday,
         id=holidayid
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

@@ -19,10 +19,10 @@ from contribution.serializer.POST import serializers as PSRLZER_CONT
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getcompanys(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'basic_information', 'convert': None, 'replace':'basic_information'},
-                    {'name': 'company_owner', 'convert': 'bool', 'replace':'company_owner'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'basic_information', 'convert': None, 'replace':'basic_information'},
+        {'name': 'company_owner', 'convert': 'bool', 'replace':'company_owner'}
+    ]
     companys = MODELS_COMP.Company.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: companys = companys.order_by(column_accessor)
@@ -63,9 +63,9 @@ def addcompany(request):
 
         required_fields = ['address', 'city', 'state_division', 'country']
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-            MODELS_CONT.Address,
-            PSRLZER_CONT.Addressserializer,
-            address,
+            classOBJ=MODELS_CONT.Address,
+            Serializer=PSRLZER_CONT.Addressserializer,
+            data=address,
             required_fields=required_fields
         )
         if responsesuccessflag == 'success':
@@ -79,14 +79,14 @@ def addcompany(request):
     required_fields = ['name']
     unique_fields = ['name', 'business_registration_number', 'tax_id_number', 'bin_no', 'website_url', 'primary_email', 'primary_phone_number', 'fax']
     fields_regex = [
-            {'field': 'establishment_date', 'type': 'date'},
-            {'field': 'primary_email', 'type': 'email'},
-            {'field': 'primary_phone_number', 'type': 'phonenumber'},
-        ]
+        {'field': 'establishment_date', 'type': 'date'},
+        {'field': 'primary_email', 'type': 'email'},
+        {'field': 'primary_phone_number', 'type': 'phonenumber'},
+    ]
     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-        MODELS_COMP.Basicinformation, 
-        PSRLZER_COMP.Basicinformationserializer, 
-        basicinfo,
+        classOBJ=MODELS_COMP.Basicinformation, 
+        Serializer=PSRLZER_COMP.Basicinformationserializer, 
+        data=basicinfo,
         required_fields=required_fields,
         unique_fields=unique_fields,
         fields_regex=fields_regex
@@ -99,9 +99,9 @@ def addcompany(request):
     
     if companyOBJ:
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-            MODELS_COMP.Company, 
-            PSRLZER_COMP.Companyserializer, 
-            companyOBJ
+            classOBJ=MODELS_COMP.Company, 
+            Serializer=PSRLZER_COMP.Companyserializer, 
+            data=companyOBJ
         )
         if responsesuccessflag == 'success':
             response_data = responsedata.data
@@ -138,21 +138,21 @@ def deletecompany(request, companyid=None):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getbasicinformations(request):
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-                    {'name': 'legal_name', 'convert': None, 'replace':'legal_name__icontains'},
-                    {'name': 'establishment_date', 'convert': None, 'replace':'establishment_date__icontains'},
-                    {'name': 'industry_type', 'convert': None, 'replace':'industry_type__icontains'},
-                    {'name': 'business_registration_number', 'convert': None, 'replace':'business_registration_number__icontains'},
-                    {'name': 'tax_id_number', 'convert': None, 'replace':'tax_id_number__icontains'},
-                    {'name': 'bin_no', 'convert': None, 'replace':'bin_no__icontains'},
-                    {'name': 'description', 'convert': None, 'replace':'description__icontains'},
-                    {'name': 'website_url', 'convert': None, 'replace':'website_url__icontains'},
-                    {'name': 'primary_email', 'convert': None, 'replace':'primary_email__icontains'},
-                    {'name': 'primary_phone_number', 'convert': None, 'replace':'primary_phone_number__icontains'},
-                    {'name': 'fax', 'convert': None, 'replace':'fax__icontains'},
-                    {'name': 'address', 'convert': None, 'replace':'address'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'},
+        {'name': 'legal_name', 'convert': None, 'replace':'legal_name__icontains'},
+        {'name': 'establishment_date', 'convert': None, 'replace':'establishment_date__icontains'},
+        {'name': 'industry_type', 'convert': None, 'replace':'industry_type__icontains'},
+        {'name': 'business_registration_number', 'convert': None, 'replace':'business_registration_number__icontains'},
+        {'name': 'tax_id_number', 'convert': None, 'replace':'tax_id_number__icontains'},
+        {'name': 'bin_no', 'convert': None, 'replace':'bin_no__icontains'},
+        {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'website_url', 'convert': None, 'replace':'website_url__icontains'},
+        {'name': 'primary_email', 'convert': None, 'replace':'primary_email__icontains'},
+        {'name': 'primary_phone_number', 'convert': None, 'replace':'primary_phone_number__icontains'},
+        {'name': 'fax', 'convert': None, 'replace':'fax__icontains'},
+        {'name': 'address', 'convert': None, 'replace':'address'}
+    ]
     basicinformations = MODELS_COMP.Basicinformation.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: basicinformations = basicinformations.order_by(column_accessor)

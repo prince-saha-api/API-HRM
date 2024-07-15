@@ -17,9 +17,9 @@ def getweekdays(request):
         if not MODELS_SETT.Weekdays.objects.filter(day=day).exists():
             MODELS_SETT.Weekdays.objects.create(day=day)
     filter_fields = [
-                    {'name': 'id', 'convert': None, 'replace':'id'},
-                    {'name': 'day', 'convert': None, 'replace':'day__icontains'}
-                ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'day', 'convert': None, 'replace':'day__icontains'}
+    ]
     weekdays = MODELS_SETT.Weekdays.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: weekdays = weekdays.order_by(column_accessor)
@@ -39,19 +39,20 @@ def getweekdays(request):
 
 # @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
+# # @deco.get_permission(['get company info', 'all'])
 # def addweekdays(request):
 #     # userid = request.user.id
 #     unique_fields = ['day']
 #     required_fields= ['day']
 #     choice_fields = [{'name': 'day', 'values': [item[1] for item in CHOICE.DAYS]}]
 #     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-#         MODELS_SETT.Weekdays, 
-#         SRLZER_SETT.Weekdaysserializer, 
-#         request.data, 
+#         classOBJ=MODELS_SETT.Weekdays, 
+#         Serializer=SRLZER_SETT.Weekdaysserializer, 
+#         data=request.data, 
 #         unique_fields=unique_fields, 
 #         required_fields=required_fields,
 #         choice_fields=choice_fields
-#         )
+#     )
 #     if response_data: response_data = response_data.data
 #     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -68,7 +69,7 @@ def getweekdays(request):
 #         data=request.data,
 #         allowed_fields=allowed_fields,
 #         choice_fields=choice_fields
-#         )
+#     )
 #     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 # @api_view(['DELETE'])
@@ -143,9 +144,9 @@ def addgeneralsettings(request):
                     'to_date': f'{to_date}'
                 } 
                 responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                    MODELS_SETT.Fiscalyear, 
-                    PSRLZER_SETT.Fiscalyearserializer, 
-                    fiscalyeardata, 
+                    classOBJ=MODELS_SETT.Fiscalyear, 
+                    Serializer=PSRLZER_SETT.Fiscalyearserializer, 
+                    data=fiscalyeardata, 
                     required_fields=required_fields,
                     fields_regex=fields_regex,
                     choice_fields=choice_fields
@@ -164,9 +165,9 @@ def addgeneralsettings(request):
             {'name': 'consider_attendance_on_holidays', 'values': [item[1] for item in CHOICE.ATTENDANCE_OVERTIME]},
         ]
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-            MODELS_SETT.Generalsettings, 
-            PSRLZER_SETT.Generalsettingsserializer, 
-            requesteddata, 
+            classOBJ=MODELS_SETT.Generalsettings, 
+            Serializer=PSRLZER_SETT.Generalsettingsserializer, 
+            data=requesteddata, 
             required_fields=required_fields,
             fields_regex=fields_regex,
             choice_fields=choice_fields

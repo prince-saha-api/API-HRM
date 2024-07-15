@@ -38,6 +38,7 @@ class Generalsettings(Basic):
     consecutive_late_attendance_to_fine = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)], default=100)
     fraction_of_daily_salary_for_halfday = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)], default=50)
     max_working_hours_against_timesheet = models.FloatField(validators=[MinValueValidator(1), MaxValueValidator(24)], default=8)
+    basic_salary_percentage = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)], default=60)
     consider_attendance_on_holidays = models.CharField(max_length=15, choices=CHOICE.ATTENDANCE_OVERTIME)
     allow_overtime = models.BooleanField(default=True)
     
