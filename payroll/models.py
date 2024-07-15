@@ -16,7 +16,7 @@ class Payrollearning(Basic):
     depends_on_attendance = models.BooleanField(default=False)
     amount_type = models.CharField(max_length=20, choices=CHOICE.AMOUNT_TYPE, default=CHOICE.AMOUNT_TYPE[0][1])
     amount = models.FloatField(validators=[MinValueValidator(0)])
-
+    is_recurring = models.BooleanField(default=True)
     updated_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='payrollearningone')
     created_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='payrollearningtwo')
     
@@ -37,7 +37,7 @@ class Payrolldeduction(Basic):
     depends_on_attendance = models.BooleanField(default=False)
     amount_type = models.CharField(max_length=20, choices=CHOICE.AMOUNT_TYPE, default=CHOICE.AMOUNT_TYPE[0][1])
     amount = models.FloatField(validators=[MinValueValidator(0)])
-    
+    is_recurring = models.BooleanField(default=True)
     updated_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='payrolldeductionone')
     created_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='payrolldeductiontwo')
     
