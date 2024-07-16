@@ -12,6 +12,9 @@ LOAN_TYPE = (('Advance Salary', 'Advance Salary'), ('Loan', 'Loan'), ('Fine', 'F
 ADJUSTMENT_TYPE = (('From Salary', 'From Salary'), ('By Cash', 'By Cash'),)
 ATTENDANCE_OVERTIME = (('Disabled', 'Disabled'), ('Overtime', 'Overtime'),)
 PAYMENT_IN = (('Cash','Cash'), ('Cheque', 'Cheque'), ('Bank', 'Bank'))
+INCREMENT_ON = (('Gross Salary','Gross Salary'), ('Basic Salary', 'Basic Salary'))
+# JOBHISTORY_STATUS = (('Joining', 'Joining'), ('Increment', 'Increment'), ('Promotion', 'Promotion'))
+STATUS_ADJUSTMENT = (('Joining', 'Joining'), ('Increment', 'Increment'), ('Promotion', 'Promotion'), ('Demotion', 'Demotion'), ('Transfer', 'Transfer'), ('Terminated', 'Terminated'))
 JOB_STATUS = (
     ('OnGoing', 'OnGoing'),
     ('Resigned', 'Resigned'),

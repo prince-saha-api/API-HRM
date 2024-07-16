@@ -1070,9 +1070,9 @@ def updatepersonaldetails(request, userid=None):
             response_message.extend(responsemessage)
             del requesteddata['permanent_address']
 
-        allowed_fields = ['fathers_name', 'mothers_name', 'spouse_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no']
+        allowed_fields = ['fathers_name', 'mothers_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no']
         unique_fields = ['nid_passport_no', 'tin_no']
-        response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
             classOBJ=MODELS_USER.User,
             Serializer=PSRLZER_USER.Userserializer,
             id=userid,
@@ -1080,38 +1080,95 @@ def updatepersonaldetails(request, userid=None):
             allowed_fields=allowed_fields,
             unique_fields=unique_fields
         )
-        if response_successflag == 'success':
-            return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-        elif response_successflag == 'error':
-            return Response({'data': {}, 'message': ['something went wrong!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
+        response_data = responsedata
+        response_message.extend(responsemessage)
+        response_successflag = responsesuccessflag
+        response_status = responsestatus
     else: response_message.append('user doesn\'t exist!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
-# @api_view(['PUT'])
-# @permission_classes([IsAuthenticated])
-# # @deco.get_permission(['Get Permission list Details', 'all'])
-# def updateofficialdetails(request, userid=None):
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updateofficialdetails(request, userid=None):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
 
-#     user = MODELS_USER.User.objects.filter(id=userid)
-#     if user.exists():
-#         requesteddata = request.data.copy()
-        
-#         if 'company' in requesteddata:
-#             company = requesteddata['company']
+    user = MODELS_USER.User.objects.filter(id=userid)
+    if user.exists():
+        requestdata = request.data
 
-#         # company
-#         # branch
+        # app_name = 'user'
+        # model = 'ethnicgroup'
+        # models_field_name = 'user'
 
-#         # official_phone
-#         # employee_type
-#         # shift
-#         # grade
-#         # role_permission
-#         # joining_date
-#         # expense_approver
-#         # leave_approver
-#         # shift_request_approver
-#     else: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
+        # first_table = f'{app_name}_{model}'
+        # second_table = f'{app_name}_{model}_{models_field_name}'
+        # second_table_select = f'{model}_id'
+        # second_table_where = f'{user}_id'
+        # sql = '''
+        # SELECT *
+        # FROM user_ethnicgroup
+        # WHERE id IN (
+        #     (
+        #         SELECT ethnicgroup_id
+        #         FROM user_ethnicgroup_user
+        #         WHERE user_id=11
+        #     )
+        # );
+        # '''
+
+        # 'company'
+        if 'company' in requestdata:
+            company = requestdata['company']
+            for department in user.first().departmenttwo.all():
+                if company != department.company.id: department.user.remove(user.first())
+
+        # 'branch'
+        if 'branch' in requestdata:
+            branch = requestdata['branch']
+            for department in user.first().departmenttwo.all():
+                if branch != department.branch.id: department.user.remove(user.first())
+
+        # 'ethnic_group'
+        if 'ethnic_group' in requestdata:
+            ethnic_group = requestdata['ethnic_group']
+            ethnic_group = MODELS_USER.Ethnicgroup.objects.filter(id=ethnic_group)
+            if ethnic_group.exists():
+                ethnicgroups = user.first().ethnicgroup_set.all()
+                for ethnicgroup in ethnicgroups:
+                    ethnicgroup.user.remove(user.first())
+                ethnic_group.first().user.add(user.first())
+
+        allowed_fields = ['official_email', 'official_phone', 'employee_type', 'shift', 'grade', 'role_permission', 'official_note', 'joining_date', 'expense_approver', 'leave_approver', 'shift_request_approver']
+        unique_fields = ['official_email', 'official_phone']
+        choice_fields = [
+            {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]}
+        ]
+        fields_regex = [
+            {'field': 'official_email', 'type': 'email'},
+            {'field': 'official_phone', 'type': 'phonenumber'},
+            {'field': 'joining_date', 'type': 'date'}
+        ]
+        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+            classOBJ=MODELS_USER.User,
+            Serializer=PSRLZER_USER.Userserializer,
+            id=userid,
+            data=requestdata,
+            allowed_fields=allowed_fields,
+            unique_fields=unique_fields,
+            choice_fields=choice_fields,
+            fields_regex=fields_regex
+        )
+        response_data = responsedata
+        response_message.extend(responsemessage)
+        response_successflag = responsesuccessflag
+        response_status = responsestatus
+    else: response_message.append('user doesn\'t exist!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])

@@ -10,6 +10,9 @@ from django.db.models import Sum
 from helps.validators.common import validate_phone_number, validate_office_id
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
+# from company import models as MODELS_COMP
+# from branch import models as MODELS_BRAN
+# from department import models as MODELS_DEPA
 
 def generate_unique_code():
     return ghelp().getUniqueCodePattern()
@@ -210,6 +213,25 @@ class Employeeexperiencehistory(Basic):
 
     def __str__(self):
         return f'{self.company_name}'
+    
+# class Employeejobhistory(Basic):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     effective_from = models.DateField()
+#     increment_on = models.CharField(max_length=50, choices=CHOICE.INCREMENT_ON, blank=True, null=True)
+    
+#     prev_company_id = models.IntegerField(blank=True, null=True)
+#     prev_branch_id = models.IntegerField(blank=True, null=True)
+#     prev_department_id = models.IntegerField(blank=True, null=True)
+#     prev_designation_id = models.IntegerField(blank=True, null=True)
+
+#     prev_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
+#     new_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
+#     increment_amount = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
+#     percentage = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)], blank=True, null=True)
+#     status = models.CharField(max_length=50, choices=CHOICE.JOBHISTORY_STATUS, blank=True, null=True)
+
+#     def __str__(self):
+#         return f'{self.company_name}'
 
 class Ethnicgroup(Basic):
     name = models.CharField(max_length=50, unique=True)
@@ -302,20 +324,20 @@ class Salaryallocation(Basic):
                 errors.append(f'{self.percentage} will exceed 100%!')
         if errors: raise ValidationError(errors)
 
-class Employeeincrementrecord(Basic):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    effective_from = models.DateField()
-    increment_on = models.CharField(max_length=50, blank=True, null=True)
-    prev_salary = models.FloatField(validators=[MinValueValidator(0)])
-    new_salary = models.FloatField(validators=[MinValueValidator(0)])
-    increment_amount = models.FloatField(validators=[MinValueValidator(0)])
-    percentage = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)])
-    bank_amount = models.FloatField(validators=[MinValueValidator(0)])
-    cash_amount = models.FloatField(validators=[MinValueValidator(0)])
-    status = models.CharField(max_length=50, choices=(('Joining', 'Joining'), ('Increment', 'Increment'), ('Promotion', 'Promotion')), blank=True, null=True)
+# class Employeeincrementrecord(Basic):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     effective_from = models.DateField()
+#     increment_on = models.CharField(max_length=50, blank=True, null=True)
+#     prev_salary = models.FloatField(validators=[MinValueValidator(0)])
+#     new_salary = models.FloatField(validators=[MinValueValidator(0)])
+#     increment_amount = models.FloatField(validators=[MinValueValidator(0)])
+#     percentage = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)])
+#     bank_amount = models.FloatField(validators=[MinValueValidator(0)])
+#     cash_amount = models.FloatField(validators=[MinValueValidator(0)])
+#     status = models.CharField(max_length=50, choices=(('Joining', 'Joining'), ('Increment', 'Increment'), ('Promotion', 'Promotion')), blank=True, null=True)
 
-    def __str__(self):
-        return f'{self.user.username} - {self.percentage}'
+#     def __str__(self):
+#         return f'{self.user.username} - {self.percentage}'
     
 class Bonus(Basic):
     title = models.CharField(max_length=100)

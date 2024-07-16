@@ -14,4 +14,6 @@ urlpatterns = [
 
     path('get-devicegroup/', views.getdevicegroup, name='get-devicegroup'),
     path('add-devicegroup/', views.adddevicegroup, name='add-devicegroup'),
+    path('update-devicegroup/<int:devicegroupid>', views.updatedevicegroup, name='update-devicegroup'),
+    path('delete-devicegroup/<int:devicegroupid>', views.deletedevicegroup, name='delete-devicegroup')
 ]

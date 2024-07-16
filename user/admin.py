@@ -20,7 +20,7 @@ admin.site.register([
     models.Shiftchangelog,
     models.Shiftchangerequest,
     models.Salaryallocation,
-    models.Employeeincrementrecord,
+    # models.Employeeincrementrecord,
     models.Bonus,
     models.Mobilenumber
 ])

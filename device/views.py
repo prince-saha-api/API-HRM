@@ -162,10 +162,10 @@ def deletegroup(request, groupid=None):
         {'model': MODELS_DEVI.Devicegroup, 'fields': [{'field': 'group', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        classOBJ=MODELS_DEVI.Devicegroup,
+        classOBJ=MODELS_DEVI.Group,
         id=groupid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
