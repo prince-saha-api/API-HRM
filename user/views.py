@@ -1068,23 +1068,25 @@ def updatepersonaldetails(request, userid=None):
         requesteddata = request.data.copy()
 
         if 'present_address' in requesteddata:
-            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                classOBJ=MODELS_CONT.Address,
-                Serializer=PSRLZER_CONT.Addressserializer,
-                id=user.first().present_address.id,
-                data=requesteddata['present_address']
-            )
-            response_message.extend(responsemessage)
+            if user.first().present_address:
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                    classOBJ=MODELS_CONT.Address,
+                    Serializer=PSRLZER_CONT.Addressserializer,
+                    id=user.first().present_address.id,
+                    data=requesteddata['present_address']
+                )
+                response_message.extend(responsemessage)
             del requesteddata['present_address']
 
         if 'permanent_address' in requesteddata:
-            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                classOBJ=MODELS_CONT.Address,
-                Serializer=PSRLZER_CONT.Addressserializer,
-                id=user.first().permanent_address.id,
-                data=requesteddata['permanent_address']
-            )
-            response_message.extend(responsemessage)
+            if user.first().permanent_address:
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                    classOBJ=MODELS_CONT.Address,
+                    Serializer=PSRLZER_CONT.Addressserializer,
+                    id=user.first().permanent_address.id,
+                    data=requesteddata['permanent_address']
+                )
+                response_message.extend(responsemessage)
             del requesteddata['permanent_address']
 
         allowed_fields = ['fathers_name', 'mothers_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no']
@@ -1507,127 +1509,22 @@ def updatedocuments(request, userid=None):
     user = MODELS_USER.User.objects.filter(id=userid)
 
     if user.exists():
-        requesteddata = request.data.copy()
 
-        photo = None
-        if 'Photo' in requesteddata:
-            photo = request.FILES.get('Photo')
-
-
-
-
-
-
-        if 'education' in requesteddata:
-            educationOBJ = requesteddata['education']
-            if 'delete' in educationOBJ:
-                educationids = educationOBJ['delete']
-                if isinstance(educationids, list):
-                    for educationid in educationids:
-                        employeeacademichistory = MODELS_USER.Employeeacademichistory.objects.filter(id=educationid)
-                        if employeeacademichistory.exists():
-                            if employeeacademichistory.first().user.id == userid: employeeacademichistory.delete()
-                        else: response_message.append(f'couldn\'t found any employeeacademichistory with this id {educationid}!')
-                else: response_message.append('delete must be array(list)!')
-
-            if 'update' in educationOBJ:
-                educations = educationOBJ['update']
-                if isinstance(educations, list):
-                    for education in educations:
-                        if 'id' in education:
-                            educationid = education['id']
-                            del education['id']
-
-                            employeeacademichistory = MODELS_USER.Employeeacademichistory.objects.filter(id=educationid)
-                            if employeeacademichistory.exists():
-                                if userid == employeeacademichistory.first().user.id:
-                                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                                        classOBJ=MODELS_USER.Employeeacademichistory,
-                                        Serializer=PSRLZER_USER.Employeeacademichistoryserializer,
-                                        id=educationid,
-                                        data=education
-                                    )
-                                    if responsesuccessflag == 'error':
-                                        response_message.extend([f'update(education{educationid}) {message}' for message in responsemessage])
-                                    elif responsesuccessflag == 'success':
-                                        response_successflag = 'success'
-                                        response_status = status.HTTP_200_OK
-                                else: response_message.append(f'This User({userid}) has no Employeeacademichistory having {educationid} id!')
-                        else:
-                            required_fields = ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
-                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                                classOBJ=MODELS_USER.Employeeacademichistory, 
-                                Serializer=PSRLZER_USER.Employeeacademichistoryserializer, 
-                                data=education,
-                                required_fields=required_fields
-                            )
-                            if responsesuccessflag == 'error':
-                                response_message.extend([f'add(education) {message}' for message in responsemessage])
-                            elif responsesuccessflag == 'success':
-                                response_successflag = 'success'
-                                response_status = status.HTTP_200_OK
-                else: response_message.append('update must be array(list)!')
+        requestdata = dict(request.data)
+        requestdata.update({'abcdef[abcdef]': ['abcdef']})
+        options = {'allow_blank': True, 'allow_empty': False}
         
+        form = NestedForm(requestdata, **options)
+        form.is_nested(raise_exception=True)
 
-        if 'experience' in requesteddata:
-            experienceOBJ = requesteddata['experience']
-            if 'delete' in experienceOBJ:
-                experienceids = experienceOBJ['delete']
-                if isinstance(experienceids, list):
-                    for experienceid in experienceids:
-                        employeeexperiencehistory = MODELS_USER.Employeeexperiencehistory.objects.filter(id=experienceid)
-                        if employeeexperiencehistory.exists():
-                            if employeeexperiencehistory.first().user.id == userid: employeeexperiencehistory.delete()
-                        else: response_message.append(f'couldn\'t found any employeeexperiencehistory with this id {experienceid}!')
-                else: response_message.append('delete must be array(list)!')
-
-            if 'update' in experienceOBJ:
-                experiences = experienceOBJ['update']
-                if isinstance(experiences, list):
-                    for experience in experiences:
-                        if 'id' in experience:
-                            experienceid = experience['id']
-                            del experience['id']
-
-                            employeeexperiencehistory = MODELS_USER.Employeeexperiencehistory.objects.filter(id=experienceid)
-                            if employeeexperiencehistory.exists():
-                                if userid == employeeexperiencehistory.first().user.id:
-                                    fields_regex = [
-                                        {'field': 'from_date', 'type': 'date'},
-                                        {'field': 'to_date', 'type': 'date'}
-                                    ]
-                                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                                        classOBJ=MODELS_USER.Employeeexperiencehistory,
-                                        Serializer=PSRLZER_USER.Employeeexperiencehistoryserializer,
-                                        id=experienceid,
-                                        data=experience,
-                                        fields_regex=fields_regex
-                                    )
-                                    if responsesuccessflag == 'error':
-                                        response_message.extend([f'update(experience {experienceid}) {message}' for message in responsemessage])
-                                    elif responsesuccessflag == 'success':
-                                        response_successflag = 'success'
-                                        response_status = status.HTTP_200_OK
-                                else: response_message.append(f'This User({userid}) has no Employeeexperiencehistory having {experienceid} id!')
-                        else:
-                            required_fields = ['user', 'company_name', 'designation', 'from_date', 'to_date']
-                            fields_regex = [
-                                {'field': 'from_date', 'type': 'date'},
-                                {'field': 'to_date', 'type': 'date'}
-                            ]
-                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                                classOBJ=MODELS_USER.Employeeexperiencehistory, 
-                                Serializer=PSRLZER_USER.Employeeexperiencehistoryserializer, 
-                                data=experience,
-                                required_fields=required_fields,
-                                fields_regex=fields_regex
-                            )
-                            if responsesuccessflag == 'error':
-                                response_message.extend([f'add(experience) {message}' for message in responsemessage])
-                            elif responsesuccessflag == 'success':
-                                response_successflag = 'success'
-                                response_status = status.HTTP_200_OK
-                else: response_message.append('update must be array(list)!')
+        requestdata = form.data
+        if 'documents' in requestdata:
+            requestdata = requestdata['documents']
+            requestdata = ghelp().prepareData(requestdata, 'userdocument')
+            for document in requestdata:
+                if 'id' in document:
+                    pass
+        else: response_message.append('no documents provided!')
 
 
     else: response_message.append('user doesn\'t exist!')

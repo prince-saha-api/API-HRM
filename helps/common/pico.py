@@ -352,6 +352,15 @@ class Picohelps:
                ]
             }
    
+   def getUserDocumentData(self):
+      return {
+               'fieldlist': [
+                  {'field': 'id', 'type': 'int'},
+                  {'field': 'title', 'type': 'str'},
+                  {'field': 'attachment', 'type': 'str'}
+               ]
+            }
+   
    def removeFile(self, OBJ, key):
       photo = getattr(OBJ, key, None)
       if photo:
