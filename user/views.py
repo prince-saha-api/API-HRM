@@ -1521,8 +1521,33 @@ def updatedocuments(request, userid=None):
         if 'documents' in requestdata:
             requestdata = requestdata['documents']
             requestdata = ghelp().prepareData(requestdata, 'userdocument')
+            
             for document in requestdata:
                 if 'id' in document:
+                    documentid=document['id']
+                    del document['id']
+                    employeedocs=MODELS_USER.Employeedocs.objects.filter(id=documentid)
+                    if employeedocs.first().user.id==userid:
+
+                        static_fields = []
+                        if 'attachment' in document:
+                            if 'InMemoryUploadedFile' in str(type(document['attachment'])): static_fields.append('attachment')
+                            else: del document['attachment']
+
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                            classOBJ=MODELS_USER.Employeedocs,
+                            Serializer=PSRLZER_USER.Employeedocsserializer,
+                            id=documentid,
+                            data=document,
+                            static_fields=static_fields
+                        )
+                        if responsesuccessflag == 'error':
+                            response_message.extend([f'update({documentid}) {message}' for message in responsemessage])
+                        elif responsesuccessflag == 'success':
+                            response_successflag = 'success'
+                            response_status = status.HTTP_200_OK
+                    else: response_message.append(f'This User({userid}) has no Employeedocs having {documentid} id!')
+                else:
                     pass
         else: response_message.append('no documents provided!')
 

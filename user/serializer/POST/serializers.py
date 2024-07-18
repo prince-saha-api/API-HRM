@@ -75,3 +75,8 @@ class Employeeexperiencehistoryserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Employeeexperiencehistory
         fields = '__all__'
+
+class Employeedocsserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Employeedocs
+        fields = '__all__'
