@@ -49,6 +49,9 @@ urlpatterns = [
     path('update-profile/<int:userid>', views.updateprofile, name='update-profile'),
     path('update-personal-details/<int:userid>', views.updatepersonaldetails, name='update-personal-details'),
     path('update-official-details/<int:userid>', views.updateofficialdetails, name='update-official-details'),
-    path('update-salary-leaves/<int:userid>', views.updatesalaryleaves, name='update-salary-leaves'),
+    # path('update-salary-leaves/<int:userid>', views.updatesalaryleaves, name='update-salary-leaves'),
+    path('update-emergency-contact/<int:userid>', views.updateemergencycontact, name='update-emergency-contact'),
+    path('update-education-experience/<int:userid>', views.updateeducationexperience, name='update-education-experience'),
+    path('update-documents/<int:userid>', views.updatedocuments, name='update-documents'),
     
 ]
