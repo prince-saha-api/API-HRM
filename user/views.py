@@ -7,6 +7,7 @@ from leave import models as MODELS_LEAV
 from department import models as MODELS_DEPA
 from hrm_settings import models as MODELS_SETT
 from user import models as MODELS_USER
+from user.serializer import profiledetails
 from user.serializer import serializers as SRLZER_USER
 from user.serializer.POST import serializers as PSRLZER_USER
 from contribution.serializer.POST import serializers as PSRLZER_CONT
@@ -960,6 +961,26 @@ def addemployee(request):
         else: return Response({'data': {}, 'message': ['please add valid Leavepolicy!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     else: return Response({'data': {}, 'message': ['please add general settings first!!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def getprofiledetails(request, userid=None):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
+    user=MODELS_USER.User.objects.filter(id=userid)
+    if user.exists():
+        userserializer = profiledetails.Userserializer(user.first(), many=False)
+        response_data=userserializer.data
+        response_successflag='success'
+        response_status = status.HTTP_200_OK
+    else: response_message.append('user doesn\'t exist!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
@@ -1483,15 +1504,20 @@ def updatedocuments(request, userid=None):
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
 
-    [
-        {},
-        {}
-    ]
-
     user = MODELS_USER.User.objects.filter(id=userid)
 
     if user.exists():
         requesteddata = request.data.copy()
+
+        photo = None
+        if 'Photo' in requesteddata:
+            photo = request.FILES.get('Photo')
+
+
+
+
+
+
         if 'education' in requesteddata:
             educationOBJ = requesteddata['education']
             if 'delete' in educationOBJ:
