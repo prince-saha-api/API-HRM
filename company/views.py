@@ -123,7 +123,8 @@ def deletecompany(request, companyid=None):
     classOBJpackage_tocheck_assciaativity = [
         {'model': MODELS_BRAN.Branch, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
         {'model': MODELS_COMP.Bankinformation, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_COMP.Company, 'fields': [{'field': 'prev_company', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_COMP.Company,

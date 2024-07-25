@@ -15,7 +15,8 @@ from rest_framework import status
 def getweekdays(request):
     for day in [each[1] for each in CHOICE.DAYS]:
         if not MODELS_SETT.Weekdays.objects.filter(day=day).exists():
-            MODELS_SETT.Weekdays.objects.create(day=day)
+            try: MODELS_SETT.Weekdays.objects.create(day=day)
+            except: pass
     filter_fields = [
         {'name': 'id', 'convert': None, 'replace':'id'},
         {'name': 'day', 'convert': None, 'replace':'day__icontains'}

@@ -216,7 +216,8 @@ def deletebranch(request, branchid=None):
         {'model': MODELS_BRAN.Branchphonenumber, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
         {'model': MODELS_BRAN.Branchemail, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
         {'model': MODELS_BRAN.Contactperson, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_BRAN.Branch, 'fields': [{'field': 'prev_branch', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_BRAN.Branch,

@@ -1,23 +1,13 @@
-from django.shortcuts import render
 # from helps.decorators.decorator import CommonDecorator as deco
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from contribution import models as MODELS_CONT
-from leave import models as MODELS_LEAV
-from department import models as MODELS_DEPA
-from hrm_settings import models as MODELS_SETT
-from user import models as MODELS_USER
 from jobrecord import models as MODELS_JOBR
-from user.serializer import serializers as SRLZER_USER
-from user.serializer.POST import serializers as PSRLZER_USER
-from contribution.serializer.POST import serializers as PSRLZER_CONT
+from jobrecord.serializer import serializers as SRLZER_JOBR
+from jobrecord.serializer.POST import serializers as PSRLZER_JOBR
 from rest_framework.response import Response
 from rest_framework import status
 from helps.common.generic import Generichelps as ghelp
 from helps.choice import common as CHOICE
-# from django.core.paginator import Paginator
-from drf_nested_forms.utils import NestedForm
-import random
 
 
 @api_view(['GET'])
@@ -53,12 +43,12 @@ def getjobhistorys(request):
     page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
     if page and page_size: employeejobhistorys = employeejobhistorys[(page-1)*page_size:page*page_size]
 
-    designationserializers = SRLZER_USER.Designationserializer(employeejobhistorys, many=True)
+    employeejobhistoryserializers = SRLZER_JOBR.Employeejobhistoryserializer(employeejobhistorys, many=True)
     return Response({'data': {
         'count': total_count,
         'page': page,
         'page_size': page_size,
-        'result': designationserializers.data
+        'result': employeejobhistoryserializers.data
     }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
@@ -66,14 +56,23 @@ def getjobhistorys(request):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def addjobhistory(request):
     # userid = request.user.id
-    unique_fields = ['name']
-    required_fields= ['name']
+    required_fields = ['user', 'effective_from']
+    choice_fields = [
+        {'name': 'increment_on', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
+        {'name': 'status_adjustment', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]},
+    ]
+    fields_regex = [
+        {'field': 'effective_from', 'type': 'date'},
+        {'field': 'from_date', 'type': 'date'},
+        {'field': 'to_date', 'type': 'date'},
+    ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        classOBJ=MODELS_USER.Designation, 
-        Serializer=PSRLZER_USER.Designationserializer, 
-        data=request.data, 
-        unique_fields=unique_fields, 
-        required_fields=required_fields
+        classOBJ=MODELS_JOBR.Employeejobhistory,
+        Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
+        data=request.data,
+        required_fields=required_fields,
+        choice_fields=choice_fields,
+        fields_regex=fields_regex
     )
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -82,15 +81,22 @@ def addjobhistory(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updatejobhistory(request, jobhistoryid=None):
-    allowed_fields = ['name', 'grade']
-    unique_fields=['name']
+    choice_fields = [
+        {'name': 'increment_on', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
+        {'name': 'status_adjustment', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]},
+    ]
+    fields_regex = [
+        {'field': 'effective_from', 'type': 'date'},
+        {'field': 'from_date', 'type': 'date'},
+        {'field': 'to_date', 'type': 'date'},
+    ]
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        classOBJ=MODELS_USER.Designation,
-        Serializer=PSRLZER_USER.Designationserializer,
+        classOBJ=MODELS_JOBR.Employeejobhistory,
+        Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
         id=jobhistoryid,
         data=request.data,
-        unique_fields=unique_fields,
-        allowed_fields=allowed_fields
+        choice_fields=choice_fields,
+        fields_regex=fields_regex
     )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -98,12 +104,8 @@ def updatejobhistory(request, jobhistoryid=None):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletejobhistory(request, jobhistoryid=None):
-    classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_USER.User, 'fields': [{'field': 'designation', 'relation': 'foreignkey', 'records': []}]}
-    ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
-        classOBJ=MODELS_USER.Designation,
-        id=jobhistoryid,
-        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
-        )
+        classOBJ=MODELS_JOBR.Employeejobhistory,
+        id=jobhistoryid
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
