@@ -23,7 +23,6 @@ class Microhelps(Nanohelps):
                     self.filterChoiceFields(choice_fields, preparedata, response_message)
                     self.filterRequiredFields(required_fields, preparedata, response_message)
                     self.filterRegexFields(fields_regex, preparedata, response_message)
-
                     if not response_message:
                         serializer = Serializer(data=preparedata, many=False)
                         if serializer.is_valid():

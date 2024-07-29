@@ -94,26 +94,26 @@ class LogoutAllView(APIView):
 
         return Response(status=status.HTTP_205_RESET_CONTENT)
     
-@api_view(['POST'])
+@api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def resetPassword(request):
     userid = request.data.get('user')
-    if userid == None: return Response(['please provide an user\'s user id!'], status=status.HTTP_400_BAD_REQUEST)
+    if userid == None: return Response({'data': {}, 'message': ['please provide an user\'s user id!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     user = User.objects.filter(id=userid)
     if user.exists():
         old_password = request.data.get('old_password')
-        if old_password == None: return Response([f'old_password is required!'], status=status.HTTP_400_BAD_REQUEST)
         new_password = request.data.get('new_password')
-        if new_password == None: return Response([f'new_password is required!'], status=status.HTTP_400_BAD_REQUEST)
+        if new_password == None: return Response({'data': {}, 'message': ['new_password is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not check_password(old_password, user.first().password):
-            return Response(['old_password doesn\'t match!'], status=status.HTTP_400_BAD_REQUEST)
+        if old_password:
+            if not check_password(old_password, user.first().password):
+                return Response({'data': {}, 'message': ['old_password doesn\'t match!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user.update(
                 password=make_password(new_password),
                 hr_password='-'.join([str(ord(each)+78) for each in new_password])
             )
-            return Response([f'password changed successfully!'], status=status.HTTP_200_OK)
-        except: return Response(['couldn\'t change password!'], status=status.HTTP_400_BAD_REQUEST)
-    else: return Response([f'user doesn\'t exist with this user id({userid})!'], status=status.HTTP_400_BAD_REQUEST)
+            return Response({'data': {}, 'message': ['password changed successfully!'], 'status': 'success'}, status=status.HTTP_200_OK)
+        except: return Response({'data': {}, 'message': ['couldn\'t change password!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'data': {}, 'message': [f'user doesn\'t exist with this user id({userid})!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)

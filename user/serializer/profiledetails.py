@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from user import models as MODELS_USER
 from contribution import models as MODELS_CONT
+from jobrecord import models as MODELS_JOBR
+from department import models as MODELS_DEPA
+from company import models as MODELS_COMP
+from branch import models as MODELS_BRAN
 
 class Permissionserializer(serializers.ModelSerializer):
     class Meta:
@@ -76,6 +80,36 @@ class Otheruserserializer(serializers.ModelSerializer):
         model = MODELS_USER.User
         fields = ['id', 'first_name', 'first_name', 'official_id']
 
+class Employeejobhistoryserializer(serializers.ModelSerializer):
+    class Meta:
+        model = MODELS_JOBR.Employeejobhistory
+        exclude = ('is_active', 'code', 'created_at', 'updated_at')
+
+class Basicinformationserializer(serializers.ModelSerializer):
+    address=Addressserializer(many=False)
+    class Meta:
+        model = MODELS_COMP.Basicinformation
+        exclude = ('is_active', 'code', 'created_at', 'updated_at')
+
+class Companyserializer(serializers.ModelSerializer):
+    basic_information=Basicinformationserializer(many=False)
+    class Meta:
+        model = MODELS_COMP.Company
+        fields = ['id', 'basic_information']
+
+class Branchserializer(serializers.ModelSerializer):
+    company=Companyserializer(many=False)
+    address=Addressserializer(many=False)
+    class Meta:
+        model = MODELS_BRAN.Branch
+        exclude = ('is_active', 'code', 'created_at', 'updated_at')
+
+class Departmentserializer(serializers.ModelSerializer):
+    branch=Branchserializer(many=False)
+    address=Addressserializer(many=False)
+    class Meta:
+        model = MODELS_DEPA.Department
+        exclude = ('manager', 'company', 'user', 'is_active', 'code', 'created_at', 'updated_at')
 
 class Userserializer(serializers.ModelSerializer):
     designation=Designationserializer(many=False)
@@ -85,8 +119,10 @@ class Userserializer(serializers.ModelSerializer):
     grade=Gradeserializer(many=False)
     shift=Shiftserializer(many=False)
     bank_account=Bankaccountserializer(many=False)
+    departmenttwo=Departmentserializer(many=True)
     employee_contact=Employeecontactserializer(many=True)
     employee_docs=Employeedocsserializer(many=True)
+    employeejobhistoryone=Employeejobhistoryserializer(many=True)
     employee_academichistory=Employeeacademichistoryserializer(many=True)
     employee_experiencehistory=Employeeexperiencehistoryserializer(many=True)
     supervisor=Otheruserserializer(many=False)
@@ -96,5 +132,4 @@ class Userserializer(serializers.ModelSerializer):
     role_permission=Rolepermissionserializer(many=True)
     class Meta:
         model = MODELS_USER.User
-        # fields = '__all__'
         exclude = ('password', 'uniqueid', 'dummy_salary', 'created_by', 'updated_by')
