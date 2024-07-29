@@ -360,7 +360,7 @@ def addleaverequest(request):
                     else: response_message.append(f'{leavepolicy.name} is not associated to {user.first_name} {user.last_name}!')
 
                 allowed_fields=['user', 'leavepolicy', 'from_date', 'to_date', 'attachment', 'description', 'reason']
-                required_fields=['user', 'leavepolicy', 'request_type', 'from_date', 'to_date', 'status']
+                required_fields=['user', 'leavepolicy', 'from_date', 'to_date']
                 choice_fields = [
                     {'name': 'request_type', 'values': [item[1] for item in CHOICE.LEAVEREQUEST_TYPE]},
                     {'name': 'status', 'values': [item[1] for item in CHOICE.STATUS]},
@@ -452,7 +452,27 @@ def addleaverequest(request):
                     elif responsesuccessflag == 'error': response_message.extend(responsemessage)
             else: response_message.append(f'{leavepolicy.name} is not associated to {user.first_name} {user.last_name}!')
         elif request_type == CHOICE.LEAVEREQUEST_TYPE[2][1]:
-            pass
+            allowed_fields=['user', 'leavepolicy', 'from_date', 'to_date', 'attachment', 'description', 'reason']
+            required_fields=['user', 'leavepolicy', 'request_type', 'from_date', 'to_date', 'status']
+            choice_fields = [
+                {'name': 'request_type', 'values': [item[1] for item in CHOICE.LEAVEREQUEST_TYPE]},
+                {'name': 'status', 'values': [item[1] for item in CHOICE.STATUS]},
+            ]
+            fields_regex = [
+                {'field': 'from_date', 'type': 'date'},
+                {'field': 'to_date', 'type': 'date'}
+            ]
+            extra_fields={'request_type': CHOICE.LEAVEREQUEST_TYPE[2][1], 'status': CHOICE.STATUS[0][1], 'total_leave': len(dates), 'valid_leave_dates': dates}
+            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                classOBJ=MODELS_LEAV.Leaverequest,
+                Serializer=PSRLZER_LEAV.Leaverequestserializer,
+                data=requestdata,
+                allowed_fields=allowed_fields,
+                required_fields=required_fields,
+                choice_fields=choice_fields,
+                fields_regex=fields_regex,
+                extra_fields=extra_fields
+            )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
