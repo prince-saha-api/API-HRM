@@ -27,7 +27,7 @@ class Employeejobhistory(Basic):
     prev_branch = models.ForeignKey(MODELS_BRAN.Branch, on_delete=models.SET_NULL, blank=True, null=True)
     prev_department = models.ForeignKey(MODELS_DEPA.Department, on_delete=models.SET_NULL, blank=True, null=True)
     prev_designation = models.ForeignKey(MODELS_USER.Designation, on_delete=models.SET_NULL, blank=True, null=True)
-    prev_employee_typr = models.CharField(max_length=50, blank=True, null=True)
+    prev_employee_type = models.CharField(max_length=50, blank=True, null=True)
 
     from_date = models.DateField(blank=True, null=True)
     to_date = models.DateField(blank=True, null=True)

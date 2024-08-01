@@ -173,7 +173,7 @@ class User(AbstractUser, Timedetailscode):
     
 class Employeecontact(Basic):
     name =  models.CharField(max_length=150)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_contact')
     age = models.IntegerField(validators=[MinValueValidator(10)], blank=True, null=True)
     phone_no = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
     email = models.EmailField(blank=True)
@@ -186,14 +186,14 @@ class Employeecontact(Basic):
 
 class Employeedocs(Basic):
     title = models.CharField(max_length=100)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_docs')
     attachment = models.FileField(upload_to=uploaddocs, blank=True, null=True)
 
     def __str__(self):
         return f'{self.title}'
     
 class Employeeacademichistory(Basic):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_academichistory')
     board_institute_name = models.CharField(max_length=150)
     certification = models.CharField(max_length=150)
     level = models.CharField(max_length=50)
@@ -204,7 +204,7 @@ class Employeeacademichistory(Basic):
         return f'{self.board_institute_name}'
     
 class Employeeexperiencehistory(Basic):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_experiencehistory')
     company_name = models.CharField(max_length=150)
     designation = models.CharField(max_length=50)
     address = models.TextField(blank=True, null=True)

@@ -87,8 +87,9 @@ def updateleavepolicy(request, leavepolicyid=None):
         allocation_days = request.data.get('allocation_days')
         if allocation_days != None:
             allocation_days = int(allocation_days)
-            if allocation_days > leavepolicys.allocation_days: allowed_fields.append('allocation_days')
-            else: response_message.append('allocation_days must have to be incresed compared to previous allocation_days!') 
+            if allocation_days != leavepolicys.allocation_days:
+                if allocation_days > leavepolicys.allocation_days: allowed_fields.append('allocation_days')
+                else: response_message.append('allocation_days must have to be incresed compared to previous allocation_days!') 
 
         if not response_message:
             extra_fields = {}
