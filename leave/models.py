@@ -108,19 +108,6 @@ class Leavesummary(Basic):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['user', 'leavepolicy'], name='Leavesummary_user_leavepolicy')]
 
-class Leaveallocationrequest(Basic):
-    user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='leaveallocationrequestone')
-    leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
-    no_of_days = models.IntegerField(blank=True, null=True)
-    reason = models.TextField(blank=True, null=True)
-    attachment = models.FileField(upload_to=uploadfileallocationrequest, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
-
-    approved_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leaveallocationrequesttwo')
-
-    def __str__(self):
-        return f'{self.user.username} - {self.leavepolicy.name} - {self.status}'
-
 class Leaverequest(Basic):
     user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='leaverequestone')
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE, related_name='leavepolicy_leaverequest')

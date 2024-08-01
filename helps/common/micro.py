@@ -1,16 +1,11 @@
 from rest_framework import status
-
 from helps.common.nano import Nanohelps
-import datetime
-import re
 
 class Microhelps(Nanohelps):
 
-    
     def addtocolass(self, classOBJ=None, Serializer=None, data=None, allowed_fields='__all__', unique_fields=[], required_fields=[], extra_fields={}, choice_fields=[], fields_regex=[]): # New
-        response_data = None
-        response_message = []
         response_data = {}
+        response_message = []
         response_successflag = 'error'
         response_status = status.HTTP_400_BAD_REQUEST
         if classOBJ:
