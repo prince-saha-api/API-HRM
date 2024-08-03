@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'leave.apps.LeaveConfig',
     'payroll.apps.PayrollConfig',
     'jobrecord.apps.JobrecordConfig',
+    'notice.apps.NoticeConfig',
 ]
 
 AUTH_USER_MODEL = 'user.User'
