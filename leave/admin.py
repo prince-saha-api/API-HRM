@@ -7,6 +7,5 @@ admin.site.register([
     models.Leavepolicyassign,
     models.Approvedleave,
     models.Leavesummary,
-    models.Leaveallocationrequest,
     models.Leaverequest
 ])

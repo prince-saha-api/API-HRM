@@ -22,5 +22,6 @@ admin.site.register([
     models.Salaryallocation,
     # models.Employeeincrementrecord,
     models.Bonus,
-    models.Mobilenumber
+    models.Mobilenumber,
+    models.Note
 ])

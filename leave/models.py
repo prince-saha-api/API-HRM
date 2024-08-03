@@ -4,6 +4,7 @@ from django.contrib.postgres.fields import ArrayField
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Basic
 from django.core.exceptions import ValidationError
+from helps.choice import common as CHOICE
 from django.core.validators import MinValueValidator, MaxValueValidator
 from helps.choice.common import LEAVE_TYPE, STATUS
 from hrm_settings import models as MODELS_SETT
@@ -107,30 +108,20 @@ class Leavesummary(Basic):
     class Meta:
         constraints = [models.UniqueConstraint(fields=['user', 'leavepolicy'], name='Leavesummary_user_leavepolicy')]
 
-class Leaveallocationrequest(Basic):
-    user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='leaveallocationrequestone')
-    leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
-    no_of_days = models.IntegerField()
-    reason = models.TextField(blank=True, null=True)
-    attachment = models.FileField(upload_to=uploadfileallocationrequest, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
-
-    approved_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leaveallocationrequesttwo')
-
-    def __str__(self):
-        return f'{self.user.username} - {self.leavepolicy.name} - {self.status}'
-
 class Leaverequest(Basic):
     user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='leaverequestone')
-    leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
-    from_date = models.DateField()
-    to_date = models.DateField()
+    leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE, related_name='leavepolicy_leaverequest')
+    request_type = models.CharField(max_length=20, choices=CHOICE.LEAVEREQUEST_TYPE)
+    extended_days = models.IntegerField(blank=True, null=True)
+    exchange_with = models.ForeignKey(Leavepolicy, on_delete=models.SET_NULL, blank=True, null=True, related_name='exchange_with_leaverequest')
+    from_date = models.DateField(blank=True, null=True)
+    to_date = models.DateField(blank=True, null=True)
     total_leave = models.IntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
     valid_leave_dates = ArrayField(models.DateField(blank=True, null=True), null=True, blank=True)
     attachment = models.FileField(upload_to=uploadfile, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
-    rejection_reason = models.TextField(blank=True, null=True)
+    reason = models.TextField(blank=True, null=True)
     approved_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leaverequesttwo')
 
     def __str__(self):

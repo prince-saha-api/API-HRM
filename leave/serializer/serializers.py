@@ -25,11 +25,6 @@ class Leaverequestserializer(serializers.ModelSerializer):
         model = models.Leaverequest
         fields = '__all__'
 
-class Leaveallocationrequestserializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Leaveallocationrequest
-        fields = '__all__'
-
 class Holidayserializer(serializers.ModelSerializer):
     employee_grade = SRLZER_USER.Gradeserializer(many=False)
     class Meta:

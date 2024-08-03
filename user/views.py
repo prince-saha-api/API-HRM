@@ -174,7 +174,8 @@ def updatedesignation(request, designationid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletedesignation(request, designationid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_USER.User, 'fields': [{'field': 'designation', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_USER.User, 'fields': [{'field': 'designation', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_USER.Designation, 'fields': [{'field': 'prev_designation', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_USER.Designation,
@@ -648,6 +649,33 @@ def addpermission(request):
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatepermission(request, permissionid=None):
+    unique_fields = ['name']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        classOBJ=MODELS_USER.Permission,
+        Serializer=PSRLZER_USER.Permissionserializer,
+        id=permissionid,
+        data=request.data,
+        unique_fields=unique_fields
+    )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletepermission(request, permissionid=None):
+    classOBJpackage_tocheck_assciaativity = [
+        {'model': MODELS_USER.Rolepermission, 'fields': [{'field': 'permission', 'relation': 'manytomanyfield', 'records': MODELS_USER.Permission.objects.filter(id=permissionid).first().rolepermission_set.all()}]}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        classOBJ=MODELS_USER.Permission,
+        id=permissionid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+    )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -688,6 +716,35 @@ def addrolepermission(request):
         required_fields=required_fields
     )
     if response_data: response_data = response_data.data
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updaterolepermission(request, rolepermissionid=None):
+    unique_fields=['name']
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        classOBJ=MODELS_USER.Rolepermission, 
+        Serializer=PSRLZER_USER.Rolepermissionserializer, 
+        id=rolepermissionid, 
+        data=request.data,
+        unique_fields=unique_fields
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deleterolepermission(request, rolepermissionid=None):
+    classOBJpackage_tocheck_assciaativity = [
+        {'model': MODELS_USER.User, 'fields': [{'field': 'role_permission', 'relation': 'foreignkey', 'records': []}]}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        classOBJ=MODELS_USER.Rolepermission,
+        id=rolepermissionid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -1189,106 +1246,130 @@ def updateofficialdetails(request, userid=None):
     else: response_message.append('user doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
-# @api_view(['PUT'])
-# @permission_classes([IsAuthenticated])
-# # @deco.get_permission(['Get Permission list Details', 'all'])
-# def updatesalaryleaves(request, userid=None):
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatesalaryleaves(request, userid=None):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
 
-#     user = MODELS_USER.User.objects.filter(id=userid)
-#     if user.exists():
-#         requesteddata = request.data.copy()
+    user = MODELS_USER.User.objects.filter(id=userid)
+    if user.exists():
+        requesteddata = request.data.copy()
 
-#         if 'bankaccount' in requesteddata:
-#             bankaccount = requesteddata['bankaccount']
-#             bankaccountid = user.first().bank_account.id
+        if 'bankaccount' in requesteddata:
+            if user.first().bank_account:
+                bankaccount = requesteddata['bankaccount']
+                bankaccountid = user.first().bank_account.id
 
-#             response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-#                 classOBJ=MODELS_CONT.Bankaccount,
-#                 Serializer=PSRLZER_CONT.Bankaccountserializer,
-#                 id=bankaccountid,
-#                 data=bankaccount
-#             )
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                    classOBJ=MODELS_CONT.Bankaccount,
+                    Serializer=PSRLZER_CONT.Bankaccountserializer,
+                    id=bankaccountid,
+                    data=bankaccount
+                )
+                if responsesuccessflag == 'error':
+                    response_message.extend(responsemessage)
+                elif responsesuccessflag == 'success':
+                    response_successflag = 'success'
+                    response_status = status.HTTP_200_OK
 
-#             if 'address' in bankaccount:
-#                 address = bankaccount['address']
-#                 addressid = user.first().bank_account.address.id
-#                 response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-#                     classOBJ=MODELS_CONT.Address,
-#                     Serializer=PSRLZER_CONT.Addressserializer,
-#                     id=addressid,
-#                     data=address
-#                 )
-#             del requesteddata['bankaccount']
+                if user.first().bank_account.address:
+                    if 'address' in bankaccount:
+                        address = bankaccount['address']
+                        addressid = user.first().bank_account.address.id
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                            classOBJ=MODELS_CONT.Address,
+                            Serializer=PSRLZER_CONT.Addressserializer,
+                            id=addressid,
+                            data=address
+                        )
+                        if responsesuccessflag == 'error':
+                            response_message.extend(responsemessage)
+                        elif responsesuccessflag == 'success':
+                            response_successflag = 'success'
+                            response_status = status.HTTP_200_OK
+            del requesteddata['bankaccount']
 
-#         # leavepolicy
-#         couldnotremoveleavepolicy = []
-#         if 'leavepolicy' in requesteddata:
-#             leavepolicy = requesteddata['leavepolicy']
-#             if isinstance(leavepolicy, list):
-#                 if leavepolicy:
-#                     fiscalyear = MODELS_SETT.Generalsettings.objects.all().order_by('id').last().fiscalyear
-#                     keepleavepolicy = []
-#                     for id in leavepolicy:
-#                         leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': id})
-#                         if leavepolicy:
-#                             leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=leavepolicy)
-#                             if not leavesummary.exists():
-#                                 leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=leavepolicy)
-#                                 if leavepolicyassign.exists():
-#                                     MODELS_LEAV.Leavesummary.objects.create(
-#                                         user=user.first(),
-#                                         leavepolicy=leavepolicy,
-#                                         fiscal_year=fiscalyear,
-#                                         total_allocation=leavepolicy.allocation_days,
-#                                         total_consumed=0,
-#                                         total_left=leavepolicy.allocation_days
-#                                     )
-#                                 else:
-#                                     MODELS_LEAV.Leavepolicyassign.objects.create(
-#                                         user=user.first(),
-#                                         leavepolicy=leavepolicy
-#                                     )
-#                                     MODELS_LEAV.Leavesummary.objects.create(
-#                                         user=user.first(),
-#                                         leavepolicy=leavepolicy,
-#                                         fiscal_year=fiscalyear,
-#                                         total_allocation=leavepolicy.allocation_days,
-#                                         total_consumed=0,
-#                                         total_left=leavepolicy.allocation_days
-#                                     )
-#                                 keepleavepolicy.append(leavepolicy)
-#                     leavepolicyassigns = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first())
-#                     for leavepolicyassign in leavepolicyassigns:
-#                         if leavepolicyassign.leavepolicy not in keepleavepolicy:
-#                             leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=leavepolicyassign.leavepolicy)
-#                             if leavesummary.exists():
-#                                 if leavesummary.first().total_consumed:
-#                                     couldnotremoveleavepolicy.append(leavepolicyassign.leavepolicy)
-#                                 else:
-#                                     leavesummary.delete()
-#                                     leavepolicyassign.delete()
-#                             else: leavepolicyassign.delete()
-#             del requesteddata['leavepolicy']
-#         # earningpolicy
-#         # deductionpolicy
+        # leavepolicy
+        if 'leavepolicy' in requesteddata:
+            leavepolicylist = requesteddata['leavepolicy']
+            if isinstance(leavepolicylist, list):
+                if leavepolicylist:
+                    generalsettings = MODELS_SETT.Generalsettings.objects.all().order_by('id')
+                    if generalsettings.exists():
+                        fiscalyear = generalsettings.last().fiscalyear
+                        keepleavepolicy = []
+                        for id in leavepolicylist:
+                            leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': id})
+                            if leavepolicy:
+                                # create leavepolicyassign 
+                                leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=leavepolicy)
+                                if not leavepolicyassign.exists():
+                                    MODELS_LEAV.Leavepolicyassign.objects.create(user=user.first(), leavepolicy=leavepolicy)
+
+                                # create leavesummary 
+                                leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=leavepolicy)
+                                if not leavesummary.exists():
+                                    MODELS_LEAV.Leavesummary.objects.create(
+                                        user=user.first(),
+                                        leavepolicy=leavepolicy,
+                                        fiscal_year=fiscalyear,
+                                        total_allocation=leavepolicy.allocation_days,
+                                        total_consumed=0,
+                                        total_left=leavepolicy.allocation_days
+                                    )
+                                keepleavepolicy.append(leavepolicy)
+                            else: response_message.append(f'leavepolicy doesn\'t exist with this id({id}!')
+                        
+                        leavepolicyassigns = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first())
+                        for leavepolicyassign in leavepolicyassigns:
+                            if leavepolicyassign.leavepolicy not in keepleavepolicy:
+                                leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=leavepolicyassign.leavepolicy)
+                                if leavesummary.exists():
+                                    if leavesummary.first().total_consumed:
+                                        response_message.append(f'couldn\'t remove leavepolicy({leavepolicyassign.leavepolicy.id})')
+                                    else:
+                                        leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=leavepolicyassign.leavepolicy)
+                                        if leaverequests.exists: leaverequests.delete()
+                                        leavepolicyassign.delete()
+                                        leavesummary.delete()
+                                else:
+                                    leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=leavepolicyassign.leavepolicy)
+                                    if leaverequests.exists: leaverequests.delete()
+                                    leavepolicyassign.delete()
+                            else: response_message.append(f'leavepolicy doesn\'t exist with this id({id}!')
+                    else: response_message.append('generalsettings doesn\'t exist!')
+                else: response_message.append('leavepolicy list is empty.')
+            else: response_message.append('provide leavepolicy within list.')
+            del requesteddata['leavepolicy']
+        # earningpolicy
+        # deductionpolicy
         
-#         allowed_fields = ['payment_in', 'gross_salary']
-#         choice_fields = [
-#             {'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}
-#         ]
-#         response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-#             classOBJ=MODELS_USER.User,
-#             Serializer=PSRLZER_USER.Userserializer,
-#             id=userid,
-#             data=requesteddata,
-#             allowed_fields=allowed_fields,
-#             choice_fields=choice_fields
-#         )
-#         if response_successflag == 'success':
-#             return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-#         elif response_successflag == 'error':
-#             return Response({'data': {}, 'message': ['something went wrong!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
-#     else: return Response({'data': {}, 'message': ['user doesn\'t exist!'], 'status':'error'}, status=status.HTTP_400_BAD_REQUEST)
+        allowed_fields = ['payment_in', 'gross_salary']
+        choice_fields = [
+            {'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}
+        ]
+        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+            classOBJ=MODELS_USER.User,
+            Serializer=PSRLZER_USER.Userserializer,
+            id=userid,
+            data=requesteddata,
+            allowed_fields=allowed_fields,
+            choice_fields=choice_fields
+        )
+        if responsesuccessflag == 'success':
+            response_data.update(response_data)
+            response_successflag=responsesuccessflag
+            response_status=responsestatus
+        elif responsesuccessflag == 'error':
+            response_successflag=responsesuccessflag
+            response_message.extend(responsemessage)
+            response_status=responsestatus
+    else: response_message.append('user doesn\'t exist!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
 @api_view(['PUT'])
@@ -1345,6 +1426,7 @@ def updateemergencycontact(request, userid=None):
                                     response_status = status.HTTP_200_OK
                             else: response_message.append(f'This User({userid}) has no Employeecontact having {updateemergencycontactid} id!')
                     else:
+                        if 'user' not in updateemergencycontact: updateemergencycontact.update({'user': userid})
                         required_fields = ['name', 'user']
                         unique_fields = ['phone_no']
                         fields_regex = [
@@ -1417,6 +1499,7 @@ def updateeducationexperience(request, userid=None):
                                         response_status = status.HTTP_200_OK
                                 else: response_message.append(f'This User({userid}) has no Employeeacademichistory having {educationid} id!')
                         else:
+                            if 'user' not in education: education.update({'user': userid})
                             required_fields = ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
                             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                                 classOBJ=MODELS_USER.Employeeacademichistory, 
@@ -1473,6 +1556,7 @@ def updateeducationexperience(request, userid=None):
                                         response_status = status.HTTP_200_OK
                                 else: response_message.append(f'This User({userid}) has no Employeeexperiencehistory having {experienceid} id!')
                         else:
+                            if 'user' not in experience: experience.update({'user': userid})
                             required_fields = ['user', 'company_name', 'designation', 'from_date', 'to_date']
                             fields_regex = [
                                 {'field': 'from_date', 'type': 'date'},
@@ -1521,11 +1605,127 @@ def updatedocuments(request, userid=None):
         if 'documents' in requestdata:
             requestdata = requestdata['documents']
             requestdata = ghelp().prepareData(requestdata, 'userdocument')
+            
             for document in requestdata:
                 if 'id' in document:
-                    pass
+                    documentid=document['id']
+                    del document['id']
+                    employeedocs=MODELS_USER.Employeedocs.objects.filter(id=documentid)
+                    if employeedocs.first().user.id==userid:
+
+                        static_fields = []
+                        if 'attachment' in document:
+                            if 'InMemoryUploadedFile' in str(type(document['attachment'])): static_fields.append('attachment')
+                            else: del document['attachment']
+
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                            classOBJ=MODELS_USER.Employeedocs,
+                            Serializer=PSRLZER_USER.Employeedocsserializer,
+                            id=documentid,
+                            data=document,
+                            static_fields=static_fields
+                        )
+                        if responsesuccessflag == 'error':
+                            response_message.extend([f'update({documentid}) {message}' for message in responsemessage])
+                        elif responsesuccessflag == 'success':
+                            response_successflag = 'success'
+                            response_status = status.HTTP_200_OK
+                    else: response_message.append(f'This User({userid}) has no Employeedocs having {documentid} id!')
+                else:
+                    if 'user' not in document: document.update({'user': userid})
+                    required_fields = ['title', 'user']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_USER.Employeedocs, 
+                        Serializer=PSRLZER_USER.Employeedocsserializer, 
+                        data=document,
+                        required_fields=required_fields
+                    )
+                    if responsesuccessflag == 'error':
+                        response_message.extend([f'add {message}' for message in responsemessage])
+                    elif responsesuccessflag == 'success':
+                        response_successflag = 'success'
+                        response_status = status.HTTP_200_OK
         else: response_message.append('no documents provided!')
-
-
     else: response_message.append('user doesn\'t exist!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Single Permission Details', 'all'])
+def getnote(request):
+    filter_fields = [
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'user', 'convert': None, 'replace':'user'},
+        {'name': 'title', 'convert': None, 'replace':'reason__ititle'},
+        {'name': 'description', 'convert': None, 'replace':'reason__idescription'},
+        {'name': 'priority', 'convert': None, 'replace':'reason__ipriority'},
+        {'name': 'reminder', 'convert': None, 'replace':'reminder'},
+        {'name': 'status', 'convert': None, 'replace':'status'}
+    ]
+    notes = MODELS_USER.Note.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    column_accessor = request.GET.get('column_accessor')
+    if column_accessor: notes = notes.order_by(column_accessor)
+
+    total_count = notes.count()
+    page = int(request.GET.get('page')) if request.GET.get('page') else 1
+    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
+    if page and page_size: notes = notes[(page-1)*page_size:page*page_size]
+
+    noteserializers = SRLZER_USER.Noteserializer(notes, many=True)
+    return Response({'data': {
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'result': noteserializers.data
+    }, 'message': [], 'status': 'success'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def addnote(request):
+    extra_fields = {'created_by': request.user.id, 'updated_by': request.user.id}
+    choice_fields = [
+        {'name': 'priority', 'values': [item[1] for item in CHOICE.PRIORITY]}
+    ]
+    fields_regex = [
+        {'field': 'reminder', 'type': 'date'}
+    ]
+    required_fields = ['user','title', 'priority']
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        classOBJ=MODELS_USER.Note, 
+        Serializer=SRLZER_USER.Noteserializer, 
+        data=request.data, 
+        unique_fields=[], 
+        extra_fields=extra_fields, 
+        choice_fields=choice_fields, 
+        required_fields=required_fields,
+        fields_regex=fields_regex
+    )
+    if response_data: response_data = response_data.data
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updatenote(request, noteid=None):
+    fields_regex = [
+        {'field': 'reminder', 'type': 'date'}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        classOBJ=MODELS_USER.Note, 
+        Serializer=SRLZER_USER.Noteserializer, 
+        id=noteid, 
+        data=request.data,
+        fields_regex=fields_regex
+    )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletenote(request, noteid=None):
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        classOBJ=MODELS_USER.Note,
+        id=noteid,
+        )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

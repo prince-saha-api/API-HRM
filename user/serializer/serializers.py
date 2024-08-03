@@ -91,3 +91,8 @@ class Shiftchangelogserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Shiftchangelog
         fields = '__all__'
+
+class Noteserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Note
+        fields = '__all__'

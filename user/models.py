@@ -361,3 +361,19 @@ class Mobilenumber(Basic):
 
     def __str__(self):
         return f'{self.phone_number} - {self.user.username}'
+    
+class Note(Basic):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='noteone')
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    priority  = models.CharField(max_length=20, choices=CHOICE.PRIORITY)
+    reminder = models.DateField(blank=True, null=True)
+    status = models.BooleanField(default=False)
+
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='notetwo')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='notethree')
+    
+
+    def __str__(self):
+        return f'{self.title} - {self.user.username}'
+    

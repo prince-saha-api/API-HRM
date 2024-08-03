@@ -1,4 +1,5 @@
 from helps.common.mini import Minihelps
+from datetime import datetime, date, timedelta
 import calendar
 
 class Generichelps(Minihelps):
@@ -122,4 +123,31 @@ class Generichelps(Minihelps):
             else:
                 response['flag'] = False
                 response['message'].append('couldn\'t create user instance, something went wrong!')
+        return response
+    
+
+    def getWorkingDates(self, Generalsettings, Holiday, user, leavepolicy, leavesummary, from_date, to_date): # New
+        response = {'message': [], 'dates': []}
+
+        fiscal_year_from_date = leavesummary.fiscal_year.from_date
+        fiscal_year_to_date = leavesummary.fiscal_year.to_date
+
+        daycount = (to_date - from_date).days + 1
+        if leavepolicy.is_calendar_day:
+            for day in range(daycount):
+                date = from_date + timedelta(day)
+                if self.is_date_in_range(date, fiscal_year_from_date, fiscal_year_to_date): response['dates'].append(date)
+                else: response['message'].append(f'applied date is not in this fiscal year!({fiscal_year_from_date} - {fiscal_year_to_date})')
+        else:
+            for day in range(daycount):
+                date = from_date + timedelta(day)
+                generalsettings = Generalsettings.objects.filter(fiscalyear=leavesummary.fiscal_year.id)
+                if generalsettings.exists():
+                    offdays = [each.day for each in generalsettings.first().weekly_holiday.day.all()]
+                    if date.strftime("%A") not in offdays:
+                        holidays = [each.date for each in Holiday.objects.filter(date=date, employee_grade=user.grade)]
+                        if date not in holidays:
+                            if self.is_date_in_range(date, fiscal_year_from_date, fiscal_year_to_date): response['dates'].append(date)
+                            else: response['message'].append(f'applied date is not in this fiscal year!({fiscal_year_from_date} - {fiscal_year_to_date})')
+                else: response['message'].append('please add general settings first!')
         return response

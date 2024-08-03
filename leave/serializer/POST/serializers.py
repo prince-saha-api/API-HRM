@@ -21,11 +21,6 @@ class Leaverequestserializer(serializers.ModelSerializer):
         model = models.Leaverequest
         fields = '__all__'
 
-class Leaveallocationrequestserializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Leaveallocationrequest
-        fields = '__all__'
-
 class Holidayserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Holiday

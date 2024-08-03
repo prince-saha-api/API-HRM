@@ -133,7 +133,8 @@ def deletedepartment(request, departmentid=None):
     classOBJpackage_tocheck_assciaativity = [
         {'model': MODELS_DEPA.Departmentmobilenumber, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
         {'model': MODELS_DEPA.Departmentemail, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_DEPA.Departmentimage, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_DEPA.Departmentimage, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'prev_department', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_DEPA.Department,

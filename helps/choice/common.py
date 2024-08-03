@@ -6,15 +6,16 @@ MONTHS_DR = {'1': 'January', '2': 'February', '3': 'March', '4': 'April', '5': '
 STATUS = (('Pending','Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected'))
 ATTENDANCE_FROM = (('Device','Device'), ('Manual', 'Manual'), ('Remote', 'Remote'))
 LEAVE_TYPE = (('Paid', 'Paid'), ('Non Paid', 'Non Paid'))
-GENDER = (('Male', 'Male'), ('Female', 'Female'),)
+GENDER = (('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other'),)
 AMOUNT_TYPE = (('Fixed Amount', 'Fixed Amount'), ('Percentage', 'Percentage'),)
 LOAN_TYPE = (('Advance Salary', 'Advance Salary'), ('Loan', 'Loan'), ('Fine', 'Fine'),)
 ADJUSTMENT_TYPE = (('From Salary', 'From Salary'), ('By Cash', 'By Cash'),)
 ATTENDANCE_OVERTIME = (('Disabled', 'Disabled'), ('Overtime', 'Overtime'),)
 PAYMENT_IN = (('Cash','Cash'), ('Cheque', 'Cheque'), ('Bank', 'Bank'))
 INCREMENT_ON = (('Gross Salary','Gross Salary'), ('Basic Salary', 'Basic Salary'))
-# JOBHISTORY_STATUS = (('Joining', 'Joining'), ('Increment', 'Increment'), ('Promotion', 'Promotion'))
+PRIORITY = (('High','High'), ('Medium', 'Medium'), ('Low', 'Low'))
 STATUS_ADJUSTMENT = (('Joining', 'Joining'), ('Increment', 'Increment'), ('Promotion', 'Promotion'), ('Demotion', 'Demotion'), ('Transfer', 'Transfer'), ('Terminated', 'Terminated'))
+LEAVEREQUEST_TYPE = (('Regular Leave', 'Regular Leave'), ('Extend Existing', 'Extend Existing'), ('New Allocation', 'New Allocation'))
 JOB_STATUS = (
     ('OnGoing', 'OnGoing'),
     ('Resigned', 'Resigned'),

@@ -37,8 +37,14 @@ urlpatterns = [
 
     path('get-permission/', views.getpermissions, name='get-permission'),
     path('add-permission/', views.addpermission, name='add-permission'),
+    path('update-permission/<int:permissionid>', views.updatepermission, name='update-permission'),
+    path('delete-permission/<int:permissionid>', views.deletepermission, name='delete-permission'),
+
     path('get-rolepermission/', views.getrolepermissions, name='get-rolepermission'),
     path('add-rolepermission/', views.addrolepermission, name='add-rolepermission'),
+    path('update-rolepermission/<int:rolepermissionid>', views.updaterolepermission, name='update-rolepermission'),
+    path('delete-rolepermission/<int:rolepermissionid>', views.deleterolepermission, name='delete-rolepermission'),
+    
     path('get-ethnicgroup/', views.getethnicgroups, name='get-ethnicgroup'),
     path('add-ethnicgroup/', views.addethnicgroup, name='add-ethnicgroup'),
 
@@ -50,9 +56,14 @@ urlpatterns = [
     path('update-profile/<int:userid>', views.updateprofile, name='update-profile'),
     path('update-personal-details/<int:userid>', views.updatepersonaldetails, name='update-personal-details'),
     path('update-official-details/<int:userid>', views.updateofficialdetails, name='update-official-details'),
-    # path('update-salary-leaves/<int:userid>', views.updatesalaryleaves, name='update-salary-leaves'),
+    path('update-salary-leaves/<int:userid>', views.updatesalaryleaves, name='update-salary-leaves'),
     path('update-emergency-contact/<int:userid>', views.updateemergencycontact, name='update-emergency-contact'),
     path('update-education-experience/<int:userid>', views.updateeducationexperience, name='update-education-experience'),
     path('update-documents/<int:userid>', views.updatedocuments, name='update-documents'),
+
+    path('get-note/', views.getnote, name='get-note'),
+    path('add-note/', views.addnote, name='add-note'),
+    path('update-note/<int:noteid>', views.updatenote, name='update-note'),
+    path('delete-note/<int:noteid>', views.deletenote, name='delete-note'),
     
 ]
