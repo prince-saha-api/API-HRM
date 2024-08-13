@@ -2,9 +2,16 @@ from django.urls import path
 from notice import views
 
 urlpatterns = [
-    path('get-noticeboard/', views.getnoticeboard, name='get-noticeboard'),
-    # path('add-payrollearning/', views.addpayrollearning, name='add-payrollearning'),
-    # path('update-payrollearning/<int:payrollearningid>', views.updatepayrollearning, name='update-payrollearning'),
+    path('add-noticeboard/', views.addnoticeboard, name='add-noticeboard'),
+
+    path('get-noticeboard/', views.getnoticeboards, name='get-noticeboard'),
+    path('get-noticeboardcompany/', views.getnoticeboardcompanys, name='get-noticeboardcompany'),
+    path('get-noticeboardbranch/', views.getnoticeboardbranch, name='get-noticeboardbranch'),
+    path('get-noticeboarddepartment/', views.getnoticeboarddepartment, name='get-noticeboarddepartment'),
+    path('get-noticeboardemployee/', views.getnoticeboardemployee, name='get-noticeboardemployee'),
+
+    path('update-noticeboard/<int:noticeid>', views.updatenoticeboard, name='update-noticeboard'),
+    path('delete-noticeboard/<int:noticeid>', views.deletenoticeboard, name='delete-noticeboard'),
 
     # path('get-payrolldeduction/', views.getpayrolldeductions, name='get-payrolldeduction'),
     # path('add-payrolldeduction/', views.addpayrolldeduction, name='add-payrolldeduction'),

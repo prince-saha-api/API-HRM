@@ -1,12 +1,13 @@
 from rest_framework import serializers
 from notice import models
 
-class Noteboardserializer(serializers.ModelSerializer):
+class Noticeboardserializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Noteboard
+        model = models.Noticeboard
         fields = '__all__'
 
 class Noticeboardcompanyserializer(serializers.ModelSerializer):
+    # noticeboard = Noticeboardserializer(many=True)
     class Meta:
         model = models.Noticeboardcompany
         fields = '__all__'
