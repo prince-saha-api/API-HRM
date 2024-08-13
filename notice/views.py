@@ -441,4 +441,51 @@ def updatenoticeboard(request, noticeid=None):
                     
                     prepare_data = {'noticeboard': noticeid, 'user': userid}
                     required_fields = ['noticeboard', 'user']
-                    responsedata, responsemessage, res
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_NOTI.Noticeboardemployee, 
+                        Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
+                        data=prepare_data, 
+                        required_fields=required_fields
+                    )
+                response_successflag  = responsesuccessflag
+        
+        else:
+            for company in MODELS_COMP.Company.objects.all():
+                branchs = MODELS_BRAN.Branch.objects.filter(company=company.id)
+                if branchs.exists():
+                    for branch in branchs:
+                        departments = MODELS_DEPA.Department.objects.filter(branch=branch.id)
+                        if departments.exists():
+                            for department in departments:
+                                users = department.user.all()
+                                for user in users:
+                                    prepare_data = {'noticeboard': noticeid, 'user': user.id}
+                                    required_fields = ['noticeboard', 'user']
+                                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                                        classOBJ=MODELS_NOTI.Noticeboardemployee, 
+                                        Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
+                                        data=prepare_data, 
+                                        required_fields=required_fields
+                                    )
+
+                prepare_data=({'noticeboard': noticeid, 'company': company.id})
+                required_fields = ['noticeboard', 'company']
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                    classOBJ=MODELS_NOTI.Noticeboardcompany, 
+                    Serializer=PSRLZER_NOTI.Noticeboardcompanyserializer, 
+                    data=prepare_data, 
+                    required_fields=required_fields,
+                )
+            response_successflag  = responsesuccessflag
+
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletenoticeboard(request, noticeid=None):
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        classOBJ=MODELS_NOTI.Noticeboard,
+        id=noticeid,
+        )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
