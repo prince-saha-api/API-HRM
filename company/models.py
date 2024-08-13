@@ -14,7 +14,6 @@ def generate_unique_code():
 def uploadcompanylogo(instance, filename):
     return "company/{name}/logo/{uniquecode}uniquevalue{filename}".format(name=instance.name, uniquecode=generate_unique_code(), filename=filename)
 
-
 class Basicinformation(Basic):
     name = models.CharField(max_length=100, unique=True)
     legal_name = models.CharField(max_length=100, blank=True, null=True)

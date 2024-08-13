@@ -24,7 +24,6 @@ JOB_STATUS = (
 )
 EMPLOYEE_TYPE = (
     ('Trainee', 'Trainee'),
-    ('Apprentice', 'Apprentice'),
     ('Intern', 'Intern'),
     ('Probation', 'Probation'),
     ('Permanent', 'Permanent'),

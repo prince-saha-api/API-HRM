@@ -28,7 +28,12 @@ def getleavepolicys(request):
         {'name': 'is_optional', 'convert': 'bool', 'replace':'is_optional'},
         {'name': 'is_calendar_day', 'convert': 'bool', 'replace':'is_calendar_day'}
     ]
-    leavepolicys = MODELS_LEAV.Leavepolicy.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    if 'exclude_user' in request.GET:
+        kwargs = ghelp().KWARGS(request, [{'name': 'exclude_user', 'convert': None, 'replace':'leavepolicyassign__user__id'}])
+        leavepolicys = MODELS_LEAV.Leavepolicy.objects.exclude(**kwargs)
+    else:
+        kwargs = ghelp().KWARGS(request, filter_fields)
+        leavepolicys = MODELS_LEAV.Leavepolicy.objects.filter(**kwargs)
 
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: leavepolicys = leavepolicys.order_by(column_accessor)
@@ -167,8 +172,8 @@ def assignleavepolicy(request):
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
 
-    generalsettings = MODELS_SETT.Generalsettings.objects.all().order_by('id')
-    if generalsettings.exists():
+    fiscalyear_response = ghelp().findFiscalyear(MODELS_SETT.Generalsettings)
+    if fiscalyear_response['fiscalyear']:
         leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
         if leavepolicy:
             user = ghelp().getobject(MODELS_USER.User, {'id': request.data.get('user')})
@@ -182,7 +187,7 @@ def assignleavepolicy(request):
                         MODELS_LEAV.Leavesummary.objects.create(
                             user=user,
                             leavepolicy=leavepolicy,
-                            fiscal_year=generalsettings.first().fiscalyear,
+                            fiscal_year=fiscalyear_response['fiscalyear'],
                             total_allocation=leavepolicy.allocation_days,
                             total_consumed=0,
                             total_left=leavepolicy.allocation_days
@@ -193,7 +198,7 @@ def assignleavepolicy(request):
                 else: response_message.append(f'{leavepolicy.name} is not associated to {user.first_name} {user.last_name}!')
             else: response_message.append('user doesn\'t exist!')
         else: response_message.append('leavepolicy doesn\'t exist!')
-    else: response_message.append('please fillup general settings first!')
+    else: response_message.extend(fiscalyear_response['message'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -280,10 +285,13 @@ def getleaverequest(request):
     filter_fields = [
         {'name': 'id', 'convert': None, 'replace':'id'},
         {'name': 'user', 'convert': None, 'replace':'user'},
+        {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
         {'name': 'request_type', 'convert': None, 'replace':'request_type__icontains'},
+        {'name': 'extended_days', 'convert': None, 'replace':'extended_days'},
         {'name': 'exchange_with', 'convert': None, 'replace':'exchange_with'},
         {'name': 'from_date', 'convert': None, 'replace':'from_date'},
         {'name': 'to_date', 'convert': None, 'replace':'to_date'},
+        {'name': 'total_leave', 'convert': None, 'replace':'total_leave'},
         {'name': 'description', 'convert': None, 'replace':'description__icontains'},
         {'name': 'status', 'convert': None, 'replace':'status__icontains'},
         {'name': 'reason', 'convert': None, 'replace':'reason__icontains'},
@@ -552,8 +560,8 @@ def approveleaverequest(request, leaverequestid=None):
             else: response_message.append('already approved!')
         elif leaverequest.first().request_type == CHOICE.LEAVEREQUEST_TYPE[2][1]:
             if leaverequest.first().status != CHOICE.STATUS[1][1]:
-                generalsettings = MODELS_SETT.Generalsettings.objects.all().order_by('id')
-                if generalsettings.exists():
+                fiscalyear_response = ghelp().findFiscalyear(MODELS_SETT.Generalsettings)
+                if fiscalyear_response['fiscalyear']:
                     if leaverequest.first().leavepolicy:
                         leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=leaverequest.first().user, leavepolicy=leaverequest.first().leavepolicy)
                         if not leavepolicyassign.exists():
@@ -566,7 +574,7 @@ def approveleaverequest(request, leaverequestid=None):
                                         MODELS_LEAV.Leavesummary.objects.create(
                                             user=leaverequest.first().user,
                                             leavepolicy=leaverequest.first().leavepolicy,
-                                            fiscal_year=generalsettings.first().fiscalyear,
+                                            fiscal_year=fiscalyear_response['fiscalyear'],
                                             total_allocation=leaverequest.first().leavepolicy.allocation_days,
                                             total_consumed=0,
                                             total_left=leaverequest.first().leavepolicy.allocation_days
@@ -586,7 +594,7 @@ def approveleaverequest(request, leaverequestid=None):
                                     MODELS_LEAV.Leavesummary.objects.create(
                                         user=leaverequest.first().user,
                                         leavepolicy=leaverequest.first().leavepolicy,
-                                        fiscal_year=generalsettings.first().fiscalyear,
+                                        fiscal_year=fiscalyear_response['fiscalyear'],
                                         total_allocation=leaverequest.first().leavepolicy.allocation_days,
                                         total_consumed=0,
                                         total_left=leaverequest.first().leavepolicy.allocation_days
@@ -599,7 +607,7 @@ def approveleaverequest(request, leaverequestid=None):
                                     response_message.append(f'something went wrong for creating {leaverequest.first().leavepolicy.name} leavepolicy\'s leavesummary!')
                             else: response_message.append(f'{leaverequest.first().leavepolicy.name} leavepolicy\'s leavesummary is already exist!')
                     else: response_message.append('leavepolicy doesn\'t exist!')
-                else: response_message.append('please fillup general settings first!')
+                else: response_message.extend(fiscalyear_response['message'])
             else: response_message.append('already approved!')
         else: response_message.append('request_type doesn\'t match with LEAVEREQUEST_TYPE(Backend)!')
     else: response_message.append('leaverequest doesn\'t exist!')

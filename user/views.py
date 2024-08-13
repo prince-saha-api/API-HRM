@@ -7,10 +7,16 @@ from leave import models as MODELS_LEAV
 from department import models as MODELS_DEPA
 from hrm_settings import models as MODELS_SETT
 from user import models as MODELS_USER
+from company import models as MODELS_COMP
+from branch import models as MODELS_BRAN
+from jobrecord import models as MODELS_JOBR
+from jobrecord.serializer.POST import serializers as PSRLZER_JOBR
 from user.serializer import profiledetails
 from user.serializer import serializers as SRLZER_USER
 from user.serializer.POST import serializers as PSRLZER_USER
 from contribution.serializer.POST import serializers as PSRLZER_CONT
+from hrm_settings.serializer.POST import serializers as PSRLZER_SETT
+from leave.serializer.POST import serializers as PSRLZER_LEAV
 from rest_framework.response import Response
 from rest_framework import status
 from helps.common.generic import Generichelps as ghelp
@@ -174,8 +180,7 @@ def updatedesignation(request, designationid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletedesignation(request, designationid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_USER.User, 'fields': [{'field': 'designation', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_USER.Designation, 'fields': [{'field': 'prev_designation', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_USER.User, 'fields': [{'field': 'designation', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_USER.Designation,
@@ -834,9 +839,13 @@ def getemployee(request):
     if column_accessor: users = users.order_by(column_accessor)
     
     total_count = users.count()
-    page = int(request.GET.get('page')) if request.GET.get('page') else 1
-    page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
-    if page and page_size: users = users[(page-1)*page_size:page*page_size]
+
+    page = request.GET.get('page')
+    page_size = request.GET.get('page_size')
+    if page_size and page:
+        page = int(page) if page else 1
+        page_size = int(page_size) if page_size else 10
+        users = users[(page-1)*page_size:page*page_size]
 
     userserializers = SRLZER_USER.Userserializer(users, many=True)
     chars = [['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']]
@@ -861,162 +870,184 @@ def getemployee(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def addemployee(request):
-    generalsettings = MODELS_SETT.Generalsettings.objects.all().order_by('id')
-    if generalsettings.exists():
-        created_by = MODELS_USER.User.objects.get(id=request.user.id) if request.user.id != None else None
-        requestdata = dict(request.data)
-        requestdata.update({'abcdef[abcdef]': ['abcdef']})
-        options = {'allow_blank': True, 'allow_empty': False}
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+    
+    requestdata = dict(request.data)
+    requestdata.update({'abcdef[abcdef]': ['abcdef']})
+    options = {'allow_blank': True, 'allow_empty': False}
+    form = NestedForm(requestdata, **options)
+    form.is_nested(raise_exception=True)
+
+    
+    personalDetails = form.data.get('personalDetails')
+    officialDetails = form.data.get('officialDetails')
+    emergencyContact = form.data.get('emergencyContact')
+    academicRecord = form.data.get('academicRecord')
+    previousExperience = form.data.get('previousExperience')
+    salaryAndLeaves = form.data.get('salaryAndLeaves')
+
+    personalDetails = ghelp().prepareData(personalDetails, 'personal')
+    officialDetails = ghelp().prepareData(officialDetails, 'office')
+    emergencyContact = ghelp().prepareData(emergencyContact, 'emergencycontact')
+    academicRecord = ghelp().prepareData(academicRecord, 'academicrecord')
+    previousExperience = ghelp().prepareData(previousExperience, 'previousexperience')
+    ghelp().preparesalaryAndLeaves(salaryAndLeaves)
+
+    # uploadDocuments = form.data.get('uploadDocuments')
+    
+    fields_tobe_checked = [
+        {
+            'data': officialDetails,
+            'to_be_apply': ['choice_fields', 'fields_regex'],
+            'required_fields': ['official_id', 'ethnic_group', 'joining_date', 'company', 'branch', 'department', 'designation', 'employee_type'],
+            'fields_regex': [{'field': 'official_id', 'type': 'employeeid'}, {'field': 'joining_date', 'type': 'date'}],
+            'choice_fields': [{'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]}]
+        },
+        {
+            'data': salaryAndLeaves,
+            'to_be_apply': ['fields_regex'],
+            'required_fields': ['gross_salary'],
+            'fields_regex': []
+        }
+    ]
+    response_message.extend(ghelp().checkrequiredfiels(fields_tobe_checked))
+    if not response_message:
         
-        form = NestedForm(requestdata, **options)
-        form.is_nested(raise_exception=True)
+        classOBJpackage = {
+            'Generalsettings': MODELS_SETT.Generalsettings,
+            'Leavepolicy': MODELS_LEAV.Leavepolicy,
+            'Leavepolicyassign': MODELS_LEAV.Leavepolicyassign,
+            'Leavesummary': MODELS_LEAV.Leavesummary,
+            'User': MODELS_USER.User,
+            'Address': MODELS_CONT.Address,
+            'Designation': MODELS_USER.Designation,
+            'Shift': MODELS_USER.Shift,
+            'Grade': MODELS_USER.Grade,
+            'Bankaccount': MODELS_CONT.Bankaccount,
+            'Bankaccounttype': MODELS_CONT.Bankaccounttype,
+            'Religion': MODELS_USER.Religion,
+        }
+        serializerOBJpackage = {
+            'Generalsettings': PSRLZER_SETT.Generalsettingsserializer,
+            'Leavepolicy': PSRLZER_LEAV.Leavepolicyserializer,
+            'Leavepolicyassign': PSRLZER_LEAV.Leavepolicyassignserializer,
+            'Leavesummary': PSRLZER_LEAV.Leavesummaryserializer,
+            'User': PSRLZER_USER.Userserializer,
+            'Address': PSRLZER_CONT.Addressserializer,
+            'Designation': PSRLZER_USER.Designationserializer,
+            'Shift': PSRLZER_USER.Shiftserializer,
+            'Grade': PSRLZER_USER.Gradeserializer,
+            'Bankaccount': PSRLZER_CONT.Bankaccountserializer,
+            'Bankaccounttype': PSRLZER_CONT.Bankaccounttypeserializer,
+            'Religion': PSRLZER_USER.Religionserializer,
+        }
+        
+        documents=int(len([key for key in requestdata.keys() if 'uploadDocuments' in key])/2)
+        documentsindex = []
+        photo = None
+        for index in range(documents):
+            title = request.data.get(f'uploadDocuments[{index}][title]')
+            if title:
+                title = title.lower()
+                if title == 'photo': photo = request.FILES.get(f'uploadDocuments[{index}][attachment]')
+                else: documentsindex.append(index)
+        
+        # If failed to create user then delete instance
+        createdInstance = []
+        created_by = MODELS_USER.User.objects.get(id=request.user.id)
+        response = ghelp().createuser(classOBJpackage, serializerOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, photo, created_by)
+        if not response['flag']:
+            for each in createdInstance:
+                if each: each.delete()
+        response_message.extend(response['message'])
+        
+        if response['flag']:
+            userinstance = response['userinstance'] 
+
+            # Add Role-Permissions
+            rolepermission_officialDetails = officialDetails.get('role_permission')
+            if isinstance(rolepermission_officialDetails, list):
+                if rolepermission_officialDetails:
+                    for rolepermissionid in rolepermission_officialDetails:
+                        rolepermission = ghelp().getobject(MODELS_USER.Rolepermission, {'id': rolepermissionid})
+                        if rolepermission: userinstance.role_permission.add(rolepermission)
 
 
-        personalDetails = form.data.get('personalDetails')
-        personalDetails = ghelp().prepareData(personalDetails, 'personal')
-
-        officialDetails = form.data.get('officialDetails')
-        officialDetails = ghelp().prepareData(officialDetails, 'office')
-        if 'official_id' not in officialDetails: return Response({'data': {}, 'message': ['official_id is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        if 'ethnic_group' not in officialDetails: return Response({'data': {}, 'message': ['ethnic_group is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-
-        salaryAndLeaves = form.data.get('salaryAndLeaves')
-        ghelp().preparesalaryAndLeaves(salaryAndLeaves)
-
-        emergencyContact = form.data.get('emergencyContact')
-        emergencyContact = ghelp().prepareData(emergencyContact, 'emergencycontact')
-        academicRecord = form.data.get('academicRecord')
-        academicRecord = ghelp().prepareData(academicRecord, 'academicrecord')
-        previousExperience = form.data.get('previousExperience')
-        previousExperience = ghelp().prepareData(previousExperience, 'previousexperience')
-
-        # uploadDocuments = form.data.get('uploadDocuments')
-
-        # লিভ-পলিসি যুক্ত করলে এথনিক-গ্রুপও দিতে হবে
-        leavepolicy_salaryAndLeaves = salaryAndLeaves.get('leavepolicy')
-        if leavepolicy_salaryAndLeaves:
-            if not ghelp().ifallrecordsexistornot(MODELS_USER.Ethnicgroup, officialDetails.get('ethnic_group')):
-                return Response({'data': {}, 'message': ['please add valid Ethnicgroup!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if ghelp().ifallrecordsexistornot(MODELS_LEAV.Leavepolicy, salaryAndLeaves.get('leavepolicy')):
-
-            fiscal_year = generalsettings.first().fiscalyear
-            official_id = officialDetails.get('official_id')
-            if official_id:
-                classOBJpackage = {
-                    'User': MODELS_USER.User,
-                    'Address': MODELS_CONT.Address,
-                    'Designation': MODELS_USER.Designation,
-                    'Shift': MODELS_USER.Shift,
-                    'Grade': MODELS_USER.Grade,
-                    'Bankaccount': MODELS_CONT.Bankaccount,
-                    'Bankaccounttype': MODELS_CONT.Bankaccounttype,
-                    'Religion': MODELS_USER.Religion,
-                }
-
-                serializerOBJpackage = {
-                    'User': PSRLZER_USER.Userserializer,
-                    'Address': PSRLZER_CONT.Addressserializer,
-                    'Designation': PSRLZER_USER.Designationserializer,
-                    'Shift': PSRLZER_USER.Shiftserializer,
-                    'Grade': PSRLZER_USER.Gradeserializer,
-                    'Bankaccount': PSRLZER_CONT.Bankaccountserializer,
-                    'Bankaccounttype': PSRLZER_CONT.Bankaccounttypeserializer,
-                    'Religion': PSRLZER_USER.Religionserializer,
-                }
-                
-                documents=int(len([key for key in requestdata.keys() if 'uploadDocuments' in key])/2)
-                documentsindex = []
-                photo = None
-                for index in range(documents):
-                    title = request.data.get(f'uploadDocuments[{index}][title]')
-                    if title:
-                        title = title.lower()
-                        if title == 'photo': photo = request.FILES.get(f'uploadDocuments[{index}][attachment]')
-                        else: documentsindex.append(index)
-                
-                # If failed to create user then delete instance
-                createdInstance = []
-                required_fields = ['username', 'password', 'first_name', 'last_name', 'gender', 'personal_phone', 'official_id']
-                usermodelsuniquefields = ['personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_phone', 'rfid']
-                response = ghelp().createuser(classOBJpackage, serializerOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, required_fields, created_by)
-
-                if not response['flag']:
-                    for each in createdInstance:
-                        if each: each.delete()
-                    return Response({'data': {}, 'message': response['message'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-                userinstance = response['userinstance'] 
-
-                role_permission_officialDetails = officialDetails.get('role_permission')
-                if role_permission_officialDetails:
-                    for id in role_permission_officialDetails:
-                        object = ghelp().getobject(MODELS_USER.Rolepermission, {'id': id})
-                        if object: userinstance.role_permission.add(object)
+            # ইউজার ক্রিয়েটের পরে।
+            ethnicgroup_officialDetails = officialDetails.get('ethnic_group')
+            if isinstance(ethnicgroup_officialDetails, list):
+                if ethnicgroup_officialDetails:
+                    for ethnicgroupid in ethnicgroup_officialDetails:
+                        ethnicgroup = ghelp().getobject(MODELS_USER.Ethnicgroup, {'id': ethnicgroupid})
+                        if ethnicgroup:
+                            if ethnicgroup.name != 'all': ethnicgroup.user.add(userinstance)
+            
+            
+            userdata = {'instance': userinstance, 'created_by': created_by, 'updated_by': created_by}
+            leavepolicy_response = ghelp().addLeavepolicy(classOBJpackage, salaryAndLeaves.get('leavepolicy'), userdata)
+            
+            employeejobhistorydata = {
+                'user': userinstance.id,
+                'effective_from': officialDetails['joining_date'],
+                'salary': salaryAndLeaves['gross_salary'],
+                'company': officialDetails['company'],
+                'branch': officialDetails['branch'],
+                'department': officialDetails['department'],
+                'designation': officialDetails['designation'],
+                'employee_type': officialDetails['employee_type'],
+                'date': officialDetails['joining_date'],
+                'status_adjustment': CHOICE.STATUS_ADJUSTMENT[0][1],
+                'appraisal_by': created_by.id
+            }
+            required_fields = ['user', 'effective_from', 'new_salary', 'company', 'branch', 'department', 'designation', 'employee_type', 'from_date']
+            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                classOBJ=MODELS_JOBR.Employeejobhistory,
+                Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
+                data=employeejobhistorydata,
+                required_fields=required_fields
+            )
 
 
-                # ইউজার ক্রিয়েটের পরে।
-                ethnic_group_officialDetails = officialDetails.get('ethnic_group')
-                if ethnic_group_officialDetails:
-                    for id in ethnic_group_officialDetails:
-                        object = ghelp().getobject(MODELS_USER.Ethnicgroup, {'id': id})
-                        if object:
-                            if object.name != 'all': object.user.add(userinstance)
+            emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, PSRLZER_USER.Employeecontactserializer, MODELS_CONT.Address, PSRLZER_CONT.Addressserializer, userinstance, emergencyContact)
+            academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, PSRLZER_USER.Employeeacademichistoryserializer, userinstance, academicRecord)
+            previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, PSRLZER_USER.Employeeexperiencehistoryserializer, userinstance, previousExperience)
 
-                leavepolicy_salaryAndLeaves = salaryAndLeaves.get('leavepolicy')
-                if isinstance(leavepolicy_salaryAndLeaves, list):
-                    if leavepolicy_salaryAndLeaves:
-                        for id in leavepolicy_salaryAndLeaves:
-                            leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': id})
-                            if leavepolicy:
-                                # if userinstance in leavepolicy.applicable_for.user.all() or leavepolicy.applicable_for.name == 'all':
-                                if not MODELS_LEAV.Leavepolicyassign.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
-                                    MODELS_LEAV.Leavepolicyassign.objects.create(user=userinstance, leavepolicy=leavepolicy)
-                                    if not MODELS_LEAV.Leavesummary.objects.filter(user=userinstance, leavepolicy=leavepolicy).exists():
-                                        MODELS_LEAV.Leavesummary.objects.create(
-                                            user=userinstance,
-                                            leavepolicy=leavepolicy,
-                                            fiscal_year=fiscal_year,
-                                            total_allocation=leavepolicy.allocation_days,
-                                            total_consumed=0,
-                                            total_left=leavepolicy.allocation_days
-                                        )
-                emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, PSRLZER_USER.Employeecontactserializer, MODELS_CONT.Address, PSRLZER_CONT.Addressserializer, userinstance, emergencyContact)
-                academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, PSRLZER_USER.Employeeacademichistoryserializer, userinstance, academicRecord)
-                previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, PSRLZER_USER.Employeeexperiencehistoryserializer, userinstance, previousExperience)
+            faileddetails = []
+            faileddetails.extend(emergencycontact['failed'])
+            faileddetails.extend(academicrecord['failed'])
+            faileddetails.extend(previousexperience['failed'])
 
-                faileddetails = []
-                faileddetails.extend(emergencycontact['failed'])
-                faileddetails.extend(academicrecord['failed'])
-                faileddetails.extend(previousexperience['failed'])
+            # message
+            emergencycontact['message']
+            academicrecord['message']
+            previousexperience['message']
 
-                # message
-                emergencycontact['message']
-                academicrecord['message']
-                previousexperience['message']
-
-                # upload documents
-                for index in documentsindex:
-                    title=request.data.get(f'uploadDocuments[{index}][title]')
-                    attachment = request.FILES.get(f'uploadDocuments[{index}][attachment]')
-                    if bool(title) and bool(attachment):
-                        employeedocsinstance=MODELS_USER.Employeedocs()
-                        employeedocsinstance.user=userinstance
-                        employeedocsinstance.title=title
-                        employeedocsinstance.attachment=attachment
-                        employeedocsinstance.save()
+            # upload documents
+            for index in documentsindex:
+                title=request.data.get(f'uploadDocuments[{index}][title]')
+                attachment = request.FILES.get(f'uploadDocuments[{index}][attachment]')
+                if bool(title) and bool(attachment):
+                    employeedocsinstance=MODELS_USER.Employeedocs()
+                    employeedocsinstance.user=userinstance
+                    employeedocsinstance.title=title
+                    employeedocsinstance.attachment=attachment
+                    employeedocsinstance.save()
 
 
 
-                department_officialDetails = ghelp().getobject(MODELS_DEPA.Department, {'id': officialDetails.get('department')})
-                if department_officialDetails: department_officialDetails.user.add(userinstance)
-                # company_officialDetails = ghelp().getobject(MODELS_COM.Company, {'id': officialDetails.get('company')})
-                # branch_officialDetails = ghelp().getobject(MODELS_BR.Branch, {'id': officialDetails.get('branch')})
-                # department_officialDetails = ghelp().getobject('''MODELS_BR.Branch''', {'id': officialDetails.get('department')})
-                    
-                return Response({'data': SRLZER_USER.Userserializer(userinstance, many=False).data, 'message': [], 'status': 'success'}, status=status.HTTP_201_CREATED)
-            else: return Response({'data': {}, 'message': ['employee id is missing!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-        else: return Response({'data': {}, 'message': ['please add valid Leavepolicy!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': ['please add general settings first!!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+            department_officialDetails = ghelp().getobject(MODELS_DEPA.Department, {'id': officialDetails.get('department')})
+            if department_officialDetails: department_officialDetails.user.add(userinstance)
+            # company_officialDetails = ghelp().getobject(MODELS_COM.Company, {'id': officialDetails.get('company')})
+            # branch_officialDetails = ghelp().getobject(MODELS_BR.Branch, {'id': officialDetails.get('branch')})
+            # department_officialDetails = ghelp().getobject('''MODELS_BR.Branch''', {'id': officialDetails.get('department')})
+            
+            response_data = SRLZER_USER.Userserializer(userinstance, many=False).data
+            response_successflag = 'success'
+            response_status = status.HTTP_201_CREATED
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
 @api_view(['GET'])
@@ -1108,6 +1139,7 @@ def updateprofile(request, userid=None):
         choice_fields=choice_fields,
         fields_regex=fields_regex
     )
+    if response_successflag == 'success': response_data = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -1132,21 +1164,104 @@ def updatepersonaldetails(request, userid=None):
                     id=user.first().present_address.id,
                     data=requesteddata['present_address']
                 )
-                response_message.extend(responsemessage)
-            del requesteddata['present_address']
-
-        if 'permanent_address' in requesteddata:
-            if user.first().permanent_address:
-                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                if responsesuccessflag == 'success': del requesteddata['present_address']
+                elif responsesuccessflag == 'error': response_message.extend(responsemessage)
+            else:
+                if 'id' in requesteddata['present_address']: del requesteddata['present_address']['id']
+                required_fields = ['address', 'city', 'state_division', 'country']
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                     classOBJ=MODELS_CONT.Address,
                     Serializer=PSRLZER_CONT.Addressserializer,
-                    id=user.first().permanent_address.id,
-                    data=requesteddata['permanent_address']
+                    data=requesteddata['present_address'],
+                    required_fields=required_fields
                 )
-                response_message.extend(responsemessage)
-            del requesteddata['permanent_address']
+                if responsesuccessflag == 'success': requesteddata.update({'present_address': responsedata.data['id']})
+                elif responsesuccessflag == 'error':
+                    response_message.extend(responsemessage)
+                    del requesteddata['present_address']
 
-        allowed_fields = ['fathers_name', 'mothers_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no']
+        same_as_present_address = False
+        if 'permanentAddressSameAsPresent' in requesteddata:
+            if requesteddata['permanentAddressSameAsPresent']: same_as_present_address = True
+
+        if same_as_present_address:
+            if user.first().present_address:
+                if user.first().permanent_address:
+                    if user.first().present_address.id != user.first().permanent_address.id:
+                        previous_permanent_address = user.first().permanent_address
+                        user.update(permanent_address=user.first().present_address)
+                        if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
+                        previous_permanent_address.delete()
+                else:
+                    user.update(permanent_address=user.first().present_address)
+                    if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
+            else:
+                user.update(permanent_address=None)
+                if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
+        else:
+            if 'permanent_address' in requesteddata:
+                if user.first().present_address:
+                    if user.first().permanent_address:
+                        if user.first().present_address.id != user.first().permanent_address.id:
+                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                                classOBJ=MODELS_CONT.Address,
+                                Serializer=PSRLZER_CONT.Addressserializer,
+                                id=user.first().permanent_address.id,
+                                data=requesteddata['permanent_address']
+                            )
+                            if responsesuccessflag == 'success': del requesteddata['permanent_address']
+                            elif responsesuccessflag == 'error': response_message.extend(responsemessage)
+                        else:
+                            if 'id' in requesteddata['permanent_address']: del requesteddata['permanent_address']['id']
+                            required_fields = ['address', 'city', 'state_division', 'country']
+                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                                classOBJ=MODELS_CONT.Address,
+                                Serializer=PSRLZER_CONT.Addressserializer,
+                                data=requesteddata['permanent_address'],
+                                required_fields=required_fields
+                            )
+                            if responsesuccessflag == 'success': requesteddata.update({'permanent_address': responsedata.data['id']})
+                            elif responsesuccessflag == 'error':
+                                response_message.extend(responsemessage)
+                                del requesteddata['permanent_address']
+                    else:
+                        if 'id' in requesteddata['permanent_address']: del requesteddata['permanent_address']['id']
+                        required_fields = ['address', 'city', 'state_division', 'country']
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                            classOBJ=MODELS_CONT.Address,
+                            Serializer=PSRLZER_CONT.Addressserializer,
+                            data=requesteddata['permanent_address'],
+                            required_fields=required_fields
+                        )
+                        if responsesuccessflag == 'success': requesteddata.update({'permanent_address': responsedata.data['id']})
+                        elif responsesuccessflag == 'error':
+                            response_message.extend(responsemessage)
+                            del requesteddata['permanent_address']
+                else:
+                    if user.first().permanent_address:
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                            classOBJ=MODELS_CONT.Address,
+                            Serializer=PSRLZER_CONT.Addressserializer,
+                            id=user.first().permanent_address.id,
+                            data=requesteddata['permanent_address']
+                        )
+                        if responsesuccessflag == 'success': del requesteddata['permanent_address']
+                        elif responsesuccessflag == 'error': response_message.extend(responsemessage)
+                    else:
+                        if 'id' in requesteddata['permanent_address']: del requesteddata['permanent_address']['id']
+                        required_fields = ['address', 'city', 'state_division', 'country']
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                            classOBJ=MODELS_CONT.Address,
+                            Serializer=PSRLZER_CONT.Addressserializer,
+                            data=requesteddata['permanent_address'],
+                            required_fields=required_fields
+                        )
+                        if responsesuccessflag == 'success': requesteddata.update({'permanent_address': responsedata.data['id']})
+                        elif responsesuccessflag == 'error':
+                            response_message.extend(responsemessage)
+                            del requesteddata['permanent_address']
+
+        allowed_fields = ['fathers_name', 'mothers_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no', 'permanent_address', 'permanent_address']
         unique_fields = ['nid_passport_no', 'tin_no']
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
             classOBJ=MODELS_USER.User,
@@ -1156,7 +1271,7 @@ def updatepersonaldetails(request, userid=None):
             allowed_fields=allowed_fields,
             unique_fields=unique_fields
         )
-        response_data = responsedata
+        response_data = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
         response_message.extend(responsemessage)
         response_successflag = responsesuccessflag
         response_status = responsestatus
@@ -1197,27 +1312,28 @@ def updateofficialdetails(request, userid=None):
         # );
         # '''
 
-        # 'company'
-        if 'company' in requestdata:
-            company = requestdata['company']
-            for department in user.first().departmenttwo.all():
-                if company != department.company.id: department.user.remove(user.first())
-
-        # 'branch'
-        if 'branch' in requestdata:
-            branch = requestdata['branch']
-            for department in user.first().departmenttwo.all():
-                if branch != department.branch.id: department.user.remove(user.first())
-
+        
+        
         # 'ethnic_group'
         if 'ethnic_group' in requestdata:
-            ethnic_group = requestdata['ethnic_group']
-            ethnic_group = MODELS_USER.Ethnicgroup.objects.filter(id=ethnic_group)
-            if ethnic_group.exists():
-                ethnicgroups = user.first().ethnicgroup_set.all()
-                for ethnicgroup in ethnicgroups:
-                    ethnicgroup.user.remove(user.first())
-                ethnic_group.first().user.add(user.first())
+            new_ethnicgroupids = requestdata['ethnic_group']
+            if isinstance(new_ethnicgroupids, list):
+                add_ethnicgroups = []
+                remove_ethnicgroups = []
+
+                previous_ethnicgroups = {f'{each.id}': each for each in user.first().ethnicgroup_user.all()}
+                new_ethnicgroupids = [str(ethnicgroupid) for ethnicgroupid in new_ethnicgroupids]
+                for new_ethnicgroupid in new_ethnicgroupids:
+                    if new_ethnicgroupid not in previous_ethnicgroups:
+                        ethnicgroup = MODELS_USER.Ethnicgroup.objects.filter(id=new_ethnicgroupid)
+                        if ethnicgroup.exists(): add_ethnicgroups.append(ethnicgroup.first())
+                for id in previous_ethnicgroups.keys():
+                    if id not in new_ethnicgroupids:
+                        ethnicgroup = MODELS_USER.Ethnicgroup.objects.filter(id=id)
+                        if ethnicgroup.exists(): remove_ethnicgroups.append(ethnicgroup.first())
+                for remove_ethnicgroup in remove_ethnicgroups: remove_ethnicgroup.user.remove(user.first())
+                for add_ethnicgroup in add_ethnicgroups: add_ethnicgroup.user.add(user.first())
+            else: response_message.append('please provide ethnic_group as list!')
 
         allowed_fields = ['official_email', 'official_phone', 'employee_type', 'shift', 'grade', 'role_permission', 'official_note', 'joining_date', 'expense_approver', 'leave_approver', 'shift_request_approver']
         unique_fields = ['official_email', 'official_phone']
@@ -1239,7 +1355,38 @@ def updateofficialdetails(request, userid=None):
             choice_fields=choice_fields,
             fields_regex=fields_regex
         )
-        response_data = responsedata
+        if responsesuccessflag == 'success':
+
+            userserializer = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False)
+            employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id')
+
+            if userserializer.instance.joining_date != employeejobhistory.first().date:
+                MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(date=userserializer.instance.joining_date)
+            
+            employeejobhistory = employeejobhistory.last()
+            # 'company'
+            if 'company' in requestdata:
+                companyid = requestdata['company']
+                company = MODELS_COMP.Company.objects.filter(id=companyid)
+                if company.exists():
+                    company = company.first()
+                    if employeejobhistory.company:
+                        if company.id != employeejobhistory.company.id:
+                            employeejobhistory.department.user.remove(user.first())
+                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(company=company, branch=None, department=None)
+            # 'branch'
+            if 'branch' in requestdata:
+                branchid = requestdata['branch']
+                branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
+                if branch.exists():
+                    branch = branch.first()
+                    if employeejobhistory.department:
+                        if employeejobhistory.branch:
+                            if branch.id != employeejobhistory.branch.id:
+                                employeejobhistory.department.user.remove(user.first())
+                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(branch=branch, department=None)
+            response_data = userserializer.data
+        
         response_message.extend(responsemessage)
         response_successflag = responsesuccessflag
         response_status = responsestatus
@@ -1262,96 +1409,124 @@ def updatesalaryleaves(request, userid=None):
         if 'bankaccount' in requesteddata:
             if user.first().bank_account:
                 bankaccount = requesteddata['bankaccount']
-                bankaccountid = user.first().bank_account.id
+
+                if user.first().bank_account.address:
+                    if 'address' in bankaccount:
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                            classOBJ=MODELS_CONT.Address,
+                            Serializer=PSRLZER_CONT.Addressserializer,
+                            id=user.first().bank_account.address.id,
+                            data=bankaccount['address']
+                        )
+                        if responsesuccessflag == 'error':
+                            response_message.extend([f'bank account address\'s {each}' for each in responsemessage])
+                            del bankaccount['address']
+                        elif responsesuccessflag == 'success': del bankaccount['address']
+                else:
+                    if 'id' in bankaccount['address']: del bankaccount['address']['id']
+                    required_fields = ['address', 'city', 'state_division', 'country']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_CONT.Address,
+                        Serializer=PSRLZER_CONT.Addressserializer,
+                        data=bankaccount['address'],
+                        required_fields=required_fields
+                    )
+                    if responsesuccessflag == 'success': bankaccount.update({'address': responsedata.data['id']})
+                    elif responsesuccessflag == 'error':
+                        response_message.extend(responsemessage)
+                        del bankaccount['address']
 
                 responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                     classOBJ=MODELS_CONT.Bankaccount,
                     Serializer=PSRLZER_CONT.Bankaccountserializer,
-                    id=bankaccountid,
+                    id=user.first().bank_account.id,
                     data=bankaccount
                 )
-                if responsesuccessflag == 'error':
-                    response_message.extend(responsemessage)
-                elif responsesuccessflag == 'success':
-                    response_successflag = 'success'
-                    response_status = status.HTTP_200_OK
+                if responsesuccessflag == 'success': bankaccount.update({'bankaccount': responsedata.data['id']})
+                elif responsesuccessflag == 'error':
+                    del bankaccount['bankaccount']
+                    response_message.extend([f'Bank Account\'s {each}' for each in responsemessage])
+            else:
+                classOBJpackage = {'Address': MODELS_CONT.Address, 'Bankaccount': MODELS_CONT.Bankaccount}
+                serializerOBJpackage = {'Address': PSRLZER_CONT.Addressserializer, 'Bankaccount': PSRLZER_CONT.Bankaccountserializer}
 
-                if user.first().bank_account.address:
-                    if 'address' in bankaccount:
-                        address = bankaccount['address']
-                        addressid = user.first().bank_account.address.id
-                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                            classOBJ=MODELS_CONT.Address,
-                            Serializer=PSRLZER_CONT.Addressserializer,
-                            id=addressid,
-                            data=address
-                        )
-                        if responsesuccessflag == 'error':
-                            response_message.extend(responsemessage)
-                        elif responsesuccessflag == 'success':
-                            response_successflag = 'success'
-                            response_status = status.HTTP_200_OK
-            del requesteddata['bankaccount']
-
+                addbankaccountdetails=ghelp().addbankaccount(classOBJpackage, serializerOBJpackage, requesteddata['bankaccount'])
+                if addbankaccountdetails['flag']: requesteddata.update({'bankaccount': addbankaccountdetails['instance'].id})
+                else:
+                    response_message.extend(addbankaccountdetails['message'])
+                    del requesteddata['bankaccount']
         # leavepolicy
         if 'leavepolicy' in requesteddata:
-            leavepolicylist = requesteddata['leavepolicy']
-            if isinstance(leavepolicylist, list):
-                if leavepolicylist:
-                    generalsettings = MODELS_SETT.Generalsettings.objects.all().order_by('id')
-                    if generalsettings.exists():
-                        fiscalyear = generalsettings.last().fiscalyear
-                        keepleavepolicy = []
-                        for id in leavepolicylist:
-                            leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': id})
-                            if leavepolicy:
-                                # create leavepolicyassign 
-                                leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=leavepolicy)
-                                if not leavepolicyassign.exists():
-                                    MODELS_LEAV.Leavepolicyassign.objects.create(user=user.first(), leavepolicy=leavepolicy)
+            new_leavepolicyids = requesteddata['leavepolicy']
+            if isinstance(new_leavepolicyids, list):
+                fiscalyear_response = ghelp().findFiscalyear(MODELS_SETT.Generalsettings)
+                if fiscalyear_response['fiscalyear']:
+                    add_leavepolicys = []
+                    remove_leavepolicys = []
 
-                                # create leavesummary 
-                                leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=leavepolicy)
-                                if not leavesummary.exists():
-                                    MODELS_LEAV.Leavesummary.objects.create(
-                                        user=user.first(),
-                                        leavepolicy=leavepolicy,
-                                        fiscal_year=fiscalyear,
-                                        total_allocation=leavepolicy.allocation_days,
-                                        total_consumed=0,
-                                        total_left=leavepolicy.allocation_days
-                                    )
-                                keepleavepolicy.append(leavepolicy)
-                            else: response_message.append(f'leavepolicy doesn\'t exist with this id({id}!')
+                    previous_leavepolicys = {f'{each.id}': each for each in MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first().id)}
+                    new_leavepolicyids = [str(leavepolicyid) for leavepolicyid in new_leavepolicyids]
+                    for new_leavepolicyid in new_leavepolicyids:
+                        if new_leavepolicyid not in previous_leavepolicys:
+                            leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=new_leavepolicyid)
+                            if leavepolicy.exists(): add_leavepolicys.append(leavepolicy.first())
+                    for id in previous_leavepolicys.keys():
+                        if id not in new_leavepolicyids:
+                            leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=id)
+                            if leavepolicy.exists(): remove_leavepolicys.append(leavepolicy.first())
+
+                    for remove_leavepolicy in remove_leavepolicys:
+                        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                        if leavesummary.exists():
+                            if leavesummary.first().total_consumed == 0:
+                                leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                                if leaverequests.exists(): leaverequests.delete()
+                                leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                                if leavepolicyassign.exists(): leavepolicyassign.delete()
+                                leavesummary.delete()
+                            else:
+                                response_message.append(f'couldn\'t remove {remove_leavepolicy.name} leavepolicy({remove_leavepolicy.id}), because you have already consumed!')
+                        else:
+                            leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                            if leaverequests.exists(): leaverequests.delete()
+                            leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                            if leavepolicyassign.exists(): leavepolicyassign.delete()
+                    
+                    for add_leavepolicy in add_leavepolicys:
+                         # create leavepolicyassign 
+                        leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
+                        if not leavepolicyassign.exists():
+                            MODELS_LEAV.Leavepolicyassign.objects.create(user=user.first(), leavepolicy=add_leavepolicy)
                         
-                        leavepolicyassigns = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first())
-                        for leavepolicyassign in leavepolicyassigns:
-                            if leavepolicyassign.leavepolicy not in keepleavepolicy:
-                                leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=leavepolicyassign.leavepolicy)
-                                if leavesummary.exists():
-                                    if leavesummary.first().total_consumed:
-                                        response_message.append(f'couldn\'t remove leavepolicy({leavepolicyassign.leavepolicy.id})')
-                                    else:
-                                        leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=leavepolicyassign.leavepolicy)
-                                        if leaverequests.exists: leaverequests.delete()
-                                        leavepolicyassign.delete()
-                                        leavesummary.delete()
-                                else:
-                                    leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=leavepolicyassign.leavepolicy)
-                                    if leaverequests.exists: leaverequests.delete()
-                                    leavepolicyassign.delete()
-                            else: response_message.append(f'leavepolicy doesn\'t exist with this id({id}!')
-                    else: response_message.append('generalsettings doesn\'t exist!')
-                else: response_message.append('leavepolicy list is empty.')
-            else: response_message.append('provide leavepolicy within list.')
+                        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
+                        if not leavesummary.exists():
+                            MODELS_LEAV.Leavesummary.objects.create(
+                                user=user.first(),
+                                leavepolicy=add_leavepolicy,
+                                fiscal_year=fiscalyear_response['fiscalyear'],
+                                total_allocation=add_leavepolicy.allocation_days,
+                                total_consumed=0,
+                                total_left=add_leavepolicy.allocation_days
+                            )
+
+                else: response_message.extend(fiscalyear_response['message'])
+            else: response_message.append('please provide leavepolicy as list!')
             del requesteddata['leavepolicy']
-        # earningpolicy
-        # deductionpolicy
         
-        allowed_fields = ['payment_in', 'gross_salary']
-        choice_fields = [
-            {'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}
-        ]
+        gross_salary = None
+        if 'gross_salary' in requesteddata:
+            generalsettings = ghelp().findGeneralsettings(MODELS_SETT.Generalsettings)
+            if generalsettings.basic_salary_percentage:
+                try:
+                    gross_salary = float(requesteddata['gross_salary'])
+                    basic_salary_percentage = generalsettings.basic_salary_percentage
+                    basic_salary = (basic_salary_percentage*gross_salary)/100
+                    requesteddata.update({'basic_salary':basic_salary})
+                    prev_salary = user.first().gross_salary
+                except: pass
+
+        allowed_fields = ['payment_in', 'gross_salary', 'basic_salary', 'bankaccount']
+        choice_fields = [{'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}]
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
             classOBJ=MODELS_USER.User,
             Serializer=PSRLZER_USER.Userserializer,
@@ -1361,7 +1536,15 @@ def updatesalaryleaves(request, userid=None):
             choice_fields=choice_fields
         )
         if responsesuccessflag == 'success':
-            response_data.update(response_data)
+            employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id').last()
+            
+            if gross_salary:
+                increment_amount = gross_salary - prev_salary
+                percentage = (increment_amount*100)/prev_salary
+
+                MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=gross_salary, increment_amount=increment_amount, percentage=percentage)
+            
+            response_data = responsedata
             response_successflag=responsesuccessflag
             response_status=responsestatus
         elif responsesuccessflag == 'error':

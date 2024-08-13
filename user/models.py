@@ -106,7 +106,7 @@ class Religion(Basic):
 class User(AbstractUser, Timedetailscode):
     uniqueid = models.CharField(max_length=18, unique=True, default=generate_unique_code)
 
-    designation = models.ForeignKey(Designation, on_delete=models.SET_NULL, blank=True, null=True)
+    designation = models.ForeignKey(Designation, on_delete=models.SET_NULL, blank=True, null=True) # Mandatory
     # company = models.ForeignKey(MODELS_COMP.Company, on_delete=models.SET_NULL, blank=True, null=True)
     # branch = models.ForeignKey(MODELS_BRAN.Branch, on_delete=models.SET_NULL, blank=True, null=True)
     ###
@@ -133,7 +133,7 @@ class User(AbstractUser, Timedetailscode):
     official_phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
     employee_type = models.CharField(max_length=30, choices=CHOICE.EMPLOYEE_TYPE, blank=True, null=True)
     gross_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
-    besic_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
+    basic_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
     payment_in = models.CharField(max_length=50, choices=CHOICE.PAYMENT_IN, blank=True, null=True)
     #######
     #########
@@ -170,7 +170,8 @@ class User(AbstractUser, Timedetailscode):
     def save(self, *args, **kwargs):
         if self.marital_status in [item[1] for item in CHOICE.MARITAL_STATUS if item[1] != 'Married']: self.spouse_name = ''
         super().save(*args, **kwargs)
-    
+
+
 class Employeecontact(Basic):
     name =  models.CharField(max_length=150)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_contact')
@@ -197,7 +198,7 @@ class Employeeacademichistory(Basic):
     board_institute_name = models.CharField(max_length=150)
     certification = models.CharField(max_length=150)
     level = models.CharField(max_length=50)
-    score_grade = models.CharField(max_length=4)
+    score_grade = models.CharField(max_length=4) # Non Mandatory
     year_of_passing = models.IntegerField(validators=[MinValueValidator(1950)])
 
     def __str__(self):
@@ -213,39 +214,14 @@ class Employeeexperiencehistory(Basic):
 
     def __str__(self):
         return f'{self.company_name}'
-    
-# class Employeejobhistory(Basic):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     effective_from = models.DateField()
-#     increment_on = models.CharField(max_length=50, choices=CHOICE.INCREMENT_ON, blank=True, null=True)
-    
-#     prev_company_id = models.IntegerField(blank=True, null=True)
-#     prev_branch_id = models.IntegerField(blank=True, null=True)
-#     prev_department_id = models.IntegerField(blank=True, null=True)
-#     prev_designation_id = models.IntegerField(blank=True, null=True)
-
-#     prev_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
-#     new_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
-#     increment_amount = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
-#     percentage = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)], blank=True, null=True)
-#     status = models.CharField(max_length=50, choices=CHOICE.JOBHISTORY_STATUS, blank=True, null=True)
-
-#     def __str__(self):
-#         return f'{self.company_name}'
 
 class Ethnicgroup(Basic):
     name = models.CharField(max_length=50, unique=True)
-    user = models.ManyToManyField(User, blank=True)
+    user = models.ManyToManyField(User, blank=True, related_name='ethnicgroup_user')
 
     def __str__(self):
         return f'{self.name}'
 
-# class Groupofdevicegroup(Basic):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     devicegroup = models.ManyToManyField(Devicegroup, blank=True)
-
-#     def __str__(self):
-#         return f'{self.user.username}'
 
 class Shiftchangelog(Basic):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shiftchangelogone')
@@ -309,35 +285,6 @@ class Shiftchangerequest(Basic):
                 if shiftchangelog.exists(): shiftchangelog.delete()
 
         super().save(*args, **kwargs)
-
-class Salaryallocation(Basic):
-    name = models.CharField(max_length=100, unique=True)
-    percentage = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)], default=0)
-
-    def __str__(self):
-        return f'{self.name} - {self.percentage}'
-    def clean(self):
-        errors=[]
-        percentage = Salaryallocation.objects.all().aggregate(Sum('percentage'))['percentage__sum']
-        if percentage is not None:
-            if percentage+self.percentage>100:
-                errors.append(f'{self.percentage} will exceed 100%!')
-        if errors: raise ValidationError(errors)
-
-# class Employeeincrementrecord(Basic):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     effective_from = models.DateField()
-#     increment_on = models.CharField(max_length=50, blank=True, null=True)
-#     prev_salary = models.FloatField(validators=[MinValueValidator(0)])
-#     new_salary = models.FloatField(validators=[MinValueValidator(0)])
-#     increment_amount = models.FloatField(validators=[MinValueValidator(0)])
-#     percentage = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)])
-#     bank_amount = models.FloatField(validators=[MinValueValidator(0)])
-#     cash_amount = models.FloatField(validators=[MinValueValidator(0)])
-#     status = models.CharField(max_length=50, choices=(('Joining', 'Joining'), ('Increment', 'Increment'), ('Promotion', 'Promotion')), blank=True, null=True)
-
-#     def __str__(self):
-#         return f'{self.user.username} - {self.percentage}'
     
 class Bonus(Basic):
     title = models.CharField(max_length=100)
@@ -354,24 +301,18 @@ class Bonus(Basic):
 
     def __str__(self):
         return f'{self.title} - {self.amount} - {self.dummy_amount}'
-    
-class Mobilenumber(Basic):
-    phone_number = models.CharField(max_length=14, validators=[validate_phone_number], unique=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f'{self.phone_number} - {self.user.username}'
     
 class Note(Basic):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='noteone')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='note_user')
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
     priority  = models.CharField(max_length=20, choices=CHOICE.PRIORITY)
     reminder = models.DateField(blank=True, null=True)
     status = models.BooleanField(default=False)
 
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='notetwo')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='notethree')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='note_created_by')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='note_updated_by')
     
 
     def __str__(self):

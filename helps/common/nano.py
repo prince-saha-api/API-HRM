@@ -167,6 +167,19 @@ class Nanohelps(Picohelps):
                     objvalue = getattr(classobj.first(), key, '')
                     if objvalue not in value: response_message.append(f'{key} (it\'s already {objvalue}.)')
 
+    def findFiscalyear(self, Generalsettings): # New
+        response_message = []
+        fiscalyear = None
+        generalsettings = self.findGeneralsettings(Generalsettings)
+        if generalsettings:
+            if generalsettings.fiscalyear: fiscalyear = generalsettings.fiscalyear
+            else: response_message.append('fiscalyear is missing!')
+        else: response_message.append('general-settings is missing!')
+        return {
+            'fiscalyear': fiscalyear,
+            'message': response_message
+        }
+
     def getFiscalyearBoundary(self, month, monthdict): # New
         month = monthdict.get(month)
         if month:

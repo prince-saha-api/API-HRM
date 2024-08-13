@@ -1,5 +1,6 @@
 from helps.common.mini import Minihelps
 from datetime import datetime, date, timedelta
+from helps.choice import common as CHOICE
 import calendar
 
 class Generichelps(Minihelps):
@@ -95,34 +96,49 @@ class Generichelps(Minihelps):
                 if 'address' in salaryAndLeaves['bank_account']['address']: salaryAndLeaves['bank_account']['address']['address'] = salaryAndLeaves['bank_account']['address']['address'][0]
 
 
-    def createuser(self, classOBJpackage, serializerOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, photo, usermodelsuniquefields, required_fields, created_by): # New
+    def createuser(self, classOBJpackage, serializerOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, photo, created_by): # New
         response = {'flag': True, 'message': []}
-        details = self.getuserdetails(classOBJpackage, serializerOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, created_by)
-        if not details['flag']:
-            response['message'].extend(details['message'])
-            response['flag'] = False
-        # required fields are checking
-        for required_field in required_fields:
-            if required_field in details['data']:
-                if not bool(details['data'][required_field]):
-                    response['message'].append(f'user\'s {required_field} field is required!')
-                    response['flag'] = False
-            else:
-                response['message'].append(f'user\'s {required_field} field is required!')
-                response['flag'] = False
         
-        # unique fields are checking
-        uniquefiels = self.isuniquefielsexist(classOBJpackage['User'], details['data'], usermodelsuniquefields)
-        if uniquefiels['flag']:
-            response['message'].extend([f'user\'s {each}' for each in uniquefiels['message']])
-            response['flag'] = False
+        details = self.getuserdetails(classOBJpackage, serializerOBJpackage, createdInstance, personalDetails, officialDetails, salaryAndLeaves, photo, created_by)
+        if not details['flag']: response['flag'] = False
+        response['message'].extend(details['message'])
 
         if response['flag']:
-            userinstance_response = self.createuserinstance(classOBJpackage['User'], details['data'], photo)
-            if userinstance_response['flag']: response.update({'userinstance': userinstance_response['instance']})
-            else:
+            required_fields = ['username', 'password', 'first_name', 'official_id']
+            unique_fields = ['personal_email', 'personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_email', 'official_phone', 'rfid']
+            choice_fields = [
+                {'name': 'blood_group', 'values': [item[1] for item in CHOICE.BLOOD_GROUP]},
+                {'name': 'marital_status', 'values': [item[1] for item in CHOICE.MARITAL_STATUS]},
+                {'name': 'gender', 'values': [item[1] for item in CHOICE.GENDER]},
+                {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
+                {'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]},
+                {'name': 'job_status', 'values': [item[1] for item in CHOICE.JOB_STATUS]}
+            ]
+            fields_regex = [
+                {'field': 'dob', 'type': 'date'},
+                {'field': 'personal_email', 'type': 'email'},
+                {'field': 'personal_phone', 'type': 'phonenumber'},
+                {'field': 'official_id', 'type': 'employeeid'},
+                {'field': 'official_email', 'type': 'email'},
+                {'field': 'official_phone', 'type': 'phonenumber'},
+                {'field': 'joining_date', 'type': 'date'}
+            ]
+            responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                classOBJ=classOBJpackage['User'],
+                Serializer=serializerOBJpackage['User'],
+                data=details['data'],
+                required_fields=required_fields,
+                unique_fields=unique_fields,
+                choice_fields=choice_fields,
+                fields_regex=fields_regex
+            )
+            if responsesuccessflag == 'error':
                 response['flag'] = False
+                response['message'].extend(responsemessage)
                 response['message'].append('couldn\'t create user instance, something went wrong!')
+            if responsesuccessflag == 'success':
+                response['message'].extend(responsemessage)
+                response.update({'userinstance': responsedata.instance})
         return response
     
 

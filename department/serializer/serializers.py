@@ -6,7 +6,6 @@ from department import models
 
 class Departmentserializer(serializers.ModelSerializer):
     address = SRLZER_CONT.Addressserializer(many=False)
-    branch = SRLZER_BRAN.Branchserializer(many=False)
     class Meta:
         model = models.Department
         fields = '__all__'

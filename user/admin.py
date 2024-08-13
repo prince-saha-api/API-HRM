@@ -16,12 +16,8 @@ admin.site.register([
     models.Employeeacademichistory,
     models.Employeeexperiencehistory,
     models.Ethnicgroup,
-    # models.Groupofdevicegroup,
     models.Shiftchangelog,
     models.Shiftchangerequest,
-    models.Salaryallocation,
-    # models.Employeeincrementrecord,
     models.Bonus,
-    models.Mobilenumber,
     models.Note
 ])

@@ -24,8 +24,7 @@ def getdepartments(request):
         {'name': 'email', 'convert': None, 'replace':'email__icontains'},
         {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
         {'name': 'fax', 'convert': None, 'replace':'fax__icontains'},
-        {'name': 'company', 'convert': None, 'replace':'company'},
-        {'name': 'branch', 'convert': None, 'replace':'branch'}
+        {'name': 'company', 'convert': None, 'replace':'company'}
     ]
     departments = MODELS_DEPA.Department.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
@@ -49,10 +48,10 @@ def getdepartments(request):
 # @deco.get_permission(['get company info', 'all'])
 def adddepartment(request):
     response_message = []
-    departmentObj = request.data
+    requestdata = request.data.copy()
 
-    if 'address' in departmentObj:
-        addressobj = departmentObj['address']
+    if 'address' in requestdata:
+        addressobj = requestdata['address']
 
         required_fields = ['address', 'city', 'state_division', 'country']
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
@@ -61,11 +60,12 @@ def adddepartment(request):
             data=addressobj,
             required_fields=required_fields
         )
-        if responsesuccessflag == 'success':
-            if responsedata: departmentObj.update({'address': responsedata.data['id']})
+        if responsesuccessflag == 'success': requestdata.update({'address': responsedata.instance.id})
+        elif responsesuccessflag == 'error': del requestdata['address']
+
 
     unique_fields = ['email', 'phone', 'fax']
-    required_fields = ['company', 'branch']
+    required_fields = ['company']
     fields_regex = [
         {'field': 'email', 'type': 'email'},
         {'field': 'phone', 'type': 'phonenumber'}
@@ -73,15 +73,13 @@ def adddepartment(request):
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
         classOBJ=MODELS_DEPA.Department, 
         Serializer=PSRLZER_DEPA.Departmentserializer, 
-        data=departmentObj, 
+        data=requestdata, 
         unique_fields=unique_fields, 
         required_fields=required_fields,
         fields_regex=fields_regex
     )
     if response_successflag == 'error':
-        if 'address' in departmentObj:
-            address = MODELS_CONT.Address.objects.filter(id=departmentObj['address'])
-            if address.exists(): address.delete()
+        if 'address' in requestdata: MODELS_CONT.Address.objects.filter(id=requestdata['address']).delete()
     if response_data: response_data = response_data.data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -133,8 +131,7 @@ def deletedepartment(request, departmentid=None):
     classOBJpackage_tocheck_assciaativity = [
         {'model': MODELS_DEPA.Departmentmobilenumber, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
         {'model': MODELS_DEPA.Departmentemail, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_DEPA.Departmentimage, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'prev_department', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_DEPA.Departmentimage, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_DEPA.Department,

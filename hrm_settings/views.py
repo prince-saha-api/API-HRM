@@ -92,9 +92,13 @@ def getweekdays(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getgeneralsettings(request):
-    generalsetting = MODELS_SETT.Generalsettings.objects.all().last()
-    generalsettingsserializer = SRLZER_SETT.Generalsettingsserializer(generalsetting, many=False).data
-    return Response(generalsettingsserializer, status=status.HTTP_200_OK)
+    generalsettingsserializer = {}
+    resonse_status = status.HTTP_400_BAD_REQUEST
+    generalsetting = ghelp().findGeneralsettings(MODELS_SETT.Generalsettings)
+    if generalsetting:
+        generalsettingsserializer.update(SRLZER_SETT.Generalsettingsserializer(generalsetting, many=False).data)
+        resonse_status = status.HTTP_200_OK
+    return Response(generalsettingsserializer, status=resonse_status)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

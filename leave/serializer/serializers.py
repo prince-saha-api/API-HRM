@@ -9,6 +9,7 @@ class Leavepolicyserializer(serializers.ModelSerializer):
         fields = '__all__'
     
 class Leavesummaryserializer(serializers.ModelSerializer):
+    leavepolicy = SRLZER_LEAV.Leavepolicyserializer(many=False)
     class Meta:
         model = models.Leavesummary
         fields = '__all__'

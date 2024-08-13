@@ -75,7 +75,14 @@ class Picohelps:
       end = int(current.timestamp())
       
       return start, end
-
+   
+   def validatejpgimg(self, image):
+        flag = False
+        if image != None:
+            image_name = image._name
+            if '.jpg' in image_name[len(image_name)-4:]:
+                if image.size <= 99999: flag = True
+        return flag
     
    def getUniqueCodePattern(self):
       return f"{datetime.now().strftime('%Y%m%d%H%M%S%f')}"[:18]
@@ -111,6 +118,14 @@ class Picohelps:
                   else: field_value = False
                kwargs.update({field['replace']: field_value})
       return kwargs
+   
+
+   def findGeneralsettings(self, Generalsettings): # New
+      generalsetting = Generalsettings.objects.all()
+      if generalsetting:
+         generalsetting = generalsetting.order_by('id').last()
+      return generalsetting if generalsetting else None
+
    
    def ifExistThanAddToDict(self, fromDict, key, replaceKey, toDict): # New
       if key in fromDict:
@@ -151,10 +166,10 @@ class Picohelps:
                ordpassword.append(str(ord(passwordDict[orderdict['order'][ran_number]]['chars'][passwor_ran_number])+78))
             toDict.update({replaceKey: make_password(password), 'hr_password': '-'.join(ordpassword)})
 
-   
+   # 'email': {'regex': '^[a-z._]*[a-z_0-9]@[a-z]*\.[a-z]*$', 'format': 'demo@demo.com (allowed chars a-z, 0-9, ., _)'}
    def getregex(self, retype): # New
       regexs = {
-         'email': {'regex': '^[a-z._]*[a-z_0-9]@[a-z]*\.[a-z]*$', 'format': 'demo@demo.com (allowed chars a-z, 0-9, ., _)'},
+         'email': {'regex': '^[a-z._0-9]*@[a-z]*\.[a-z]*$', 'format': 'demo@demo.com (allowed chars a-z, 0-9, ., _)'},
          'phonenumber': {'regex': '^01[3456789][0-9]{8}$|^8801[3456789][0-9]{8}$|^\+8801[3456789][0-9]{8}$', 'format': '01700000000, 8801700000000, +8801700000000'},
          'username': {'regex': '^[a-z._]*[0-9]*$', 'format': 'alex (allowed chars a-z, 0-9, ., _)'},
          'employeeid': {'regex': '^API[0-9]{7}$', 'format': 'API1234567'},
@@ -214,7 +229,8 @@ class Picohelps:
                   {'field': 'personal_email', 'type': 'str'},
                   {'field': 'personal_phone', 'type': 'str'},
                   {'field': 'nid_passport_no', 'type': 'str'},
-                  {'field': 'tin_no', 'type': 'str'}
+                  {'field': 'tin_no', 'type': 'str'},
+                  {'field': 'permanentAddressSameAsPresent', 'type': 'bool'}
                ],
                'nestedfields': [
                   {
@@ -254,7 +270,7 @@ class Picohelps:
                   {'field': 'shift_request_approver', 'type': 'int'},
                   {'field': 'allow_overtime', 'type': 'bool'},
                   {'field': 'allow_remote_checkin', 'type': 'bool'},
-                  {'field': 'active_dummy_salary', 'type': 'bool'},
+                  {'field': 'active_dummy_salary', 'type': 'bool'}
                ]
             }
    

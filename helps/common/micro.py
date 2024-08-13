@@ -3,6 +3,31 @@ from helps.common.nano import Nanohelps
 
 class Microhelps(Nanohelps):
 
+    def checkrequiredfiels(self, fields_tobe_checked): # New
+        for index, item in enumerate(fields_tobe_checked):
+            response_message = []
+            data = item.get('data')
+            if isinstance(data, dict):
+                if data:
+                    preparedata = data.copy()
+                    if 'required_fields' in item:
+                        required_fields = item['required_fields']
+                        if isinstance(required_fields, list):
+                            self.filterRequiredFields(required_fields, preparedata, response_message)
+                            if 'to_be_apply' in item:
+                                if isinstance(item['to_be_apply'], list):
+                                    for field in item['to_be_apply']:
+                                        if isinstance(item[field], list):
+                                            if field == 'fields_regex': self.filterRegexFields(item[field], preparedata, response_message)
+                                            elif field == 'choice_fields': self.filterChoiceFields(item[field], preparedata, response_message)
+                                        else: response_message.append(f'index {index}\'s {item[field]} should be list!')
+                                else: response_message.append(f'index {index}\'s to_be_apply should be list!')
+                        else: response_message.append(f'index {index}\'s required_fields should be list!')
+                    else: response_message.append(f'index {index}\'s required_fields is required!')
+                else: response_message.append(f'index {index}\'s data shouldn\'t be empty!')
+            else: response_message.append(f'index {index}\'s data type should be dict!')
+            return response_message
+
     def addtocolass(self, classOBJ=None, Serializer=None, data=None, allowed_fields='__all__', unique_fields=[], required_fields=[], extra_fields={}, choice_fields=[], fields_regex=[]): # New
         response_data = {}
         response_message = []
@@ -125,8 +150,8 @@ class Microhelps(Nanohelps):
             )
             if address_response_successflag == 'success':
                 data.update({'address': address_response_data.instance.id})
-                createdInstance.append(address_response_data.instance)
-            elif response_successflag == 'error':
+                if isinstance(createdInstance, list): createdInstance.append(address_response_data.instance)
+            elif address_response_successflag == 'error':
                 response['flag'] = False
                 response['message'].extend([f'bank account address\'s {each}' for each in address_response_message])
         
@@ -140,5 +165,5 @@ class Microhelps(Nanohelps):
             )
             if response_successflag == 'success':
                 response['instance'] = response_data.instance
-                createdInstance.append(response_data.instance)
+                if isinstance(createdInstance, list): createdInstance.append(response_data.instance)
         return response

@@ -78,7 +78,7 @@ class Bankaccountserializer(serializers.ModelSerializer):
 class Otheruserserializer(serializers.ModelSerializer):
     class Meta:
         model = MODELS_USER.User
-        fields = ['id', 'first_name', 'first_name', 'official_id']
+        fields = ['id', 'first_name', 'last_name', 'official_id', 'photo']
 
 class Employeejobhistoryserializer(serializers.ModelSerializer):
     class Meta:
@@ -97,19 +97,16 @@ class Companyserializer(serializers.ModelSerializer):
         model = MODELS_COMP.Company
         fields = ['id', 'basic_information']
 
-class Branchserializer(serializers.ModelSerializer):
-    company=Companyserializer(many=False)
-    address=Addressserializer(many=False)
-    class Meta:
-        model = MODELS_BRAN.Branch
-        exclude = ('is_active', 'code', 'created_at', 'updated_at')
-
 class Departmentserializer(serializers.ModelSerializer):
-    branch=Branchserializer(many=False)
     address=Addressserializer(many=False)
     class Meta:
         model = MODELS_DEPA.Department
         exclude = ('manager', 'company', 'user', 'is_active', 'code', 'created_at', 'updated_at')
+
+class Ethnicgroupserializer(serializers.ModelSerializer):
+    class Meta:
+        model = MODELS_USER.Ethnicgroup
+        fields = ['id', 'name']
 
 class Userserializer(serializers.ModelSerializer):
     designation=Designationserializer(many=False)
@@ -120,9 +117,10 @@ class Userserializer(serializers.ModelSerializer):
     shift=Shiftserializer(many=False)
     bank_account=Bankaccountserializer(many=False)
     departmenttwo=Departmentserializer(many=True)
+    ethnicgroup_user=Ethnicgroupserializer(many=True)
     employee_contact=Employeecontactserializer(many=True)
     employee_docs=Employeedocsserializer(many=True)
-    employeejobhistoryone=Employeejobhistoryserializer(many=True)
+    employeejobhistory_user=Employeejobhistoryserializer(many=True)
     employee_academichistory=Employeeacademichistoryserializer(many=True)
     employee_experiencehistory=Employeeexperiencehistoryserializer(many=True)
     supervisor=Otheruserserializer(many=False)

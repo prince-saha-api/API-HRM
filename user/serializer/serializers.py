@@ -1,4 +1,5 @@
 from contribution.serializer import serializers as SRLZER_CONT
+from department.serializer import serializers as SRLZER_DEPA
 from rest_framework import serializers
 from user import models
 
@@ -43,12 +44,19 @@ class Employeeexperiencehistoryserializer(serializers.ModelSerializer):
         model = models.Employeeexperiencehistory
         fields = '__all__'
 
+class Ethnicgroupserializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Ethnicgroup
+        fields = '__all__'
+
 class Userserializer(serializers.ModelSerializer):
     designation=Designationserializer(many=False)
     religion=Religionserializer(many=False)
     grade=Gradeserializer(many=False)
     shift=Shiftserializer(many=False)
     bank_account=SRLZER_CONT.Bankaccountserializer(many=False)
+    departmenttwo=SRLZER_DEPA.Departmentserializer(many=True)
+    ethnicgroup_user=Ethnicgroupserializer(many=True)
     employee_contact=Employeecontactserializer(many=True)
     employee_docs=Employeedocsserializer(many=True)
     employee_academichistory=Employeeacademichistoryserializer(many=True)
@@ -75,11 +83,6 @@ class Permissionserializer(serializers.ModelSerializer):
 class Rolepermissionserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Rolepermission
-        fields = '__all__'
-
-class Ethnicgroupserializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Ethnicgroup
         fields = '__all__'
 
 class Shiftchangerequestserializer(serializers.ModelSerializer):
