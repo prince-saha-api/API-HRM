@@ -181,7 +181,7 @@ class Picohelps:
          'email': {'regex': '^[a-z._0-9]*@[a-z]*\.[a-z]*$', 'format': 'demo@demo.com (allowed chars a-z, 0-9, ., _)'},
          'phonenumber': {'regex': '^01[3456789][0-9]{8}$|^8801[3456789][0-9]{8}$|^\+8801[3456789][0-9]{8}$', 'format': '01700000000, 8801700000000, +8801700000000'},
          'username': {'regex': '^[a-z._]*[0-9]*$', 'format': 'alex (allowed chars a-z, 0-9, ., _)'},
-         'employeeid': {'regex': '^API[0-9]{7}$', 'format': 'API1234567'},
+         'employeeid': {'regex': '^[A-Z0-9]*$', 'format': 'A-Z and 0-9 chars are allowed!'},
          'date': {'regex': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'format': '2024-01-01'},
          'time': {'regex': '^[0-9]{2}:[0-9]{2}:[0-9]{2}$', 'format': '15:12:13'},
          'datetime': {'regex': '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$', 'format': '2024-01-01 15:12:13'},
