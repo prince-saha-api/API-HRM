@@ -1,7 +1,7 @@
 from helps.common.pico import Picohelps
 from datetime import datetime, timedelta
 from hrm.settings import BASE_DIR
-import cv2
+# import cv2
 import os
 import re
 
@@ -191,19 +191,19 @@ class Nanohelps(Picohelps):
             return from_date, to_date
         else: return None, None
 
-    def countPersonInImage(self, bytesio_image): # New
-        response = {'person_count': 0, 'message': []}
-        face_detector_path = BASE_DIR / 'static/face_detector_file/haarcascade_frontalface_default.xml'
-        if os.path.exists(face_detector_path):
-            image_response = self.convert_bytesio_ndarray(bytesio_image)
-            if image_response['flag']:
-                facedetect = cv2.CascadeClassifier(face_detector_path)
-                faces = facedetect.detectMultiScale(image_response['image'], 1.3, 5)
-                response['person_count'] = len(faces)
-            else:
-                response['message'].extend(image_response['message'])
-        else: response['message'].append('face_detector_file\'s path doesn\'t exist!')
-        return response
+    # def countPersonInImage(self, bytesio_image): # New
+    #     response = {'person_count': 0, 'message': []}
+    #     face_detector_path = BASE_DIR / 'static/face_detector_file/haarcascade_frontalface_default.xml'
+    #     if os.path.exists(face_detector_path):
+    #         image_response = self.convert_bytesio_ndarray(bytesio_image)
+    #         if image_response['flag']:
+    #             facedetect = cv2.CascadeClassifier(face_detector_path)
+    #             faces = facedetect.detectMultiScale(image_response['image'], 1.3, 5)
+    #             response['person_count'] = len(faces)
+    #         else:
+    #             response['message'].extend(image_response['message'])
+    #     else: response['message'].append('face_detector_file\'s path doesn\'t exist!')
+    #     return response
     
     def getBasicSalary(self, Generalsettings, salary): # New
         response = {'flag': False, 'basic_salary': 0, 'message': []}
