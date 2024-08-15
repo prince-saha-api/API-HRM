@@ -1,5 +1,7 @@
 from django.contrib.auth.hashers import make_password
 from datetime import datetime, date, timedelta
+from PIL import Image
+import numpy as np
 import random
 import pytz
 import os
@@ -51,6 +53,18 @@ class Picohelps:
       strdatetime = datetime.utcfromtimestamp(int(strdatetime))
       strdatetime = pytz.timezone('UTC').localize(strdatetime)
       return strdatetime.astimezone(pytz.timezone('Asia/Dhaka'))
+   
+
+   def convert_bytesio_ndarray(self, bytesio_image):
+      response = {'flag': False, 'message': [], 'image': None}
+      try:
+         image = Image.open(bytesio_image)
+         try:
+            response['image'] = np.asarray(image)
+            response['flag'] = True
+         except: response['message'].append('couldn\'t convert image from bytesio to ndarray!')
+      except: response['message'].append('image type should be bytesio!')
+      return response
     
    def getToday(self):
       return date.today()
@@ -76,13 +90,7 @@ class Picohelps:
       
       return start, end
    
-   def validatejpgimg(self, image):
-        flag = False
-        if image != None:
-            image_name = image._name
-            if '.jpg' in image_name[len(image_name)-4:]:
-                if image.size <= 99999: flag = True
-        return flag
+   
     
    def getUniqueCodePattern(self):
       return f"{datetime.now().strftime('%Y%m%d%H%M%S%f')}"[:18]

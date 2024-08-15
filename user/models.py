@@ -3,7 +3,6 @@ from django.db import models
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Basic, Timedetailscode
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.contrib.postgres.fields import ArrayField
 from contribution import models as CNTRIB
 from helps.choice import common as CHOICE
 from django.db.models import Sum

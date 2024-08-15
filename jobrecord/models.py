@@ -14,7 +14,6 @@ def generate_unique_code():
 def uploadjobhistory(instance, filename):
     return "user/{unique}/job_history/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
 
-
 class Employeejobhistory(Basic):
     user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='employeejobhistory_user')
     effective_from = models.DateField()
@@ -34,6 +33,8 @@ class Employeejobhistory(Basic):
     appraisal_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='employeejobhistory_appraisal_by')
     comment = models.TextField(blank=True, null=True)
     doc = models.FileField(upload_to=uploadjobhistory, blank=True, null=True)
+    next_id = models.IntegerField(blank=True, null=True)
+    previous_id = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return f'{self.user.username}'

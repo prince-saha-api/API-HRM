@@ -1,5 +1,8 @@
 from helps.common.pico import Picohelps
 from datetime import datetime, timedelta
+from hrm.settings import BASE_DIR
+import cv2
+import os
 import re
 
 class Nanohelps(Picohelps):
@@ -187,3 +190,34 @@ class Nanohelps(Picohelps):
             to_date = from_date + timedelta(days=364)
             return from_date, to_date
         else: return None, None
+
+    def countPersonInImage(self, bytesio_image): # New
+        response = {'person_count': 0, 'message': []}
+        face_detector_path = BASE_DIR / 'static/face_detector_file/haarcascade_frontalface_default.xml'
+        if os.path.exists(face_detector_path):
+            image_response = self.convert_bytesio_ndarray(bytesio_image)
+            if image_response['flag']:
+                facedetect = cv2.CascadeClassifier(face_detector_path)
+                faces = facedetect.detectMultiScale(image_response['image'], 1.3, 5)
+                response['person_count'] = len(faces)
+            else:
+                response['message'].extend(image_response['message'])
+        else: response['message'].append('face_detector_file\'s path doesn\'t exist!')
+        return response
+    
+    def getBasicSalary(self, Generalsettings, salary): # New
+        response = {'flag': False, 'basic_salary': 0, 'message': []}
+        generalsettings = None
+        if salary:
+            try:
+                salary = float(salary)
+                generalsettings = self.findGeneralsettings(Generalsettings)
+                if generalsettings:
+                    basic_salary_percentage = generalsettings.basic_salary_percentage
+                    if basic_salary_percentage:
+                        response['basic_salary'] = (salary*basic_salary_percentage)/100
+                        response['flag'] = True
+                    else: response['message'].append('basic_salary_percentage is missing in generalsettings!')
+                else: response['message'].append('generalsettings is missing!')
+            except: response['message'].append('salary is missing!')
+        return response

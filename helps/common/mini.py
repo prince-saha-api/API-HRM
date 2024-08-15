@@ -82,15 +82,11 @@ class Minihelps(Microhelps):
 
             if 'gross_salary' in response['data']:
                 if 'Generalsettings' in classOBJpackage:
-                    generalsettings = self.findGeneralsettings(classOBJpackage['Generalsettings'])
-                    if generalsettings:
-                        if generalsettings.basic_salary_percentage:
-                            try:
-                                gross_salary = float(response['data']['gross_salary'])
-                                basic_salary_percentage = generalsettings.basic_salary_percentage
-                                basic_salary = (basic_salary_percentage*gross_salary)/100
-                                response['data'].update({'basic_salary': basic_salary})
-                            except: pass
+                    try:
+                        gross_salary = float(response['data']['gross_salary'])
+                        basicSalary = self.getBasicSalary(classOBJpackage['Generalsettings'], gross_salary)
+                        if basicSalary['flag']: response['data'].update({'basic_salary': basicSalary['basic_salary']})
+                    except: pass
 
             religion = self.getobject(classOBJpackage['Religion'], {'id': personalDetails.get('religion')})
             if religion: response['data'].update({'religion': religion.id})
@@ -113,8 +109,9 @@ class Minihelps(Microhelps):
             if addbankaccountdetails: response['data'].update({'bank_account': addbankaccountdetails['instance'].id})
             response['data'].update({'created_by': created_by.id, 'updated_by': created_by.id})
             if photo:
-                if self.validatejpgimg(photo): response['data'].update({'photo': photo})
-                else: response['message'].append('please, provide an image within 100 kb and jpg format!')
+                photo_response = self.validateprofilepic(photo)
+                if photo_response['flag']: response['data'].update({'photo': photo})
+                else: response['message'].extend(photo_response['message'])
         return response
     
     def createuserinstance(self, User, details, photo): # New

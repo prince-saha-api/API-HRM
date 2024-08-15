@@ -167,3 +167,19 @@ class Microhelps(Nanohelps):
                 response['instance'] = response_data.instance
                 if isinstance(createdInstance, list): createdInstance.append(response_data.instance)
         return response
+    
+    def validateprofilepic(self, image):
+      response = {'flag': False, 'message': []}
+      if image != None:
+         image_name = image._name
+         if '.jpg' in image_name[len(image_name)-4:]:
+               if image.size <= 99999: response['flag'] = True
+                #    image_response = self.countPersonInImage(image.file)
+                #    if image_response['person_count']>0:
+                #        if image_response['person_count'] == 1: response['flag'] = True
+                #        else: response['message'].append(f'please, don\'t provide an image having multiple persons({image_response["person_count"]})!')
+                #    else: response['message'].extend(image_response['message'])
+               else: response['message'].append('provide an image within 100kb!')
+         else: response['message'].append('image should be jpg format!')
+      else: response['message'].append('no image provided!')
+      return response
