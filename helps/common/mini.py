@@ -30,52 +30,58 @@ class Minihelps(Microhelps):
         response = {'flag': True, 'message': [], 'data': {}}
 
         addbankaccountdetails = None
-        if 'bank_account' in salaryAndLeaves:
-            addbankaccountdetails=self.addbankaccount(classOBJpackage, serializerOBJpackage, salaryAndLeaves['bank_account'], createdInstance)
-            if not addbankaccountdetails['flag']:
-                response['message'].extend([f'user\'s {each}' for each in addbankaccountdetails['message']])
-                response['flag'] = False
-                addbankaccountdetails = None
+        if salaryAndLeaves:
+            if 'bank_account' in salaryAndLeaves:
+                if salaryAndLeaves['bank_account']:
+                    addbankaccountdetails=self.addbankaccount(classOBJpackage, serializerOBJpackage, salaryAndLeaves['bank_account'], createdInstance)
+                    if not addbankaccountdetails['flag']:
+                        response['message'].extend([f'user\'s {each}' for each in addbankaccountdetails['message']])
+                        # response['flag'] = False
+                        addbankaccountdetails = None
 
         presentaddressdetails = None
-        if 'present_address' in personalDetails:
-            required_fields = ['address', 'city', 'state_division', 'country']
-            response_data, response_message, response_successflag, response_status = self.addtocolass(
-                classOBJ=classOBJpackage['Address'],
-                Serializer=serializerOBJpackage['Address'],
-                data=personalDetails['present_address'],
-                required_fields=required_fields
-            )
-            if response_successflag == 'success':
-                presentaddressdetails = response_data.instance
-                createdInstance.append(presentaddressdetails)
-            elif response_successflag == 'error':
-                response['message'].extend([f'user present address\'s {each}' for each in response_message])
-                response['flag'] = False
+        if personalDetails:
+            if 'present_address' in personalDetails:
+                if personalDetails['present_address']:
+                    required_fields = ['address', 'city', 'state_division', 'country']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                        classOBJ=classOBJpackage['Address'],
+                        Serializer=serializerOBJpackage['Address'],
+                        data=personalDetails['present_address'],
+                        required_fields=required_fields
+                    )
+                    if responsesuccessflag == 'success':
+                        presentaddressdetails = responsedata.instance
+                        createdInstance.append(presentaddressdetails)
+                    elif responsesuccessflag == 'error':
+                        response['message'].extend([f'user present address\'s {each}' for each in responsemessage])
+                        response['flag'] = False
         
         permanentaddressdetails = None
         same_as_present_address = False
-        if 'permanentAddressSameAsPresent' in personalDetails:
-            if personalDetails['permanentAddressSameAsPresent']:
-                permanentaddressdetails = presentaddressdetails
-                same_as_present_address = True
+        if personalDetails:
+            if 'permanentAddressSameAsPresent' in personalDetails:
+                if personalDetails['permanentAddressSameAsPresent']:
+                    permanentaddressdetails = presentaddressdetails
+                    same_as_present_address = True
         if not same_as_present_address:
-            if 'permanent_address' in personalDetails:
-                required_fields = ['address', 'city', 'state_division', 'country']
-                response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    classOBJ=classOBJpackage['Address'],
-                    Serializer=serializerOBJpackage['Address'],
-                    data=personalDetails['permanent_address'],
-                    required_fields=required_fields
-                )
-                if response_successflag == 'success':
-                    permanentaddressdetails = response_data.instance
-                    createdInstance.append(permanentaddressdetails)
-                elif response_successflag == 'error':
-                    response['message'].extend([f'user permanet address {each}' for each in response_message])
-                    response['flag'] = False
-                
-        if response['flag']:
+            if personalDetails:
+                if 'permanent_address' in personalDetails:
+                    if personalDetails['permanent_address']:
+                        required_fields = ['address', 'city', 'state_division', 'country']
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                            classOBJ=classOBJpackage['Address'],
+                            Serializer=serializerOBJpackage['Address'],
+                            data=personalDetails['permanent_address'],
+                            required_fields=required_fields
+                        )
+                        if responsesuccessflag == 'success':
+                            permanentaddressdetails = responsedata.instance
+                            createdInstance.append(permanentaddressdetails)
+                        elif responsesuccessflag == 'error':
+                            response['message'].extend([f'user permanet address {each}' for each in responsemessage])
+                            response['flag'] = False
+        if not response['message']:
             fields_to_prepare_details_obj = self.prepareUserObjInfo(personalDetails, officialDetails, salaryAndLeaves)
             for each in fields_to_prepare_details_obj:
                 self.ifExistThanAddToDict(each['obj'], each['field'], each['replace'], response['data'])
@@ -112,6 +118,7 @@ class Minihelps(Microhelps):
                 photo_response = self.validateprofilepic(photo)
                 if photo_response['flag']: response['data'].update({'photo': photo})
                 else: response['message'].extend(photo_response['message'])
+            response['flag'] = True
         return response
     
     def createuserinstance(self, User, details, photo): # New
@@ -478,43 +485,44 @@ class Minihelps(Microhelps):
     
     def addLeavepolicy(self, classOBJpackage, leavepolicylist, userdata): # New 
         response_message = []
-        if 'Generalsettings' in classOBJpackage:
-            if 'Leavepolicy' in classOBJpackage:
-                if 'Leavepolicyassign' in classOBJpackage:
-                    if 'Leavesummary' in classOBJpackage:
-                        fiscalyear_response = self.findFiscalyear(classOBJpackage['Generalsettings'])
-                        if fiscalyear_response['fiscalyear']:
-                            if leavepolicylist:
-                                if isinstance(leavepolicylist, list):
-                                    for id in leavepolicylist:
-                                        leavepolicy = self.getobject(classOBJpackage['Leavepolicy'], {'id': id})
-                                        if leavepolicy:
-                                            leavepolicyassign_flag = True
-                                            if not classOBJpackage['Leavepolicyassign'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).exists():
-                                                try: classOBJpackage['Leavepolicyassign'].objects.create(user=userdata['instance'], leavepolicy=leavepolicy, created_by=userdata['created_by'], updated_by=userdata['updated_by'])
-                                                except: leavepolicyassign_flag = False
-                                            if not classOBJpackage['Leavesummary'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).exists():
-                                                if leavepolicyassign_flag:
-                                                    try: classOBJpackage['Leavesummary'].objects.create(
-                                                            user=userdata['instance'],
-                                                            leavepolicy=leavepolicy,
-                                                            fiscal_year=fiscalyear_response['fiscalyear'],
-                                                            total_allocation=leavepolicy.allocation_days,
-                                                            total_consumed=0,
-                                                            total_left=leavepolicy.allocation_days
-                                                        )
-                                                    except:
+        if leavepolicylist:
+            if 'Generalsettings' in classOBJpackage:
+                if 'Leavepolicy' in classOBJpackage:
+                    if 'Leavepolicyassign' in classOBJpackage:
+                        if 'Leavesummary' in classOBJpackage:
+                            fiscalyear_response = self.findFiscalyear(classOBJpackage['Generalsettings'])
+                            if fiscalyear_response['fiscalyear']:
+                                if leavepolicylist:
+                                    if isinstance(leavepolicylist, list):
+                                        for id in leavepolicylist:
+                                            leavepolicy = self.getobject(classOBJpackage['Leavepolicy'], {'id': id})
+                                            if leavepolicy:
+                                                leavepolicyassign_flag = True
+                                                if not classOBJpackage['Leavepolicyassign'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).exists():
+                                                    try: classOBJpackage['Leavepolicyassign'].objects.create(user=userdata['instance'], leavepolicy=leavepolicy, created_by=userdata['created_by'], updated_by=userdata['updated_by'])
+                                                    except: leavepolicyassign_flag = False
+                                                if not classOBJpackage['Leavesummary'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).exists():
+                                                    if leavepolicyassign_flag:
+                                                        try: classOBJpackage['Leavesummary'].objects.create(
+                                                                user=userdata['instance'],
+                                                                leavepolicy=leavepolicy,
+                                                                fiscal_year=fiscalyear_response['fiscalyear'],
+                                                                total_allocation=leavepolicy.allocation_days,
+                                                                total_consumed=0,
+                                                                total_left=leavepolicy.allocation_days
+                                                            )
+                                                        except:
+                                                            classOBJpackage['Leavepolicyassign'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).delete()
+                                                            response_message.append(f'couldn\'t assign {leavepolicy.name} leavepolicy({id})!')
+                                                    else:
                                                         classOBJpackage['Leavepolicyassign'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).delete()
                                                         response_message.append(f'couldn\'t assign {leavepolicy.name} leavepolicy({id})!')
-                                                else:
-                                                    classOBJpackage['Leavepolicyassign'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).delete()
-                                                    response_message.append(f'couldn\'t assign {leavepolicy.name} leavepolicy({id})!')
-                                        else: response_message.append('leavepolicy doesn\'t exist!')
-                                else: response_message.append('leavepolicy type should be list!')
-                            else: response_message.append('leavepolicy should not be empty!')
-                        else: response_message.extend(fiscalyear_response['message'])
-                    else: response_message.append('Leavesummary Model is missing!')
-                else: response_message.append('Leavepolicyassign Model is missing!')
-            else: response_message.append('Leavepolicy Model is missing!')
-        else: response_message.append('Generalsettings Model is missing!')
+                                            else: response_message.append('leavepolicy doesn\'t exist!')
+                                    else: response_message.append('leavepolicy type should be list!')
+                                else: response_message.append('leavepolicy should not be empty!')
+                            else: response_message.extend(fiscalyear_response['message'])
+                        else: response_message.append('Leavesummary Model is missing!')
+                    else: response_message.append('Leavepolicyassign Model is missing!')
+                else: response_message.append('Leavepolicy Model is missing!')
+            else: response_message.append('Generalsettings Model is missing!')
         return response_message

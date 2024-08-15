@@ -802,6 +802,8 @@ def getemployee(request):
 
     filter_fields = [
         {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'first_name', 'convert': None, 'replace':'first_name__icontains'},
+        {'name': 'last_name', 'convert': None, 'replace':'last_name__icontains'},
         {'name': 'designation', 'convert': None, 'replace':'designation'},
         {'name': 'dob', 'convert': None, 'replace':'dob'},
         {'name': 'blood_group', 'convert': None, 'replace':'blood_group__icontains'},
@@ -986,30 +988,32 @@ def addemployee(request):
                         if ethnicgroup:
                             if ethnicgroup.name != 'all': ethnicgroup.user.add(userinstance)
             
+            if salaryAndLeaves:
+                userdata = {'instance': userinstance, 'created_by': created_by, 'updated_by': created_by}
+                leavepolicy_response = ghelp().addLeavepolicy(classOBJpackage, salaryAndLeaves.get('leavepolicy'), userdata)
             
-            userdata = {'instance': userinstance, 'created_by': created_by, 'updated_by': created_by}
-            leavepolicy_response = ghelp().addLeavepolicy(classOBJpackage, salaryAndLeaves.get('leavepolicy'), userdata)
-            
-            employeejobhistorydata = {
-                'user': userinstance.id,
-                'effective_from': officialDetails['joining_date'],
-                'salary': salaryAndLeaves['gross_salary'],
-                'company': officialDetails['company'],
-                'branch': officialDetails['branch'],
-                'department': officialDetails['department'],
-                'designation': officialDetails['designation'],
-                'employee_type': officialDetails['employee_type'],
-                'date': officialDetails['joining_date'],
-                'status_adjustment': CHOICE.STATUS_ADJUSTMENT[0][1],
-                'appraisal_by': created_by.id
-            }
-            required_fields = ['user', 'effective_from', 'new_salary', 'company', 'branch', 'department', 'designation', 'employee_type', 'from_date']
-            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                classOBJ=MODELS_JOBR.Employeejobhistory,
-                Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
-                data=employeejobhistorydata,
-                required_fields=required_fields
-            )
+            if officialDetails:
+                if salaryAndLeaves:
+                    employeejobhistorydata = {
+                        'user': userinstance.id,
+                        'effective_from': officialDetails['joining_date'],
+                        'salary': salaryAndLeaves['gross_salary'],
+                        'company': officialDetails['company'],
+                        'branch': officialDetails['branch'],
+                        'department': officialDetails['department'],
+                        'designation': officialDetails['designation'],
+                        'employee_type': officialDetails['employee_type'],
+                        'date': officialDetails['joining_date'],
+                        'status_adjustment': CHOICE.STATUS_ADJUSTMENT[0][1],
+                        'appraisal_by': created_by.id
+                    }
+                    required_fields = ['user', 'effective_from', 'new_salary', 'company', 'branch', 'department', 'designation', 'employee_type', 'from_date']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_JOBR.Employeejobhistory,
+                        Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
+                        data=employeejobhistorydata,
+                        required_fields=required_fields
+                    )
 
 
             emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, PSRLZER_USER.Employeecontactserializer, MODELS_CONT.Address, PSRLZER_CONT.Addressserializer, userinstance, emergencyContact)

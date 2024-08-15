@@ -139,33 +139,41 @@ class Microhelps(Nanohelps):
         return response_data, response_message, response_successflag, response_status
 
     def addbankaccount(self, classOBJpackage, serializerOBJpackage, data, createdInstance=None): # New
-        response = {'flag': True, 'message': [], 'instance': {}}
-        if isinstance(data.get('address'), dict):
-            address_required_fields = ['address', 'city', 'state_division', 'country']
-            address_response_data, address_response_message, address_response_successflag, address_response_status = self.addtocolass(
-                classOBJ=classOBJpackage['Address'],
-                Serializer=serializerOBJpackage['Address'],
-                data=data['address'],
-                required_fields=address_required_fields
-            )
-            if address_response_successflag == 'success':
-                data.update({'address': address_response_data.instance.id})
-                if isinstance(createdInstance, list): createdInstance.append(address_response_data.instance)
-            elif address_response_successflag == 'error':
-                response['flag'] = False
-                response['message'].extend([f'bank account address\'s {each}' for each in address_response_message])
-        
-        if response['flag']:
-            required_fields = ['bank_name', 'branch_name', 'account_type', 'account_no', 'routing_no']
-            response_data, response_message, response_successflag, response_status = self.addtocolass(
-                classOBJ=classOBJpackage['Bankaccount'],
-                Serializer=serializerOBJpackage['Bankaccount'],
-                data=data,
-                required_fields=required_fields
-            )
-            if response_successflag == 'success':
-                response['instance'] = response_data.instance
-                if isinstance(createdInstance, list): createdInstance.append(response_data.instance)
+        response = {'flag': False, 'message': [], 'instance': {}}
+        if data:
+            if 'address' in data:
+                if isinstance(data['address'], dict):
+                    if data['address']:
+                        required_fields = ['address', 'city', 'state_division', 'country']
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                            classOBJ=classOBJpackage['Address'],
+                            Serializer=serializerOBJpackage['Address'],
+                            data=data['address'],
+                            required_fields=required_fields
+                        )
+                        if responsesuccessflag == 'success':
+                            data.update({'address': responsedata.instance.id})
+                            if isinstance(createdInstance, list): createdInstance.append(responsedata.instance)
+                        elif responsesuccessflag == 'error':
+                            response['message'].extend([f'bank account address\'s {each}' for each in responsemessage])
+                            del data['address']
+                    else: del data['address']
+                else: response['message'].append('bank aocount address\'s type should be dict!')
+            
+            if response['flag']:
+                required_fields = ['bank_name', 'branch_name', 'account_type', 'account_no', 'routing_no']
+                responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                    classOBJ=classOBJpackage['Bankaccount'],
+                    Serializer=serializerOBJpackage['Bankaccount'],
+                    data=data,
+                    required_fields=required_fields
+                )
+                if responsesuccessflag == 'success':
+                    response['instance'] = responsedata.instance
+                    response['flag'] = True
+                    if isinstance(createdInstance, list): createdInstance.append(responsedata.instance)
+                elif responsesuccessflag == 'error':
+                    response['message'].extend([f'bank account\'s {each}' for each in responsemessage])
         return response
     
     def validateprofilepic(self, image):

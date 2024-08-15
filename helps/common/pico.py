@@ -136,43 +136,44 @@ class Picohelps:
 
    
    def ifExistThanAddToDict(self, fromDict, key, replaceKey, toDict): # New
-      if key in fromDict:
-         if replaceKey == 'password':
-            toDict.update({replaceKey: make_password(fromDict[key]), 'hr_password': '-'.join([str(ord(each)+78) for each in fromDict[key]])})
-         else: toDict.update({replaceKey: fromDict[key]})
-      else:
-         if replaceKey == 'password':
-            orderdict = {
-               'order': ['upperCaseLetters', 'lowerCaseLetters', 'numbers', 'specialCharacters'],
-               'maxindex': 3
-            }
-            passwordDict = {
-               'passwordMaxLength': 10,
-               'upperCaseLetters': {
-                  'chars': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
-                  'maxindex': 25
-               },
-               'lowerCaseLetters': {
-                  'chars': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'],
-                  'maxindex': 25
-               },
-               'numbers': {
-                  'chars': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                  'maxindex': 9
-               },
-               'specialCharacters': {
-                  'chars': ['!', '@', '#', '$', '%', '^', '&', '(', ')', '{', '}', '[', ']', ';', ':', ',', '.', '+', '_', '-', '*', '/', '\\', '\'', '"', '=', '?', '<', '>', '+'],
-                  'maxindex': 29
+      if fromDict:
+         if key in fromDict:
+            if replaceKey == 'password':
+               toDict.update({replaceKey: make_password(fromDict[key]), 'hr_password': '-'.join([str(ord(each)+78) for each in fromDict[key]])})
+            else: toDict.update({replaceKey: fromDict[key]})
+         else:
+            if replaceKey == 'password':
+               orderdict = {
+                  'order': ['upperCaseLetters', 'lowerCaseLetters', 'numbers', 'specialCharacters'],
+                  'maxindex': 3
                }
-            }
-            password = ''
-            ordpassword = []
-            for _ in range(passwordDict['passwordMaxLength']):
-               ran_number = random.randint(0, orderdict['maxindex'])
-               passwor_ran_number = random.randint(0, passwordDict[orderdict['order'][ran_number]]['maxindex'])
-               password += str(ord(passwordDict[orderdict['order'][ran_number]]['chars'][passwor_ran_number])+78)
-               ordpassword.append(str(ord(passwordDict[orderdict['order'][ran_number]]['chars'][passwor_ran_number])+78))
-            toDict.update({replaceKey: make_password(password), 'hr_password': '-'.join(ordpassword)})
+               passwordDict = {
+                  'passwordMaxLength': 10,
+                  'upperCaseLetters': {
+                     'chars': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+                     'maxindex': 25
+                  },
+                  'lowerCaseLetters': {
+                     'chars': ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'],
+                     'maxindex': 25
+                  },
+                  'numbers': {
+                     'chars': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                     'maxindex': 9
+                  },
+                  'specialCharacters': {
+                     'chars': ['!', '@', '#', '$', '%', '^', '&', '(', ')', '{', '}', '[', ']', ';', ':', ',', '.', '+', '_', '-', '*', '/', '\\', '\'', '"', '=', '?', '<', '>', '+'],
+                     'maxindex': 29
+                  }
+               }
+               password = ''
+               ordpassword = []
+               for _ in range(passwordDict['passwordMaxLength']):
+                  ran_number = random.randint(0, orderdict['maxindex'])
+                  passwor_ran_number = random.randint(0, passwordDict[orderdict['order'][ran_number]]['maxindex'])
+                  password += str(ord(passwordDict[orderdict['order'][ran_number]]['chars'][passwor_ran_number])+78)
+                  ordpassword.append(str(ord(passwordDict[orderdict['order'][ran_number]]['chars'][passwor_ran_number])+78))
+               toDict.update({replaceKey: make_password(password), 'hr_password': '-'.join(ordpassword)})
 
    # 'email': {'regex': '^[a-z._]*[a-z_0-9]@[a-z]*\.[a-z]*$', 'format': 'demo@demo.com (allowed chars a-z, 0-9, ., _)'}
    def getregex(self, retype): # New
