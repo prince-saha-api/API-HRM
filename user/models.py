@@ -284,22 +284,6 @@ class Shiftchangerequest(Basic):
                 if shiftchangelog.exists(): shiftchangelog.delete()
 
         super().save(*args, **kwargs)
-    
-class Bonus(Basic):
-    title = models.CharField(max_length=100)
-    type = models.CharField(max_length=15, choices=CHOICE.CALCULATION_TYPE, default=CHOICE.CALCULATION_TYPE[0][1])
-    percentage = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)], default=0)
-    amount = models.FloatField(validators=[MinValueValidator(0)], default=0, blank=True, null=True)
-    dummy_amount = models.FloatField(validators=[MinValueValidator(0)], default=0, blank=True, null=True)
-    # active_dummy_amount = models.BooleanField(default=False)
-    reason = models.TextField(blank=True, null=True)
-    year = models.IntegerField(default=getyear, validators=[MinValueValidator(2020)])
-    month = models.CharField(max_length=20, choices=CHOICE.MONTHS, default=CHOICE.MONTHS[getmonth()-1][1])
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bonusone')
-    hand_over_by = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name='bonustwo')
-
-    def __str__(self):
-        return f'{self.title} - {self.amount} - {self.dummy_amount}'
 
     
 class Note(Basic):

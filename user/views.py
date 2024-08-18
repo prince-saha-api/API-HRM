@@ -173,6 +173,7 @@ def updatedesignation(request, designationid=None):
         unique_fields=unique_fields,
         allowed_fields=allowed_fields
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -245,6 +246,7 @@ def updategrade(request, gradeid=None):
         data=request.data,
         unique_fields=unique_fields
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -337,7 +339,8 @@ def updateshift(request, shiftid=None):
         unique_fields=unique_fields,
         extra_fields=extra_fields, 
         fields_regex=fields_regex
-        )
+    )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -440,6 +443,7 @@ def updateshiftchangerequest(request, shiftchangerequestid=None):
         extra_fields=extra_fields, 
         fields_regex=fields_regex
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -467,6 +471,7 @@ def approveshiftchangerequest(request, shiftchangerequestid=None):
         extra_fields=extra_fields, 
         fields_regex=fields_regex
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -494,6 +499,7 @@ def rejectshiftchangerequest(request, shiftchangerequestid=None):
         extra_fields=extra_fields, 
         fields_regex=fields_regex
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -568,6 +574,54 @@ def getreligions(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def addreligion(request):
+    # details = {
+    #     'data': {
+    #                 "name":"Emon Molla",
+    #                 "age":40,
+    #                 "address":{
+    #                     "district":"Madaripur",
+    #                     "village":"Itkhola Bazitput",
+    #                     "next": {
+    #                         "dummy": "dummy details",
+    #                         "policy": "hour",
+    #                         "abc": {
+    #                             "def": "def"
+    #                         }
+    #                     }
+    #                 }
+    #             },
+    #     'order': ['address', 'next', 'abc'],
+    #     'info': {
+    #         'address': {
+    #             'model': 'Random',
+    #             'serializer': 'Random',
+    #             'allow_fields': [],
+    #             'required_fields': [],
+    #             'unique_fields': []
+    #         },
+    #         'next': {
+    #             'model': 'Random',
+    #             'serializer': 'Random',
+    #             'allow_fields': [],
+    #             'required_fields': [],
+    #             'unique_fields': []
+    #         },
+    #         'abc': {
+    #             'model': 'Random',
+    #             'serializer': 'Random',
+    #             'allow_fields': [],
+    #             'required_fields': [],
+    #             'unique_fields': []
+    #         }
+    #     }
+    # }
+
+    # ghelp().nestedObjectPrepare(details)
+    # # print(details)
+    # input()
+
+
+
     # userid = request.user.id
     extra_fields = {}
     # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
@@ -597,6 +651,7 @@ def updatereligion(request, religionid=None):
         data=request.data,
         unique_fields=unique_fields
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -666,6 +721,7 @@ def updatepermission(request, permissionid=None):
         data=request.data,
         unique_fields=unique_fields
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -735,7 +791,8 @@ def updaterolepermission(request, rolepermissionid=None):
         id=rolepermissionid, 
         data=request.data,
         unique_fields=unique_fields
-        )
+    )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -1101,8 +1158,7 @@ def updateprofilepic(request, userid=None):
                 data=profilepicobj,
                 static_fields=static_fields
             )
-
-            response_data = responsedata
+            response_data = responsedata.data if responsesuccessflag == 'success' else {}
             response_message.extend(responsemessage)
             response_successflag = responsesuccessflag
             response_status = responsestatus
@@ -1553,7 +1609,7 @@ def updatesalaryleaves(request, userid=None):
 
                     MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=gross_salary, increment_amount=increment_amount, percentage=percentage)
                 
-                response_data = responsedata
+                response_data = responsedata.data
                 response_successflag=responsesuccessflag
                 response_status=responsestatus
             elif responsesuccessflag == 'error':
@@ -1910,6 +1966,7 @@ def updatenote(request, noteid=None):
         data=request.data,
         fields_regex=fields_regex
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])

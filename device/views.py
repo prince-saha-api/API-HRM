@@ -78,7 +78,8 @@ def updatedevice(request, deviceid=None):
         data=request.data,
         extra_fields=extra_fields,
         unique_fields=unique_fields
-        )
+    )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -151,7 +152,8 @@ def updategroup(request, groupid=None):
         id=groupid,
         data=request.data,
         unique_fields=unique_fields
-        )
+    )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -227,6 +229,7 @@ def updatedevicegroup(request, devicegroupid=None):
         data=request.data,
         unique_fields=unique_fields
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])

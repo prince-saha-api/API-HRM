@@ -71,6 +71,7 @@ def updateoperatinghour(request, operatinghourid=None):
         data=request.data,
         fields_regex=fields_regex
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -200,7 +201,7 @@ def updatebranch(request, branchid=None):
             fields_regex=fields_regex
         )
         if responsesuccessflag == 'success':
-            response_data = responsedata
+            response_data = responsedata.data
             response_successflag = responsesuccessflag
             response_status = responsestatus
         if responsesuccessflag == 'error':

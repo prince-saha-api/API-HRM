@@ -110,7 +110,7 @@ def updateleavepolicy(request, leavepolicyid=None):
                 allowed_fields=allowed_fields,
                 extra_fields=extra_fields
             )
-            response_data.update(responsedata)
+            response_data = responsedata.data if responsesuccessflag == 'success' else {}
             response_message.extend(responsemessage)
             response_successflag = responsesuccessflag
             response_status = responsestatus
@@ -959,6 +959,7 @@ def updateholiday(request, holidayid=None):
         extra_fields=extra_fields,
         fields_regex=fields_regex
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])

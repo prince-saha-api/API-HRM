@@ -89,7 +89,7 @@ class Microhelps(Nanohelps):
                                             self.removeFile(classobj.first(), static_field)
                                         serializer.save()
 
-                                        response_data = serializer.data
+                                        response_data = serializer
                                         response_successflag = 'success'
                                         response_status = status.HTTP_200_OK
                                     except: response_message.append('unique combination is already exist!')
@@ -175,6 +175,77 @@ class Microhelps(Nanohelps):
                 elif responsesuccessflag == 'error':
                     response['message'].extend([f'bank account\'s {each}' for each in responsemessage])
         return response
+    
+
+
+    def nestedObjectPrepare(self, details): # New
+        response = {'flag': False, 'message': [], 'instance': {}}
+        if details: 
+            if isinstance(details, dict):
+                if 'order' in details:
+                    if isinstance(details['order'], list):
+                        
+                        success = True
+                        createdInstances = []
+                        order_list = details['order'].copy()
+                        last_staged_data = None
+                        while order_list:
+                            data = details['data'].copy()
+                            complete = True
+                            for key in order_list:
+                                if key in data:
+                                    last_staged_data = data
+                                    data = data[key]
+                                else:
+                                    response['message'].append('order keys are not in order!')
+                                    complete = False
+                                    break
+                            last_key = order_list.pop()
+                            if complete:
+                                allowed_fields = details['info'][last_key]['allowed_fields'] if 'allowed_fields' in details['info'][last_key] else []
+                                unique_fields = details['info'][last_key]['unique_fields'] if 'unique_fields' in details['info'][last_key] else []
+                                required_fields = details['info'][last_key]['required_fields'] if 'required_fields' in details['info'][last_key] else []
+                                extra_fields = details['info'][last_key]['extra_fields'] if 'extra_fields' in details['info'][last_key] else {}
+                                choice_fields = details['info'][last_key]['choice_fields'] if 'choice_fields' in details['info'][last_key] else []
+                                fields_regex = details['info'][last_key]['fields_regex'] if 'fields_regex' in details['info'][last_key] else []
+                                responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                                    classOBJ=details['info'][last_key]['model'],
+                                    Serializer=details['info'][last_key]['serializer'],
+                                    data=data,
+                                    allowed_fields=allowed_fields,
+                                    unique_fields=unique_fields,
+                                    required_fields=required_fields,
+                                    extra_fields=extra_fields,
+                                    choice_fields=choice_fields,
+                                    fields_regex=fields_regex,
+                                )
+                                if responsesuccessflag == 'success':
+                                    last_staged_data[last_key] = responsedata.instance.id
+                                    createdInstances.append(responsedata.instance)
+                                elif responsesuccessflag == 'error':
+                                    response['message'].extend([f'{last_key}\'s {each}' for each in responsemessage])
+                                    success = False
+                                    break
+                            else:
+                                success = False
+                                break
+                        if success:
+                            print(last_staged_data)
+                            input()
+                            # response['instance'] = 
+                            # pass
+                        else:
+                            for createdInstance in createdInstances: createdInstance.delete()
+                        print(last_staged_data)
+                        input()
+                    else: response['message'].append('order should be list type!')
+                else: response['message'].append('order is required!')
+            else: response['message'].append('details should be dict type!')
+        print(details)
+        return response
+        
+
+
     
     def validateprofilepic(self, image):
       response = {'flag': False, 'message': []}

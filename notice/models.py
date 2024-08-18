@@ -21,36 +21,36 @@ class Noticeboard(Basic):
     publish_date = models.DateField(auto_created= True, blank=True, null=True)
     expiry_date = models.DateField(blank=True, null=True)
 
-    created_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, null=True, blank=True, related_name='Noticeboardone')
-    updated_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, null=True, blank=True, related_name='Noticeboardtwo')
+    created_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, null=True, blank=True, related_name='noticeboard_created_by')
+    updated_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, null=True, blank=True, related_name='noticeboard_updated_by')
     
     def __str__(self):
         return f'{self.title}'
     
 class Noticeboardcompany(Basic):
-    noticeboard = models.ForeignKey(Noticeboard, on_delete=models.CASCADE, default=None)
-    company = models.ForeignKey(MODELS_COMP.Company, on_delete=models.CASCADE, default=None)
+    noticeboard = models.ForeignKey(Noticeboard, on_delete=models.CASCADE, related_name='noticeboardcompany_noticeboard')
+    company = models.ForeignKey(MODELS_COMP.Company, on_delete=models.CASCADE, related_name='noticeboardcompany_company')
 
     def __str__(self):
         return f'{self.noticeboard} - {self.company}'
     
 class Noticeboardbranch(Basic):
-    noticeboard = models.ForeignKey(Noticeboard, on_delete=models.CASCADE, default=None)
-    branch = models.ForeignKey(MODELS_BRAN.Branch, on_delete=models.CASCADE, default=None)
+    noticeboard = models.ForeignKey(Noticeboard, on_delete=models.CASCADE, related_name='noticeboardbranch_noticeboard')
+    branch = models.ForeignKey(MODELS_BRAN.Branch, on_delete=models.CASCADE, related_name='noticeboardbranch_branch')
 
     def __str__(self):
         return f'{self.noticeboard} - {self.branch}'
     
 class Noticeboarddepartment(Basic):
-    noticeboard = models.ForeignKey(Noticeboard, on_delete=models.CASCADE, default=None)
-    department = models.ForeignKey(MODELS_DEPA.Department, on_delete=models.CASCADE, default=None)
+    noticeboard = models.ForeignKey(Noticeboard, on_delete=models.CASCADE, related_name='noticeboarddepartment_noticeboard')
+    department = models.ForeignKey(MODELS_DEPA.Department, on_delete=models.CASCADE, related_name='noticeboarddepartment_department')
 
     def __str__(self):
         return f'{self.noticeboard} - {self.department}'
     
 class Noticeboardemployee(Basic):
-    noticeboard = models.ForeignKey(Noticeboard, on_delete=models.CASCADE, default=None)
-    user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, default=None)
+    noticeboard = models.ForeignKey(Noticeboard, on_delete=models.CASCADE, related_name='noticeboardemployee_noticeboard')
+    user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='noticeboardemployee_user')
 
     def __str__(self):
         return f'{self.noticeboard} - {self.user}'

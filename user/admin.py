@@ -18,6 +18,5 @@ admin.site.register([
     models.Ethnicgroup,
     models.Shiftchangelog,
     models.Shiftchangerequest,
-    models.Bonus,
     models.Note
 ])

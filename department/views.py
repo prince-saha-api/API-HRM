@@ -100,7 +100,7 @@ def updatedepartment(request, departmentid=None):
         if 'address' in departmentObj:
             addressObj = departmentObj['address']
             if address_id:
-                response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                     classOBJ=MODELS_CONT.Address,
                     Serializer=PSRLZER_CONT.Addressserializer,
                     id=address_id,
@@ -119,8 +119,8 @@ def updatedepartment(request, departmentid=None):
             data=departmentObj,
             fields_regex=fields_regex,
             unique_fields=unique_fields
-            )
-
+        )
+        response_data = response_data.data if response_successflag == 'success' else {}
         return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
     else: return Response({'data': {}, 'message': ['branch doesn\'t exist!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 

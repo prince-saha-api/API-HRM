@@ -79,6 +79,7 @@ def updatepayrollearning(request, payrollearningid=None):
         data=request.data,
         extra_fields=extra_fields
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
@@ -147,6 +148,7 @@ def updatepayrolldeduction(request, payrolldeductionid=None):
         data=request.data,
         extra_fields=extra_fields
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
@@ -207,4 +209,5 @@ def updatepayrolltax(request, payrolltaxid=None):
         unique_fields=unique_fields,
         extra_fields=extra_fields
     )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

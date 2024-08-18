@@ -71,6 +71,7 @@ def getweekdays(request):
 #         allowed_fields=allowed_fields,
 #         choice_fields=choice_fields
 #     )
+#     response_data = response_data.data if response_successflag == 'success' else {}
 #     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 # @api_view(['DELETE'])
@@ -265,7 +266,7 @@ def updategeneralsettings(request, generalsettingsid=None):
             fields_regex=fields_regex
         )
         if responsesuccessflag == 'success':
-            response_data = responsedata
+            response_data = responsedata.data
             response_successflag = responsesuccessflag
             response_status = responsestatus
         elif responsesuccessflag == 'error':

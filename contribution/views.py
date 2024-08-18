@@ -70,7 +70,8 @@ def updateaddress(request, addressid=None):
         Serializer=PSRLZER_CONT.Addressserializer,
         id=addressid,
         data=request.data
-        )
+    )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -144,7 +145,8 @@ def updatebankaccounttype(request, bankaccounttypeid=None):
         id=bankaccounttypeid,
         data=request.data,
         unique_fields=unique_fields
-        )
+    )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 

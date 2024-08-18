@@ -68,5 +68,6 @@ def updatefacility(request, facilityid=None):
         data=request.data,
         extra_fields=extra_fields,
         unique_fields=unique_fields
-        )
+    )
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

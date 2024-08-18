@@ -123,8 +123,7 @@ def deletecompany(request, companyid=None):
     classOBJpackage_tocheck_assciaativity = [
         {'model': MODELS_BRAN.Branch, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
         {'model': MODELS_COMP.Bankinformation, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_COMP.Company, 'fields': [{'field': 'prev_company', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_COMP.Company,
@@ -230,7 +229,7 @@ def updatebasicinformation(request, basicinformationid=None):
                 static_fields=static_fields
                 )
             if responsesuccessflag == 'success':
-                response_data = responsedata
+                response_data = responsedata.data
                 response_successflag = responsesuccessflag
                 response_status = responsestatus
             elif responsesuccessflag == 'error': response_message.extend(responsemessage)

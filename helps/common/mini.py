@@ -29,15 +29,61 @@ class Minihelps(Microhelps):
     def getuserdetails(self, classOBJpackage, serializerOBJpackage, createdInstance,  personalDetails, officialDetails, salaryAndLeaves, photo, created_by): # New
         response = {'flag': True, 'message': [], 'data': {}}
 
+        # addbankaccountdetails = None
+        # if salaryAndLeaves:
+        #     if 'bank_account' in salaryAndLeaves:
+        #         if salaryAndLeaves['bank_account']:
+        #             addbankaccountdetails=self.addbankaccount(classOBJpackage, serializerOBJpackage, salaryAndLeaves['bank_account'], createdInstance)
+        #             if not addbankaccountdetails['flag']:
+        #                 response['message'].extend([f'user\'s {each}' for each in addbankaccountdetails['message']])
+        #                 # response['flag'] = False
+        #                 addbankaccountdetails = None
+
+        details = {
+            'data': {
+                        "bank_name":"Prime Asia",
+                        "branch_name": "Banani",
+                        "account_type": 1,
+                        "account_no": "1111111111",
+                        "routing_no": "22222222222",
+                        "swift_bic": "33333333333",
+                        "address": {
+                            "address": "asdafefaeds",
+                            "city": "saddsfd",
+                            "state_division": "csfsfsfsf",
+                            "country": "sddfferfv"
+                        }
+                    },
+            'order': ['address'],
+            'info': {
+                'address': {
+                    'model': classOBJpackage['Address'],
+                    'serializer': serializerOBJpackage['Address'],
+                    # 'allowed_fields': [],
+                    # 'unique_fields': [],
+                    # 'required_fields': [],
+                    # 'extra_fields': {},
+                    # 'choice_fields': [],
+                    # 'fields_regex': []
+                }
+            }
+        }
         addbankaccountdetails = None
         if salaryAndLeaves:
             if 'bank_account' in salaryAndLeaves:
                 if salaryAndLeaves['bank_account']:
-                    addbankaccountdetails=self.addbankaccount(classOBJpackage, serializerOBJpackage, salaryAndLeaves['bank_account'], createdInstance)
+                    addbankaccountdetails=self.nestedObjectPrepare(details)
                     if not addbankaccountdetails['flag']:
                         response['message'].extend([f'user\'s {each}' for each in addbankaccountdetails['message']])
                         # response['flag'] = False
                         addbankaccountdetails = None
+
+
+
+
+
+
+
 
         presentaddressdetails = None
         if personalDetails:

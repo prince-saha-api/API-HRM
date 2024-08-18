@@ -52,8 +52,7 @@ class Companyemail(Basic):
 
 required_fields = ['company_owner']
 class Company(Basic):
-    basic_information = models.OneToOneField(Basicinformation, on_delete=models.SET_NULL, blank=True, null=True)
-    # address = models.OneToOneField(MODELS_CONT.Address, on_delete=models.SET_NULL, blank=True, null=True)
+    basic_information = models.OneToOneField(Basicinformation, on_delete=models.CASCADE)
     company_owner = models.ManyToManyField(MODELS_USER.User, blank=True)
 
     def __str__(self):
