@@ -878,7 +878,13 @@ def getemployee(request):
         {'name': 'official_email', 'convert': None, 'replace':'official_email__icontains'},
         {'name': 'official_phone', 'convert': None, 'replace':'official_phone__icontains'},
         {'name': 'employee_type', 'convert': None, 'replace':'employee_type__icontains'},
-        {'name': 'gross_salary', 'convert': None, 'replace':'gross_salary'},
+        
+        {'name': 'department', 'convert': None, 'replace':'departmenttwo__id'},
+        # {'name': 'company', 'convert': None, 'replace':'branch_company__department_branch'},
+        # {'name': 'branch', 'convert': None, 'replace':'note_user__id'},
+
+        {'name': 'gross_salary_from', 'convert': None, 'replace':'gross_salary__gte'},
+        {'name': 'gross_salary_to', 'convert': None, 'replace':'gross_salary__lte'},
         {'name': 'payment_in', 'convert': None, 'replace':'payment_in__icontains'},
         {'name': 'supervisor', 'convert': None, 'replace':'supervisor'},
         {'name': 'expense_approver', 'convert': None, 'replace':'expense_approver'},
@@ -886,14 +892,18 @@ def getemployee(request):
         {'name': 'shift_request_approver', 'convert': None, 'replace':'shift_request_approver'},
         {'name': 'grade', 'convert': None, 'replace':'grade'},
         {'name': 'shift', 'convert': None, 'replace':'shift'},
-        {'name': 'joining_date', 'convert': None, 'replace':'joining_date'},
+        {'name': 'joining_date_from', 'convert': None, 'replace':'joining_date__gte'},
+        {'name': 'joining_date_to', 'convert': None, 'replace':'joining_date__lte'},
         {'name': 'allow_overtime', 'convert': 'bool', 'replace':'allow_overtime'},
         {'name': 'allow_remote_checkin', 'convert': 'bool', 'replace':'allow_remote_checkin'},
         {'name': 'job_status', 'convert': None, 'replace':'job_status__icontains'},
         {'name': 'official_note', 'convert': None, 'replace':'official_note__icontains'},
         {'name': 'rfid', 'convert': None, 'replace':'rfid__icontains'}
     ]
-    users = MODELS_USER.User.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    
+    kwargs = ghelp().KWARGS(request, filter_fields)
+    print(kwargs)
+    users = MODELS_USER.User.objects.filter(**kwargs)
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: users = users.order_by(column_accessor)
     

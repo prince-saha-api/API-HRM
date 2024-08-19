@@ -16,8 +16,8 @@ class Department(Basic):
     address = models.OneToOneField(MODELS_CONT.Address, on_delete=models.SET_NULL, blank=True, null=True)
     manager = models.ManyToManyField(User, blank=True, related_name='departmentone')
     user = models.ManyToManyField(User, blank=True, related_name='departmenttwo')
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    branch = models.ForeignKey(MODELS_BRAN.Branch, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True) # Will be remove later
+    branch = models.ForeignKey(MODELS_BRAN.Branch, on_delete=models.CASCADE, related_name='department_branch')
 
     def __str__(self):
         return f'{self.name}'

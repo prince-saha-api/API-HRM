@@ -91,7 +91,7 @@ def getbranchs(request):
     filter_fields = [
         {'name': 'id', 'convert': None, 'replace':'id'},
         {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-        {'name': 'company', 'convert': None, 'replace':'company__id'},
+        {'name': 'company', 'convert': None, 'replace':'branch_company__id'},
         {'name': 'description', 'convert': None, 'replace':'description__icontains'},
         {'name': 'email', 'convert': None, 'replace':'email__icontains'},
         {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},

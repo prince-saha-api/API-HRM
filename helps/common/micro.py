@@ -179,7 +179,7 @@ class Microhelps(Nanohelps):
 
 
     def nestedObjectPrepare(self, details): # New
-        response = {'flag': False, 'message': [], 'instance': {}}
+        response = {'flag': False, 'message': [], 'data': {}}
         if details: 
             if isinstance(details, dict):
                 if 'order' in details:
@@ -202,7 +202,7 @@ class Microhelps(Nanohelps):
                                     break
                             last_key = order_list.pop()
                             if complete:
-                                allowed_fields = details['info'][last_key]['allowed_fields'] if 'allowed_fields' in details['info'][last_key] else []
+                                allowed_fields = details['info'][last_key]['allowed_fields'] if 'allowed_fields' in details['info'][last_key] else '__all__'
                                 unique_fields = details['info'][last_key]['unique_fields'] if 'unique_fields' in details['info'][last_key] else []
                                 required_fields = details['info'][last_key]['required_fields'] if 'required_fields' in details['info'][last_key] else []
                                 extra_fields = details['info'][last_key]['extra_fields'] if 'extra_fields' in details['info'][last_key] else {}
@@ -230,18 +230,13 @@ class Microhelps(Nanohelps):
                                 success = False
                                 break
                         if success:
-                            print(last_staged_data)
-                            input()
-                            # response['instance'] = 
-                            # pass
+                            response['data'] = last_staged_data
+                            response['flag'] = True
                         else:
                             for createdInstance in createdInstances: createdInstance.delete()
-                        print(last_staged_data)
-                        input()
                     else: response['message'].append('order should be list type!')
                 else: response['message'].append('order is required!')
             else: response['message'].append('details should be dict type!')
-        print(details)
         return response
         
 

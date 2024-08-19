@@ -21,6 +21,7 @@ def getdepartments(request):
         {'name': 'id', 'convert': None, 'replace':'id'},
         {'name': 'name', 'convert': None, 'replace':'name__icontains'},
         {'name': 'description', 'convert': None, 'replace':'description__icontains'},
+        {'name': 'branch', 'convert': None, 'replace':'branch__id'},
         {'name': 'email', 'convert': None, 'replace':'email__icontains'},
         {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
         {'name': 'fax', 'convert': None, 'replace':'fax__icontains'},
@@ -62,10 +63,9 @@ def adddepartment(request):
         )
         if responsesuccessflag == 'success': requestdata.update({'address': responsedata.instance.id})
         elif responsesuccessflag == 'error': del requestdata['address']
-
-
+    
     unique_fields = ['email', 'phone', 'fax']
-    required_fields = ['company']
+    required_fields = ['branch']
     fields_regex = [
         {'field': 'email', 'type': 'email'},
         {'field': 'phone', 'type': 'phonenumber'}
