@@ -179,35 +179,35 @@ WSGI_APPLICATION = 'hrm.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'apihrm',
-#         'USER': 'postgres',
-#         'PASSWORD': 'API#2024@ltd',
-#         'HOST': '10.10.20.20',
-#         'PORT': '5432',
-#     }
-# }
-
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 DATABASES = {
-   'default': {
-       'ENGINE': env('DATABASE_ENGI'),
-       'NAME': env('DATABASE_NAME'),
-       'USER': env('DATABASE_USER'),
-       'PASSWORD': env('DATABASE_PASS'),
-       'HOST': env('DATABASE_HOST'),
-       'PORT': env('DATABASE_PORT'),
-   }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'apihrm',
+        'USER': 'postgres',
+        'PASSWORD': 'API#2024@ltd',
+        'HOST': '10.10.20.20',
+        'PORT': '5432',
+    }
 }
+
+
+# DATABASES = {
+#    'default': {
+#        'ENGINE': env('DATABASE_ENGI'),
+#        'NAME': env('DATABASE_NAME'),
+#        'USER': env('DATABASE_USER'),
+#        'PASSWORD': env('DATABASE_PASS'),
+#        'HOST': env('DATABASE_HOST'),
+#        'PORT': env('DATABASE_PORT'),
+#    }
+# }
 
 
 # Password validation
