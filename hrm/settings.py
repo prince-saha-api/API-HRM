@@ -1,10 +1,9 @@
-# import environ
-from dotenv import load_dotenv
-
+import environ
+# from dotenv import load_dotenv
 from pathlib import Path
 from datetime import timedelta
 from rest_framework.settings import api_settings
-load_dotenv()
+# load_dotenv()
 # env = environ.Env()
 # environ.Env.read_env()
 
