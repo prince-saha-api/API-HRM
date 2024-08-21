@@ -56,7 +56,11 @@ class Microhelps(Nanohelps):
                                 response_message.append('unique combination is already exist!')
                         else:
                             print(serializer.errors)
-                            response_message.append('something went wrong!')
+                            try:
+                                for field_name in serializer.errors.keys():
+                                    for error in serializer.errors.get(field_name):
+                                        response_message.append(error)
+                            except: response_message.append('something went wrong!')
                 else: response_message.append('please provide data!')
             else: response_message.append('provide serializer!')
         else: response_message.append('please provide a Model!')
@@ -103,7 +107,7 @@ class Microhelps(Nanohelps):
         else: response_message.append('please provide a Model!')
         return response_data, response_message, response_successflag, response_status
     
-    def deleterecord(self, classOBJ=None, id=None, classOBJpackage_tocheck_assciaativity=[], freez_delete=[], continue_delete=[]): # New
+    def deleterecord(self, classOBJ=None, id=None, classOBJpackage_tocheck_assciaativity=[], delete_associate_records = [], freez_delete=[], continue_delete=[]): # New
         response_data = {}
         response_message = []
         response_successflag = 'error'
@@ -128,6 +132,11 @@ class Microhelps(Nanohelps):
                     self.filterContinueFields(classobj, continue_delete, response_message)
                     if not response_message:
                         try:
+                            for fields in delete_associate_records:
+                                if fields:
+                                    record = getattr(classobj.first(), fields.pop(0))
+                                    for field in fields: record = getattr(record, field)
+                                    if record: record.delete()
                             classobj.delete()
                             response_successflag = 'success'
                             response_status = status.HTTP_202_ACCEPTED

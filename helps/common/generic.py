@@ -108,15 +108,15 @@ class Generichelps(Minihelps):
             required_fields = ['username', 'password', 'first_name', 'official_id']
             unique_fields = ['personal_email', 'personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_email', 'official_phone', 'rfid']
             choice_fields = [
-                {'name': 'blood_group', 'values': [item[1] for item in CHOICE.BLOOD_GROUP]},
-                {'name': 'marital_status', 'values': [item[1] for item in CHOICE.MARITAL_STATUS]},
-                {'name': 'gender', 'values': [item[1] for item in CHOICE.GENDER]},
-                {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
-                {'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]},
-                {'name': 'job_status', 'values': [item[1] for item in CHOICE.JOB_STATUS]}
+                {'name': 'blood_group', 'type': 'single-string', 'values': [item[1] for item in CHOICE.BLOOD_GROUP]},
+                {'name': 'marital_status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MARITAL_STATUS]},
+                {'name': 'gender', 'type': 'single-string', 'values': [item[1] for item in CHOICE.GENDER]},
+                {'name': 'employee_type', 'type': 'single-string', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
+                {'name': 'payment_in', 'type': 'single-string', 'values': [item[1] for item in CHOICE.PAYMENT_IN]},
+                {'name': 'job_status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.JOB_STATUS]}
             ]
             fields_regex = [
-                {'field': 'dob', 'type': 'date'},
+                # {'field': 'dob', 'type': 'date'},
                 {'field': 'personal_email', 'type': 'email'},
                 {'field': 'personal_phone', 'type': 'phonenumber'},
                 {'field': 'official_id', 'type': 'employeeid'},

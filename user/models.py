@@ -163,6 +163,12 @@ class User(AbstractUser, Timedetailscode):
     created_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='userfive')
     updated_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='usersix')
 
+    def get_full_name(self):
+        '''
+        Method will return employee full name
+        '''
+        return f'{self.first_name } {self.last_name}' if self.last_name else self.first_name
+    
     def __str__(self):
         return f'{self.username} - {self.is_active}'
     

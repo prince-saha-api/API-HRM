@@ -15,7 +15,6 @@ urlpatterns = [
     
     path('get-leaverequest/', views.getleaverequest, name='get-leaverequest'),
     path('add-leaverequest/', views.addleaverequest, name='add-leaverequest'),
-    path('my-leaverequest/', views.myleaverequest, name='my-leaverequest'),
     path('approve-leaverequest/<int:leaverequestid>', views.approveleaverequest, name='approve-leaverequest'),
     path('reject-leaverequest/<int:leaverequestid>', views.rejectleaverequest, name='reject-leaverequest'),
 

@@ -11,8 +11,6 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-# Create your views here.
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
@@ -24,8 +22,7 @@ def getdepartments(request):
         {'name': 'branch', 'convert': None, 'replace':'branch__id'},
         {'name': 'email', 'convert': None, 'replace':'email__icontains'},
         {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
-        {'name': 'fax', 'convert': None, 'replace':'fax__icontains'},
-        {'name': 'company', 'convert': None, 'replace':'company'}
+        {'name': 'fax', 'convert': None, 'replace':'fax__icontains'}
     ]
     departments = MODELS_DEPA.Department.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')

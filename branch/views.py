@@ -91,7 +91,7 @@ def getbranchs(request):
     filter_fields = [
         {'name': 'id', 'convert': None, 'replace':'id'},
         {'name': 'name', 'convert': None, 'replace':'name__icontains'},
-        {'name': 'company', 'convert': None, 'replace':'branch_company__id'},
+        {'name': 'company', 'convert': None, 'replace':'company__id'},
         {'name': 'description', 'convert': None, 'replace':'description__icontains'},
         {'name': 'email', 'convert': None, 'replace':'email__icontains'},
         {'name': 'phone', 'convert': None, 'replace':'phone__icontains'},
@@ -218,9 +218,11 @@ def deletebranch(request, branchid=None):
         {'model': MODELS_BRAN.Branchemail, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
         {'model': MODELS_BRAN.Contactperson, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]}
     ]
+    delete_associate_records = [['address']]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_BRAN.Branch,
         id=branchid,
+        delete_associate_records=delete_associate_records,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
     )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

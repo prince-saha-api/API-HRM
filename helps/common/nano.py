@@ -2,6 +2,7 @@ from helps.common.pico import Picohelps
 from datetime import datetime, timedelta
 from hrm.settings import BASE_DIR
 # import cv2
+import ast
 import os
 import re
 
@@ -130,8 +131,18 @@ class Nanohelps(Picohelps):
 
     def filterChoiceFields(self, choice_fields, preparedata, response_message): # New
         for choice_field in choice_fields:
-            if choice_field['name'] in preparedata:
-                if preparedata[choice_field['name']] not in choice_field['values']: response_message.append(f'{choice_field["name"]} fields\'s allowed values are {", ".join(choice_field["values"])}')
+            if 'type' in choice_field:
+                if choice_field['type'] == 'single-string':
+                    if choice_field['name'] in preparedata:
+                        if preparedata[choice_field['name']] not in choice_field['values']: response_message.append(f'{choice_field["name"]} fields\'s allowed values are {", ".join(choice_field["values"])}')
+                elif choice_field['type'] == 'list-string':
+                    if choice_field['name'] in preparedata:
+                        if preparedata[choice_field['name']]:
+                            if isinstance(preparedata[choice_field['name']], list):
+                                for field_value in preparedata[choice_field['name']]:
+                                    if field_value not in choice_field['values']:
+                                        response_message.append(f'{choice_field["name"]} fields\'s allowed values are {", ".join(choice_field["values"])}')
+                                        break
 
     def filterRequiredFields(self, required_fields, preparedata, response_message): # New
         for required_field in required_fields:

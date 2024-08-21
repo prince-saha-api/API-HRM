@@ -50,7 +50,7 @@ def addpayrollearning(request):
     extra_fields = {}
     if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
     choice_fields = [
-        {'name': 'day', 'values': [item[1] for item in CHOICE.AMOUNT_TYPE]}
+        {'name': 'day', 'type': 'single-string', 'values': [item[1] for item in CHOICE.AMOUNT_TYPE]}
     ]
     required_fields = ['title', 'amount']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
@@ -120,7 +120,7 @@ def addpayrolldeduction(request):
     extra_fields = {}
     if userid: extra_fields.update({'created_by': request.user.id, 'updated_by': request.user.id})
     choice_fields = [
-        {'name': 'day', 'values': [item[1] for item in CHOICE.AMOUNT_TYPE]}
+        {'name': 'day', 'type': 'single-string', 'values': [item[1] for item in CHOICE.AMOUNT_TYPE]}
     ]
     required_fields = ['title', 'amount']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(

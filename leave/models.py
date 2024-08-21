@@ -74,7 +74,7 @@ class Leavepolicyassign(Basic):
 
     updated_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicyassigntwo')
     created_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicyassignthree')
-
+    
     def __str__(self):
         return f'{self.user.username} - {self.leavepolicy.name}'
     class Meta:
@@ -110,7 +110,7 @@ class Leaverequest(Basic):
     user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='leaverequestone')
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE, related_name='leavepolicy_leaverequest')
     request_type = models.CharField(max_length=20, choices=CHOICE.LEAVEREQUEST_TYPE)
-    extended_days = models.IntegerField(blank=True, null=True)
+    # extended_days = models.IntegerField(blank=True, null=True)
     exchange_with = models.ForeignKey(Leavepolicy, on_delete=models.SET_NULL, blank=True, null=True, related_name='exchange_with_leaverequest')
     from_date = models.DateField(blank=True, null=True)
     to_date = models.DateField(blank=True, null=True)

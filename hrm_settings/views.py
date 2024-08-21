@@ -45,7 +45,7 @@ def getweekdays(request):
 #     # userid = request.user.id
 #     unique_fields = ['day']
 #     required_fields= ['day']
-#     choice_fields = [{'name': 'day', 'values': [item[1] for item in CHOICE.DAYS]}]
+#     choice_fields = [{'name': 'day', 'type': 'single-string', 'values': [item[1] for item in CHOICE.DAYS]}]
 #     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
 #         classOBJ=MODELS_SETT.Weekdays, 
 #         Serializer=SRLZER_SETT.Weekdaysserializer, 
@@ -62,7 +62,7 @@ def getweekdays(request):
 # # @deco.get_permission(['Get Permission list Details', 'all'])
 # def updateweekdays(request, weekdaysid=None):
 #     allowed_fields = ['name', 'grade']
-#     choice_fields = [{'name': 'day', 'values': [item[1] for item in CHOICE.DAYS]}]
+#     choice_fields = [{'name': 'day', 'type': 'single-string', 'values': [item[1] for item in CHOICE.DAYS]}]
 #     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
 #         classOBJ=MODELS_SETT.Weekdays, 
 #         Serializer=SRLZER_SETT.Weekdaysserializer, 
@@ -136,8 +136,8 @@ def addgeneralsettings(request):
                     {'field': 'to_date', 'type': 'date'}
                 ]
                 choice_fields = [
-                    {'name': 'from_month', 'values': [item[1] for item in CHOICE.MONTHS]},
-                    {'name': 'to_month', 'values': [item[1] for item in CHOICE.MONTHS]},
+                    {'name': 'from_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
+                    {'name': 'to_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
                 ]
                 from_datesplit = [int(each) for each in f'{from_date}'.split('-')]
                 to_datesplit = [int(each) for each in f'{to_date}'.split('-')]
@@ -167,8 +167,8 @@ def addgeneralsettings(request):
             {'field': 'workingday_starts_at', 'type': 'time'}
         ]
         choice_fields = [
-            {'name': 'fiscalyear_month', 'values': [item[1] for item in CHOICE.MONTHS]},
-            {'name': 'consider_attendance_on_holidays', 'values': [item[1] for item in CHOICE.ATTENDANCE_OVERTIME]},
+            {'name': 'fiscalyear_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
+            {'name': 'consider_attendance_on_holidays', 'type': 'single-string', 'values': [item[1] for item in CHOICE.ATTENDANCE_OVERTIME]},
         ]
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
             classOBJ=MODELS_SETT.Generalsettings, 
@@ -224,8 +224,8 @@ def updategeneralsettings(request, generalsettingsid=None):
                     {'field': 'to_date', 'type': 'date'}
                 ]
                 choice_fields = [
-                    {'name': 'from_month', 'values': [item[1] for item in CHOICE.MONTHS]},
-                    {'name': 'to_month', 'values': [item[1] for item in CHOICE.MONTHS]},
+                    {'name': 'from_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
+                    {'name': 'to_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
                 ]
                 from_datesplit = [int(each) for each in f'{from_date}'.split('-')]
                 to_datesplit = [int(each) for each in f'{to_date}'.split('-')]
@@ -254,8 +254,8 @@ def updategeneralsettings(request, generalsettingsid=None):
             {'field': 'workingday_starts_at', 'type': 'time'}
         ]
         choice_fields = [
-            {'name': 'fiscalyear_month', 'values': [item[1] for item in CHOICE.MONTHS]},
-            {'name': 'consider_attendance_on_holidays', 'values': [item[1] for item in CHOICE.ATTENDANCE_OVERTIME]},
+            {'name': 'fiscalyear_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
+            {'name': 'consider_attendance_on_holidays', 'type': 'single-string', 'values': [item[1] for item in CHOICE.ATTENDANCE_OVERTIME]},
         ]
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
             classOBJ=MODELS_SETT.Generalsettings, 

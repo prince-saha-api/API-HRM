@@ -97,8 +97,15 @@ class Companyserializer(serializers.ModelSerializer):
         model = MODELS_COMP.Company
         fields = ['id', 'basic_information']
 
+class Branchserializer(serializers.ModelSerializer):
+    company=Companyserializer(many=False)
+    class Meta:
+        model = MODELS_BRAN.Branch
+        fields = ['id', 'name', 'company', 'description', 'email', 'phone', 'fax', 'address']
+
 class Departmentserializer(serializers.ModelSerializer):
     address=Addressserializer(many=False)
+    branch=Branchserializer(many=False)
     class Meta:
         model = MODELS_DEPA.Department
         exclude = ('manager', 'company', 'user', 'is_active', 'code', 'created_at', 'updated_at')
