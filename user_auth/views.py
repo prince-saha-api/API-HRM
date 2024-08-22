@@ -99,21 +99,28 @@ class LogoutAllView(APIView):
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def resetPassword(request):
     userid = request.data.get('user')
-    if userid == None: return Response({'data': {}, 'message': ['please provide an user\'s user id!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    if userid == None: return Response({'access': '', 'refresh': '', 'user': {}, 'message': ['please provide an user\'s user id!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
     user = User.objects.filter(id=userid)
     if user.exists():
         old_password = request.data.get('old_password')
         new_password = request.data.get('new_password')
-        if new_password == None: return Response({'data': {}, 'message': ['new_password is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+        if new_password == None: return Response({'access': '', 'refresh': '', 'user': {}, 'message': ['new_password is required!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
 
         if old_password:
             if not check_password(old_password, user.first().password):
-                return Response({'data': {}, 'message': ['old_password doesn\'t match!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'access': '', 'refresh': '', 'user': {}, 'message': ['old_password doesn\'t match!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             user.update(
                 password=make_password(new_password),
                 hr_password='-'.join([str(ord(each)+78) for each in new_password])
             )
-            return Response({'data': {}, 'message': ['password changed successfully!'], 'status': 'success'}, status=status.HTTP_200_OK)
-        except: return Response({'data': {}, 'message': ['couldn\'t change password!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'data': {}, 'message': [f'user doesn\'t exist with this user id({userid})!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+            # authenticate_user = authenticate(request, username=user.first().username, password=new_password)
+            # if authenticate_user is not None:
+            #     user = User.objects.get(username=user.first().username)
+            #     refresh = RefreshToken.for_user(user)
+            #     access = refresh.access_token
+            #     login(request, authenticate_user)
+            # return Response({'access': str(access), 'refresh':str(refresh), 'user':SRLZER_UA.Userserializer(user, many=False).data,  'message': ['password changed successfully!'], 'status': 'success'}, status=status.HTTP_200_OK)
+            return Response({'access': '', 'refresh': '', 'user': {}, 'message': ['password changed successfully!'], 'status': 'success'}, status=status.HTTP_200_OK)
+        except: return Response({'access': '', 'refresh': '', 'user': {}, 'message': ['couldn\'t change password!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+    else: return Response({'access': '', 'refresh': '', 'user': {}, 'message': [f'user doesn\'t exist with this user id({userid})!'], 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
