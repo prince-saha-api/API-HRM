@@ -172,49 +172,22 @@ def assignleavepolicy(request):
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
 
-    fiscalyear_response = ghelp().findFiscalyear(MODELS_SETT.Generalsettings)
-    if fiscalyear_response['fiscalyear']:
-        leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
-        if leavepolicy:
-
-
-
-            userlist = request.data.get('user')
-            if userlist:
-                if isinstance(userlist, list):
-                    for userid in userlist:
-                        user = ghelp().getobject(MODELS_USER.User, {'id': userid})
-                        if user:
-                            is_already_assigned = True
-                            leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user, leavepolicy=leavepolicy)
-                            if not leavepolicyassign.exists():
-                                created_by = MODELS_USER.User.objects.get(id=request.user.id)
-                                leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.create(user=user, leavepolicy=leavepolicy, created_by=created_by, updated_by=created_by)
-                                is_already_assigned = False
-                            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
-                            if not leavesummary.exists():
-                                MODELS_LEAV.Leavesummary.objects.create(
-                                    user=user,
-                                    leavepolicy=leavepolicy,
-                                    fiscal_year=fiscalyear_response['fiscalyear'],
-                                    total_allocation=leavepolicy.allocation_days,
-                                    total_consumed=0,
-                                    total_left=leavepolicy.allocation_days
-                                )
-                                is_already_assigned = False
-                            if is_already_assigned: response_message.append(f'{leavepolicy.name} leavepolicy is already assigned to {user.get_full_name()}({userid})!')
-                            else:
-                                response_successflag = 'success'
-                                response_status = status.HTTP_202_ACCEPTED
-                        else: response_message.append(f'user{userid} doesn\'t exist therefor couldn\'t assign leavepolicy!')
-                else: response_message.append('userid will be placed in list!')
-            else: response_message.append('user list is blank!')
-
-
-
-
-        else: response_message.append('leavepolicy doesn\'t exist!')
-    else: response_message.extend(fiscalyear_response['message'])
+    userlist = request.data.get('user')
+    manipulate_info = {'created_by': request.user.id, 'updated_by': request.user.id}
+    classOBJpackage = {
+        'Generalsettings': MODELS_SETT.Generalsettings,
+        'Leavepolicy': MODELS_LEAV.Leavepolicy,
+        'Leavepolicyassign': MODELS_LEAV.Leavepolicyassign,
+        'Leavesummary': MODELS_LEAV.Leavesummary,
+        'User': MODELS_USER.User
+    }
+    leavepolicylist = request.data.get('leavepolicy')
+    leavepolicy_response = ghelp().assignBulkUserToBulkLeavepolicy(classOBJpackage, leavepolicylist, userlist, manipulate_info)
+    if leavepolicy_response['flag']:
+        response_message.extend(leavepolicy_response['message'])
+        response_successflag = 'success'
+        response_status = status.HTTP_202_ACCEPTED
+    else: response_message.extend(leavepolicy_response['message'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])

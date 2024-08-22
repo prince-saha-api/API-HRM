@@ -37,8 +37,8 @@ class Employeejobhistory(Basic):
     appraisal_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='employeejobhistory_appraisal_by')
     comment = models.TextField(blank=True, null=True)
     doc = models.FileField(upload_to=uploadjobhistory, blank=True, null=True)
-    next_id = models.IntegerField(blank=True, null=True)
-    previous_id = models.IntegerField(blank=True, null=True)
+    next_id = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='employeejobhistory_next')
+    previous_id = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='employeejobhistory_previous')
 
     def __str__(self):
-        return f'{self.user.username}'
+        return f'{self.id} - {self.user.username}'

@@ -8,6 +8,7 @@ from branch import models as MODELS_BRAN
 from department import models as MODELS_DEPA
 from hrm_settings import models as MODELS_SETT
 from jobrecord.serializer import serializers as SRLZER_JOBR
+from jobrecord.serializer.CUSTOM import serializers as CSRLZER_JOBR
 from jobrecord.serializer.POST import serializers as PSRLZER_JOBR
 from user.serializer.POST import serializers as PSRLZER_USER
 from rest_framework.response import Response
@@ -48,7 +49,7 @@ def getjobhistorys(request):
     page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
     if page and page_size: employeejobhistorys = employeejobhistorys[(page-1)*page_size:page*page_size]
 
-    employeejobhistoryserializers = SRLZER_JOBR.Employeejobhistoryserializer(employeejobhistorys, many=True)
+    employeejobhistoryserializers = CSRLZER_JOBR.Employeejobhistoryserializer(employeejobhistorys, many=True)
     return Response({'data': {
         'count': total_count,
         'page': page,
@@ -94,7 +95,8 @@ def addjobhistory(request):
 
                     status_adjustment = requestdata.get('status_adjustment')
                     if status_adjustment:
-                        status_adjustment = status_adjustment.replace(', ', '-').replace('[', '').replace(']', '').split('-')
+                        if isinstance(status_adjustment, str):
+                            status_adjustment = status_adjustment.replace(', ', '-').replace('[', '').replace(']', '').split('-')
                         
                         if status_adjustment:
                             employeejobhistorydata.update({'status_adjustment': status_adjustment})

@@ -168,3 +168,33 @@ class Generichelps(Minihelps):
                             else: response['message'].append(f'applied date is not in this fiscal year!({fiscal_year_from_date} - {fiscal_year_to_date})')
                 else: response['message'].append('please add general settings first!')
         return response
+    
+
+    def assignBulkUserToBulkLeavepolicy(self, classOBJpackage, leavepolicylist, userlist, manipulate_info): # New
+        response = {'flag': False, 'message': []}
+        
+        if 'Generalsettings' in classOBJpackage:
+            if 'Leavepolicy' in classOBJpackage:
+                if 'Leavepolicyassign' in classOBJpackage:
+                    if 'Leavesummary' in classOBJpackage:
+                        if 'User' in classOBJpackage:
+                            fiscalyear_response = self.findFiscalyear(classOBJpackage['Generalsettings'])
+                            fiscalyear = fiscalyear_response['fiscalyear']
+                            if fiscalyear:
+                                if leavepolicylist:
+                                    if isinstance(leavepolicylist, list):
+                                        for leavepolicyid in leavepolicylist:
+                                            assign_leavepolicy_response = self.assignLeavepolicyToBulkUser(classOBJpackage, userlist, leavepolicyid, fiscalyear, manipulate_info)
+                                            if assign_leavepolicy_response['flag']:
+                                                response['flag'] = True
+                                                response['message'].extend(assign_leavepolicy_response['message'])
+                                            else: response['message'].extend(assign_leavepolicy_response['message'])
+                                    else: response['message'].append('leavepolicy type should be list!')
+                                else: response['message'].append('leavepolicy should not be empty!')
+                            else: response['message'].extend(fiscalyear_response['message'])
+                        else: response['message'].append('User Model is missing!')
+                    else: response['message'].append('Leavesummary Model is missing!')
+                else: response['message'].append('Leavepolicyassign Model is missing!')
+            else: response['message'].append('Leavepolicy Model is missing!')
+        else: response['message'].append('Generalsettings Model is missing!')
+        return response

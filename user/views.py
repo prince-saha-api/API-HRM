@@ -1077,8 +1077,9 @@ def addemployee(request):
                             if ethnicgroup.name != 'all': ethnicgroup.user.add(userinstance)
             
             if salaryAndLeaves:
-                userdata = {'instance': userinstance, 'created_by': created_by, 'updated_by': created_by}
-                leavepolicy_response = ghelp().addLeavepolicy(classOBJpackage, salaryAndLeaves.get('leavepolicy'), userdata)
+                userlist=[userinstance.id]
+                manipulate_info = {'created_by': request.user.id, 'updated_by': request.user.id}
+                leavepolicy_response = ghelp().assignBulkUserToBulkLeavepolicy(classOBJpackage, salaryAndLeaves.get('leavepolicy'), userlist, manipulate_info)
             
             if officialDetails:
                 if salaryAndLeaves:
@@ -1093,7 +1094,8 @@ def addemployee(request):
                         'employee_type': officialDetails['employee_type'],
                         'status_adjustment': [CHOICE.STATUS_ADJUSTMENT[0][1]],
                         'job_status': CHOICE.JOB_STATUS[0][1],
-                        'appraisal_by': created_by.id
+                        # 'appraisal_by': created_by.id
+                        'appraisal_by': request.user.id
                     }
                     required_fields = ['user', 'effective_from', 'salary', 'company', 'branch', 'department', 'designation', 'employee_type']
                     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
@@ -1237,18 +1239,18 @@ def updateprofile(request, userid=None):
         fields_regex=fields_regex
     )
     if response_successflag == 'success':
-        employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=userid).order_by('id')
-
-        print(response_data.instance.designation.id)
-        print(employeejobhistory.last().designation)
-        input()
-
         
-        if response_data.instance.designation.id != employeejobhistory.last().designation.id:
-            MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.last().designation.id).update(designation=response_data.isinstance.designation.id)
+        employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=userid).order_by('id')
+        last_employeejobhistory = employeejobhistory.last()
+        while last_employeejobhistory:
+            if last_employeejobhistory.designation:
+                if response_data.instance.designation.id != last_employeejobhistory.designation.id:
+                    MODELS_JOBR.Employeejobhistory.objects.filter(id=last_employeejobhistory.id).update(designation=response_data.instance.designation)
+                break
+            else: last_employeejobhistory = last_employeejobhistory.previous_id
 
         if response_data.instance.joining_date != employeejobhistory.first().effective_from:
-            MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().designation.id).update(effective_from=response_data.isinstance.joining_date)
+            MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(effective_from=response_data.instance.joining_date)
 
         response_data = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -1467,12 +1469,12 @@ def updateofficialdetails(request, userid=None):
             fields_regex=fields_regex
         )
         if responsesuccessflag == 'success':
-
             userserializer = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False)
+
             employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id')
 
-            if userserializer.instance.joining_date != employeejobhistory.first().date:
-                MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(date=userserializer.instance.joining_date)
+            if userserializer.instance.joining_date != employeejobhistory.first().effective_from:
+                MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(effective_from=userserializer.instance.joining_date)
             
             employeejobhistory = employeejobhistory.last()
             # 'company'
@@ -1481,10 +1483,15 @@ def updateofficialdetails(request, userid=None):
                 company = MODELS_COMP.Company.objects.filter(id=companyid)
                 if company.exists():
                     company = company.first()
-                    if employeejobhistory.company:
-                        if company.id != employeejobhistory.company.id:
-                            employeejobhistory.department.user.remove(user.first())
-                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(company=company, branch=None, department=None)
+                    if employeejobhistory.department:
+
+                        while employeejobhistory:
+                            if employeejobhistory.company:
+                                if company.id != employeejobhistory.company.id:
+                                    employeejobhistory.department.user.remove(user.first())
+                                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(company=company, branch=None, department=None)
+                                break
+                            else: employeejobhistory = employeejobhistory.previous_id
             # 'branch'
             if 'branch' in requestdata:
                 branchid = requestdata['branch']
@@ -1492,10 +1499,13 @@ def updateofficialdetails(request, userid=None):
                 if branch.exists():
                     branch = branch.first()
                     if employeejobhistory.department:
-                        if employeejobhistory.branch:
-                            if branch.id != employeejobhistory.branch.id:
-                                employeejobhistory.department.user.remove(user.first())
-                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(branch=branch, department=None)
+                        while employeejobhistory:
+                            if employeejobhistory.branch:
+                                if branch.id != employeejobhistory.branch.id:
+                                    employeejobhistory.department.user.remove(user.first())
+                                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(branch=branch, department=None)
+                                break
+                            else: employeejobhistory = employeejobhistory.previous_id
             response_data = userserializer.data
         
         response_message.extend(responsemessage)
@@ -1521,7 +1531,6 @@ def updatesalaryleaves(request, userid=None):
         if 'gross_salary' in requesteddata:
             try:
                 gross_salary = float(requesteddata['gross_salary'])
-                prev_salary = user.first().gross_salary
                 basicSalary = ghelp().getBasicSalary(MODELS_SETT.Generalsettings, gross_salary)
                 if basicSalary['flag']: requesteddata.update({'basic_salary': basicSalary['basic_salary']})
                 else: response_message.extend(basicSalary['message'])
@@ -1645,13 +1654,14 @@ def updatesalaryleaves(request, userid=None):
                 choice_fields=choice_fields
             )
             if responsesuccessflag == 'success':
-                employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id').last()
-                
-                if gross_salary:
-                    increment_amount = gross_salary - prev_salary
-                    percentage = (increment_amount*100)/prev_salary
 
-                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=gross_salary, increment_amount=increment_amount, percentage=percentage)
+                employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id').last()
+                while employeejobhistory:
+                    if employeejobhistory.salary:
+                        if employeejobhistory.salary != responsedata.instance.gross_salary:
+                            MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=responsedata.instance.gross_salary)
+                        break
+                    else: employeejobhistory = employeejobhistory.previous_id
                 
                 response_data = responsedata.data
                 response_successflag=responsesuccessflag
