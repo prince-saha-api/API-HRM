@@ -150,6 +150,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://10.10.23.89:49012',
     'http://10.10.23.16:49012',
     'http://10.10.20.20:49015',
+    'http://10.10.20.20:49016',
     'http://*',
 ]
  
@@ -189,7 +190,7 @@ WSGI_APPLICATION = 'hrm.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'apihrm',
+        'NAME': 'hrm_api',
         'USER': 'postgres',
         'PASSWORD': 'API#2024@ltd',
         'HOST': '10.10.20.20',
