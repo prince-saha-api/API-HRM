@@ -108,15 +108,15 @@ class Generichelps(Minihelps):
             required_fields = ['username', 'password', 'first_name', 'official_id']
             unique_fields = ['personal_email', 'personal_phone', 'nid_passport_no', 'tin_no', 'official_id', 'official_email', 'official_phone', 'rfid']
             choice_fields = [
-                {'name': 'blood_group', 'values': [item[1] for item in CHOICE.BLOOD_GROUP]},
-                {'name': 'marital_status', 'values': [item[1] for item in CHOICE.MARITAL_STATUS]},
-                {'name': 'gender', 'values': [item[1] for item in CHOICE.GENDER]},
-                {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
-                {'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]},
-                {'name': 'job_status', 'values': [item[1] for item in CHOICE.JOB_STATUS]}
+                {'name': 'blood_group', 'type': 'single-string', 'values': [item[1] for item in CHOICE.BLOOD_GROUP]},
+                {'name': 'marital_status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MARITAL_STATUS]},
+                {'name': 'gender', 'type': 'single-string', 'values': [item[1] for item in CHOICE.GENDER]},
+                {'name': 'employee_type', 'type': 'single-string', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
+                {'name': 'payment_in', 'type': 'single-string', 'values': [item[1] for item in CHOICE.PAYMENT_IN]},
+                {'name': 'job_status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.JOB_STATUS]}
             ]
             fields_regex = [
-                {'field': 'dob', 'type': 'date'},
+                # {'field': 'dob', 'type': 'date'},
                 {'field': 'personal_email', 'type': 'email'},
                 {'field': 'personal_phone', 'type': 'phonenumber'},
                 {'field': 'official_id', 'type': 'employeeid'},
@@ -167,4 +167,34 @@ class Generichelps(Minihelps):
                             if self.is_date_in_range(date, fiscal_year_from_date, fiscal_year_to_date): response['dates'].append(date)
                             else: response['message'].append(f'applied date is not in this fiscal year!({fiscal_year_from_date} - {fiscal_year_to_date})')
                 else: response['message'].append('please add general settings first!')
+        return response
+    
+
+    def assignBulkUserToBulkLeavepolicy(self, classOBJpackage, leavepolicylist, userlist, manipulate_info): # New
+        response = {'flag': False, 'message': []}
+        
+        if 'Generalsettings' in classOBJpackage:
+            if 'Leavepolicy' in classOBJpackage:
+                if 'Leavepolicyassign' in classOBJpackage:
+                    if 'Leavesummary' in classOBJpackage:
+                        if 'User' in classOBJpackage:
+                            fiscalyear_response = self.findFiscalyear(classOBJpackage['Generalsettings'])
+                            fiscalyear = fiscalyear_response['fiscalyear']
+                            if fiscalyear:
+                                if leavepolicylist:
+                                    if isinstance(leavepolicylist, list):
+                                        for leavepolicyid in leavepolicylist:
+                                            assign_leavepolicy_response = self.assignLeavepolicyToBulkUser(classOBJpackage, userlist, leavepolicyid, fiscalyear, manipulate_info)
+                                            if assign_leavepolicy_response['flag']:
+                                                response['flag'] = True
+                                                response['message'].extend(assign_leavepolicy_response['message'])
+                                            else: response['message'].extend(assign_leavepolicy_response['message'])
+                                    else: response['message'].append('leavepolicy type should be list!')
+                                else: response['message'].append('leavepolicy should not be empty!')
+                            else: response['message'].extend(fiscalyear_response['message'])
+                        else: response['message'].append('User Model is missing!')
+                    else: response['message'].append('Leavesummary Model is missing!')
+                else: response['message'].append('Leavepolicyassign Model is missing!')
+            else: response['message'].append('Leavepolicy Model is missing!')
+        else: response['message'].append('Generalsettings Model is missing!')
         return response

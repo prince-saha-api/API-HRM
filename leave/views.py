@@ -61,7 +61,7 @@ def addleavepolicy(request):
     unique_fields = ['name']
     required_fields = ['name', 'leave_type']
     choice_fields = [
-        {'name': 'leave_type', 'values': [item[1] for item in CHOICE.LEAVE_TYPE]}
+        {'name': 'leave_type', 'type': 'single-string', 'values': [item[1] for item in CHOICE.LEAVE_TYPE]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
         classOBJ=MODELS_LEAV.Leavepolicy, 
@@ -172,33 +172,22 @@ def assignleavepolicy(request):
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
 
-    fiscalyear_response = ghelp().findFiscalyear(MODELS_SETT.Generalsettings)
-    if fiscalyear_response['fiscalyear']:
-        leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': request.data.get('leavepolicy')})
-        if leavepolicy:
-            user = ghelp().getobject(MODELS_USER.User, {'id': request.data.get('user')})
-            if user:
-                leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user, leavepolicy=leavepolicy)
-                if not leavepolicyassign.exists():
-                    created_by = MODELS_USER.User.objects.get(id=request.user.id)
-                    leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.create(user=user, leavepolicy=leavepolicy, created_by=created_by, updated_by=created_by)
-                    leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
-                    if not leavesummary.exists():
-                        MODELS_LEAV.Leavesummary.objects.create(
-                            user=user,
-                            leavepolicy=leavepolicy,
-                            fiscal_year=fiscalyear_response['fiscalyear'],
-                            total_allocation=leavepolicy.allocation_days,
-                            total_consumed=0,
-                            total_left=leavepolicy.allocation_days
-                        )
-                        response_successflag = 'success'
-                        response_status = status.HTTP_202_ACCEPTED
-                    else: response_message.append(f'{leavepolicy.name} leavepolicy\'s leavesummary is already exist!')
-                else: response_message.append(f'{leavepolicy.name} is not associated to {user.first_name} {user.last_name}!')
-            else: response_message.append('user doesn\'t exist!')
-        else: response_message.append('leavepolicy doesn\'t exist!')
-    else: response_message.extend(fiscalyear_response['message'])
+    userlist = request.data.get('user')
+    manipulate_info = {'created_by': request.user.id, 'updated_by': request.user.id}
+    classOBJpackage = {
+        'Generalsettings': MODELS_SETT.Generalsettings,
+        'Leavepolicy': MODELS_LEAV.Leavepolicy,
+        'Leavepolicyassign': MODELS_LEAV.Leavepolicyassign,
+        'Leavesummary': MODELS_LEAV.Leavesummary,
+        'User': MODELS_USER.User
+    }
+    leavepolicylist = request.data.get('leavepolicy')
+    leavepolicy_response = ghelp().assignBulkUserToBulkLeavepolicy(classOBJpackage, leavepolicylist, userlist, manipulate_info)
+    if leavepolicy_response['flag']:
+        response_message.extend(leavepolicy_response['message'])
+        response_successflag = 'success'
+        response_status = status.HTTP_202_ACCEPTED
+    else: response_message.extend(leavepolicy_response['message'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['DELETE'])
@@ -287,7 +276,6 @@ def getleaverequest(request):
         {'name': 'user', 'convert': None, 'replace':'user'},
         {'name': 'leavepolicy', 'convert': None, 'replace':'leavepolicy'},
         {'name': 'request_type', 'convert': None, 'replace':'request_type__icontains'},
-        {'name': 'extended_days', 'convert': None, 'replace':'extended_days'},
         {'name': 'exchange_with', 'convert': None, 'replace':'exchange_with'},
         {'name': 'from_date', 'convert': None, 'replace':'from_date'},
         {'name': 'to_date', 'convert': None, 'replace':'to_date'},
@@ -388,17 +376,18 @@ def addleaverequest(request):
         elif request_type == CHOICE.LEAVEREQUEST_TYPE[1][1]:
             leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
             if leavesummary.exists():
-                exchange_with = requestdata.get('exchange_with')
-                if exchange_with:
-                    if exchange_with != leavepolicyid:
-                        if exchange_with in leavepolicyids_str:
-                            if from_date and to_date:
-                                response = ghelp().getWorkingDates(MODELS_SETT.Generalsettings, MODELS_LEAV.Holiday, user, leavepolicy, leavesummary.first(), from_date, to_date)
-                                if response['message']: response_message.extend(response['message'])
-                                else:
-                                    dates = response['dates']
+                if from_date and to_date:
+                    response = ghelp().getWorkingDates(MODELS_SETT.Generalsettings, MODELS_LEAV.Holiday, user, leavepolicy, leavesummary.first(), from_date, to_date)
+                    if response['message']: response_message.extend(response['message'])
+                    else:
+                        dates = response['dates']
+                        exchange_with = requestdata.get('exchange_with')
+                        if exchange_with:
+                            if exchange_with != leavepolicyid:
+                                if exchange_with in leavepolicyids_str:
                                     allowed_fields=['user', 'leavepolicy', 'exchange_with', 'from_date', 'to_date', 'reason', 'attachment']
-                                    required_fields=['user', 'leavepolicy', 'exchange_with', 'from_date', 'to_date', 'attachment']
+                                    required_fields=['user', 'leavepolicy', 'exchange_with', 'from_date', 'to_date']
+                                    if leavepolicy.require_attachment: required_fields.append('attachment')
                                     fields_regex = [{'field': 'from_date', 'type': 'date'},{'field': 'to_date', 'type': 'date'}]
                                     extra_fields={'request_type': CHOICE.LEAVEREQUEST_TYPE[1][1], 'status': CHOICE.STATUS[0][1], 'total_leave': len(dates), 'valid_leave_dates': dates}
                                     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
@@ -415,32 +404,34 @@ def addleaverequest(request):
                                         response_successflag = responsesuccessflag
                                         response_status = responsestatus
                                     elif responsesuccessflag == 'error': response_message.extend(responsemessage)
-                            else: response_message.append('both from_date and to_date are required!')
-                        else: response_message.append(f'{leavepolicy.name} is not associated to {user.first_name} {user.last_name}!')
-                    else: response_message.append(f'both leavepolicys are same!')
-                else:
-                    allowed_fields=['user', 'leavepolicy', 'extended_days', 'reason', 'attachment']
-                    required_fields=['user', 'leavepolicy', 'extended_days', 'attachment']
-                    extra_fields={'request_type': CHOICE.LEAVEREQUEST_TYPE[1][1], 'status': CHOICE.STATUS[0][1]}
-                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                        classOBJ=MODELS_LEAV.Leaverequest,
-                        Serializer=PSRLZER_LEAV.Leaverequestserializer,
-                        data=requestdata,
-                        allowed_fields=allowed_fields,
-                        required_fields=required_fields,
-                        extra_fields=extra_fields
-                    )
-                    if responsesuccessflag == 'success':
-                        response_data = responsedata.data
-                        response_successflag = responsesuccessflag
-                        response_status = responsestatus
-                    elif responsesuccessflag == 'error': response_message.extend(responsemessage)
+                                else: response_message.append(f'{leavepolicy.name} is not associated to {user.first_name} {user.last_name}!')
+                            else: response_message.append(f'both leavepolicys are same!')
+                        else:
+                            allowed_fields=['user', 'leavepolicy', 'reason', 'attachment']
+                            required_fields=['user', 'leavepolicy']
+                            if leavepolicy.require_attachment: required_fields.append('attachment')
+                            extra_fields={'request_type': CHOICE.LEAVEREQUEST_TYPE[1][1], 'status': CHOICE.STATUS[0][1], 'total_leave': len(dates), 'valid_leave_dates': dates}
+                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                                classOBJ=MODELS_LEAV.Leaverequest,
+                                Serializer=PSRLZER_LEAV.Leaverequestserializer,
+                                data=requestdata,
+                                allowed_fields=allowed_fields,
+                                required_fields=required_fields,
+                                extra_fields=extra_fields
+                            )
+                            if responsesuccessflag == 'success':
+                                response_data = responsedata.data
+                                response_successflag = responsesuccessflag
+                                response_status = responsestatus
+                            elif responsesuccessflag == 'error': response_message.extend(responsemessage)
+                else: response_message.append('both from_date and to_date are required!')
             else: response_message.append(f'{leavepolicy.name} is not associated to {user.first_name} {user.last_name}!')
         elif request_type == CHOICE.LEAVEREQUEST_TYPE[2][1]:
             if leavepolicyid not in leavepolicyids_str:
                 if from_date and to_date:
                     allowed_fields=['user', 'leavepolicy', 'from_date', 'to_date', 'attachment', 'reason']
-                    required_fields=['user', 'leavepolicy', 'from_date', 'to_date', 'attachment']
+                    required_fields=['user', 'leavepolicy', 'from_date', 'to_date']
+                    if leavepolicy.require_attachment: required_fields.append('attachment')
                     fields_regex = [{'field': 'from_date', 'type': 'date'},{'field': 'to_date', 'type': 'date'}]
                     extra_fields={'request_type': CHOICE.LEAVEREQUEST_TYPE[2][1], 'status': CHOICE.STATUS[0][1]}
                     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
@@ -459,154 +450,6 @@ def addleaverequest(request):
                     elif responsesuccessflag == 'error': response_message.extend(responsemessage)
                 else: response_message.append('both from_date and to_date are required!')
             else: response_message.append(f'{leavepolicy.name} is already assigned to {user.first_name} {user.last_name}!')
-        else: response_message.append(f'request_type fields\'s allowed values are {", ".join([item[1] for item in CHOICE.LEAVEREQUEST_TYPE])}')
-    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-# @deco.get_permission(['get company info', 'all'])
-def myleaverequest(request):
-    requestdata = request.data.copy()
-
-    response_data = {}
-    response_message = []
-    response_successflag = 'error'
-    response_status = status.HTTP_400_BAD_REQUEST
-
-    user = ghelp().getobject(MODELS_USER.User, {'id': request.user.id})
-    
-    leavepolicyid = requestdata.get('leavepolicy')
-    leavepolicy = None
-    if leavepolicyid:
-        leavepolicy = ghelp().getobject(MODELS_LEAV.Leavepolicy, {'id': leavepolicyid})
-        if leavepolicy == None: response_message.append('required valid leavepolicy!')
-    else: response_message.append('required leavepolicy!')
-
-    regexObj= ghelp().getregex('date')
-    from_date = requestdata.get('from_date')
-    to_date = requestdata.get('to_date')
-    if from_date and to_date:
-        try:
-            from_date=ghelp().convert_STR_datetime_date(from_date)
-            try:to_date=ghelp().convert_STR_datetime_date(to_date)
-            except: response_message.append(f'to_date field\'s format is {regexObj["format"]}!')
-        except: response_message.append(f'from_date field\'s format is {regexObj["format"]}!')
-
-    if not response_message:
-        assignedleavepolicys = [leavepolicyassign.leavepolicy for leavepolicyassign in MODELS_LEAV.Leavepolicyassign.objects.filter(user=user)]
-        leavepolicyids_str = [str(leavepolicy.id) for leavepolicy in assignedleavepolicys]
-
-        request_type = requestdata.get('request_type')
-        if request_type == CHOICE.LEAVEREQUEST_TYPE[0][1]:
-            if from_date and to_date:
-                required_fields=['user', 'leavepolicy', 'from_date', 'to_date']
-                dates = []
-                leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
-                if leavesummary.exists():
-                        response = ghelp().getWorkingDates(MODELS_SETT.Generalsettings, MODELS_LEAV.Holiday, user, leavepolicy, leavesummary.first(), from_date, to_date)
-                        if response['message']: response_message.extend(response['message'])
-                        else:
-                            dates.extend(response['dates'])
-                            if leavepolicy.max_consecutive_days == 0 or len(dates)<=leavepolicy.max_consecutive_days:
-                                total_left = leavesummary.first().total_left
-                                if len(dates)<=total_left:
-                                    if leavepolicy.require_attachment: required_fields.append('attachment')
-                                else: response_message.append(f'you have left {total_left} leave - {leavepolicy.name}!')
-                            else: response_message.append(f'max_consecutive_days {leavepolicy.max_consecutive_days} have been exceeded!')
-                else: response_message.append(f'{leavepolicy.name} is not associated to you!')
-                if not response_message:
-                    allowed_fields=['user', 'leavepolicy', 'from_date', 'to_date', 'attachment', 'reason']
-                    fields_regex = [{'field': 'from_date', 'type': 'date'},{'field': 'to_date', 'type': 'date'}]
-                    extra_fields={'request_type': CHOICE.LEAVEREQUEST_TYPE[0][1], 'status': CHOICE.STATUS[0][1], 'total_leave': len(dates), 'valid_leave_dates': dates}
-                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                        classOBJ=MODELS_LEAV.Leaverequest,
-                        Serializer=PSRLZER_LEAV.Leaverequestserializer,
-                        data=requestdata,
-                        allowed_fields=allowed_fields,
-                        required_fields=required_fields,
-                        fields_regex=fields_regex,
-                        extra_fields=extra_fields
-                    )
-                    if responsesuccessflag == 'success':
-                        response_data = responsedata.data
-                        response_successflag = responsesuccessflag
-                        response_status = responsestatus
-                    elif responsesuccessflag == 'error': response_message.extend(responsemessage)
-            else: response_message.append('both from_date and to_date are required!')
-        elif request_type == CHOICE.LEAVEREQUEST_TYPE[1][1]:
-            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user, leavepolicy=leavepolicy)
-            if leavesummary.exists():
-                exchange_with = requestdata.get('exchange_with')
-                if exchange_with:
-                    if exchange_with != leavepolicyid:
-                        if exchange_with in leavepolicyids_str:
-                            if from_date and to_date:
-                                response = ghelp().getWorkingDates(MODELS_SETT.Generalsettings, MODELS_LEAV.Holiday, user, leavepolicy, leavesummary.first(), from_date, to_date)
-                                if response['message']: response_message.extend(response['message'])
-                                else:
-                                    dates = response['dates']
-                                    allowed_fields=['user', 'leavepolicy', 'exchange_with', 'from_date', 'to_date', 'reason', 'attachment']
-                                    required_fields=['user', 'leavepolicy', 'exchange_with', 'from_date', 'to_date', 'attachment']
-                                    fields_regex = [{'field': 'from_date', 'type': 'date'},{'field': 'to_date', 'type': 'date'}]
-                                    extra_fields={'request_type': CHOICE.LEAVEREQUEST_TYPE[1][1], 'status': CHOICE.STATUS[0][1], 'total_leave': len(dates), 'valid_leave_dates': dates}
-                                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                                        classOBJ=MODELS_LEAV.Leaverequest,
-                                        Serializer=PSRLZER_LEAV.Leaverequestserializer,
-                                        data=requestdata,
-                                        allowed_fields=allowed_fields,
-                                        required_fields=required_fields,
-                                        fields_regex=fields_regex,
-                                        extra_fields=extra_fields
-                                    )
-                                    if responsesuccessflag == 'success':
-                                        response_data = responsedata.data
-                                        response_successflag = responsesuccessflag
-                                        response_status = responsestatus
-                                    elif responsesuccessflag == 'error': response_message.extend(responsemessage)
-                            else: response_message.append('both from_date and to_date are required!')
-                        else: response_message.append(f'{leavepolicy.name} is not associated to you!')
-                    else: response_message.append(f'both leavepolicys are same!')
-                else:
-                    allowed_fields=['user', 'leavepolicy', 'extended_days', 'reason', 'attachment']
-                    required_fields=['user', 'leavepolicy', 'extended_days', 'attachment']
-                    extra_fields={'request_type': CHOICE.LEAVEREQUEST_TYPE[1][1], 'status': CHOICE.STATUS[0][1]}
-                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                        classOBJ=MODELS_LEAV.Leaverequest,
-                        Serializer=PSRLZER_LEAV.Leaverequestserializer,
-                        data=requestdata,
-                        allowed_fields=allowed_fields,
-                        required_fields=required_fields,
-                        extra_fields=extra_fields
-                    )
-                    if responsesuccessflag == 'success':
-                        response_data = responsedata.data
-                        response_successflag = responsesuccessflag
-                        response_status = responsestatus
-                    elif responsesuccessflag == 'error': response_message.extend(responsemessage)
-            else: response_message.append(f'{leavepolicy.name} is not associated to you!')
-        elif request_type == CHOICE.LEAVEREQUEST_TYPE[2][1]:
-            if leavepolicyid not in leavepolicyids_str:
-                if from_date and to_date:
-                    allowed_fields=['user', 'leavepolicy', 'from_date', 'to_date', 'attachment', 'reason']
-                    required_fields=['user', 'leavepolicy', 'from_date', 'to_date', 'attachment']
-                    fields_regex = [{'field': 'from_date', 'type': 'date'},{'field': 'to_date', 'type': 'date'}]
-                    extra_fields={'request_type': CHOICE.LEAVEREQUEST_TYPE[2][1], 'status': CHOICE.STATUS[0][1]}
-                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                        classOBJ=MODELS_LEAV.Leaverequest,
-                        Serializer=PSRLZER_LEAV.Leaverequestserializer,
-                        data=requestdata,
-                        allowed_fields=allowed_fields,
-                        required_fields=required_fields,
-                        fields_regex=fields_regex,
-                        extra_fields=extra_fields
-                    )
-                    if responsesuccessflag == 'success':
-                        response_data = responsedata.data
-                        response_successflag = responsesuccessflag
-                        response_status = responsestatus
-                    elif responsesuccessflag == 'error': response_message.extend(responsemessage)
-                else: response_message.append('both from_date and to_date are required!')
-            else: response_message.append(f'{leavepolicy.name} is already assigned to you!')
         else: response_message.append(f'request_type fields\'s allowed values are {", ".join([item[1] for item in CHOICE.LEAVEREQUEST_TYPE])}')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -695,8 +538,8 @@ def approveleaverequest(request, leaverequestid=None):
                 else:
                     leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=leaverequest.first().user, leavepolicy=leaverequest.first().leavepolicy)
                     if leavesummary.exists():
-                        total_allocation = leavesummary.first().total_allocation + leaverequest.first().extended_days
-                        total_left = leavesummary.first().total_left + leaverequest.first().extended_days
+                        total_allocation = leavesummary.first().total_allocation + leaverequest.first().total_leave
+                        total_left = leavesummary.first().total_left + leaverequest.first().total_leave
                         try:
                             leavesummary.update(total_allocation=total_allocation, total_left=total_left)
                             leaverequest.update(status=CHOICE.STATUS[1][1], approved_by=MODELS_USER.User.objects.get(id=request.user.id))
@@ -846,9 +689,9 @@ def rejectleaverequest(request, leaverequestid=None):
                     else:
                         leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=leaverequest.first().user, leavepolicy=leaverequest.first().leavepolicy)
                         if leavesummary.exists():
-                            if leavesummary.first().total_left>=leaverequest.first().extended_days:
-                                total_allocation = leavesummary.first().total_allocation - leaverequest.first().extended_days
-                                total_left = leavesummary.first().total_left - leaverequest.first().extended_days
+                            if leavesummary.first().total_left>=leaverequest.first().total_leave:
+                                total_allocation = leavesummary.first().total_allocation - leaverequest.first().total_leave
+                                total_left = leavesummary.first().total_left - leaverequest.first().total_leave
                                 try: leavesummary.update(total_allocation=total_allocation, total_left=total_left)
                                 except:
                                     reject = False

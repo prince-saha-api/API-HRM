@@ -218,9 +218,11 @@ def deletebranch(request, branchid=None):
         {'model': MODELS_BRAN.Branchemail, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
         {'model': MODELS_BRAN.Contactperson, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]}
     ]
+    delete_associate_records = [['address']]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_BRAN.Branch,
         id=branchid,
+        delete_associate_records=delete_associate_records,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
     )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

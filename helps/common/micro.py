@@ -56,7 +56,11 @@ class Microhelps(Nanohelps):
                                 response_message.append('unique combination is already exist!')
                         else:
                             print(serializer.errors)
-                            response_message.append('something went wrong!')
+                            try:
+                                for field_name in serializer.errors.keys():
+                                    for error in serializer.errors.get(field_name):
+                                        response_message.append(error)
+                            except: response_message.append('something went wrong!')
                 else: response_message.append('please provide data!')
             else: response_message.append('provide serializer!')
         else: response_message.append('please provide a Model!')
@@ -103,7 +107,7 @@ class Microhelps(Nanohelps):
         else: response_message.append('please provide a Model!')
         return response_data, response_message, response_successflag, response_status
     
-    def deleterecord(self, classOBJ=None, id=None, classOBJpackage_tocheck_assciaativity=[], freez_delete=[], continue_delete=[]): # New
+    def deleterecord(self, classOBJ=None, id=None, classOBJpackage_tocheck_assciaativity=[], delete_associate_records = [], freez_delete=[], continue_delete=[]): # New
         response_data = {}
         response_message = []
         response_successflag = 'error'
@@ -128,6 +132,11 @@ class Microhelps(Nanohelps):
                     self.filterContinueFields(classobj, continue_delete, response_message)
                     if not response_message:
                         try:
+                            for fields in delete_associate_records:
+                                if fields:
+                                    record = getattr(classobj.first(), fields.pop(0))
+                                    for field in fields: record = getattr(record, field)
+                                    if record: record.delete()
                             classobj.delete()
                             response_successflag = 'success'
                             response_status = status.HTTP_202_ACCEPTED
@@ -179,7 +188,7 @@ class Microhelps(Nanohelps):
 
 
     def nestedObjectPrepare(self, details): # New
-        response = {'flag': False, 'message': [], 'instance': {}}
+        response = {'flag': False, 'message': [], 'data': {}}
         if details: 
             if isinstance(details, dict):
                 if 'order' in details:
@@ -202,7 +211,7 @@ class Microhelps(Nanohelps):
                                     break
                             last_key = order_list.pop()
                             if complete:
-                                allowed_fields = details['info'][last_key]['allowed_fields'] if 'allowed_fields' in details['info'][last_key] else []
+                                allowed_fields = details['info'][last_key]['allowed_fields'] if 'allowed_fields' in details['info'][last_key] else '__all__'
                                 unique_fields = details['info'][last_key]['unique_fields'] if 'unique_fields' in details['info'][last_key] else []
                                 required_fields = details['info'][last_key]['required_fields'] if 'required_fields' in details['info'][last_key] else []
                                 extra_fields = details['info'][last_key]['extra_fields'] if 'extra_fields' in details['info'][last_key] else {}
@@ -230,18 +239,13 @@ class Microhelps(Nanohelps):
                                 success = False
                                 break
                         if success:
-                            print(last_staged_data)
-                            input()
-                            # response['instance'] = 
-                            # pass
+                            response['data'] = last_staged_data
+                            response['flag'] = True
                         else:
                             for createdInstance in createdInstances: createdInstance.delete()
-                        print(last_staged_data)
-                        input()
                     else: response['message'].append('order should be list type!')
                 else: response['message'].append('order is required!')
             else: response['message'].append('details should be dict type!')
-        print(details)
         return response
         
 

@@ -29,59 +29,59 @@ class Minihelps(Microhelps):
     def getuserdetails(self, classOBJpackage, serializerOBJpackage, createdInstance,  personalDetails, officialDetails, salaryAndLeaves, photo, created_by): # New
         response = {'flag': True, 'message': [], 'data': {}}
 
-        # addbankaccountdetails = None
-        # if salaryAndLeaves:
-        #     if 'bank_account' in salaryAndLeaves:
-        #         if salaryAndLeaves['bank_account']:
-        #             addbankaccountdetails=self.addbankaccount(classOBJpackage, serializerOBJpackage, salaryAndLeaves['bank_account'], createdInstance)
-        #             if not addbankaccountdetails['flag']:
-        #                 response['message'].extend([f'user\'s {each}' for each in addbankaccountdetails['message']])
-        #                 # response['flag'] = False
-        #                 addbankaccountdetails = None
-
-        details = {
-            'data': {
-                        "bank_name":"Prime Asia",
-                        "branch_name": "Banani",
-                        "account_type": 1,
-                        "account_no": "1111111111",
-                        "routing_no": "22222222222",
-                        "swift_bic": "33333333333",
-                        "address": {
-                            "address": "asdafefaeds",
-                            "city": "saddsfd",
-                            "state_division": "csfsfsfsf",
-                            "country": "sddfferfv"
-                        }
-                    },
-            'order': ['address'],
-            'info': {
-                'address': {
-                    'model': classOBJpackage['Address'],
-                    'serializer': serializerOBJpackage['Address'],
-                    # 'allowed_fields': [],
-                    # 'unique_fields': [],
-                    # 'required_fields': [],
-                    # 'extra_fields': {},
-                    # 'choice_fields': [],
-                    # 'fields_regex': []
-                }
-            }
-        }
         addbankaccountdetails = None
         if salaryAndLeaves:
             if 'bank_account' in salaryAndLeaves:
                 if salaryAndLeaves['bank_account']:
-                    addbankaccountdetails=self.nestedObjectPrepare(details)
+                    addbankaccountdetails=self.addbankaccount(classOBJpackage, serializerOBJpackage, salaryAndLeaves['bank_account'], createdInstance)
                     if not addbankaccountdetails['flag']:
                         response['message'].extend([f'user\'s {each}' for each in addbankaccountdetails['message']])
                         # response['flag'] = False
                         addbankaccountdetails = None
+                        
 
-
-
-
-
+        # details = {
+        #     'data': {
+        #         'bank_account': {
+        #             "bank_name":"Prime Asia",
+        #             "branch_name": "Banani",
+        #             "account_type": 1,
+        #             "account_no": "1111111111",
+        #             "routing_no": "22222222222",
+        #             "swift_bic": "33333333333",
+        #             "address": {
+        #                 "address": "asdafefaeds",
+        #                 "city": "saddsfd",
+        #                 "state_division": "csfsfsfsf",
+        #                 "country": "sddfferfv"
+        #             }
+        #         }
+        #     },
+        #     'order': ['bank_account', 'address'],
+        #     'info': {
+        #         'address': {
+        #             'model': classOBJpackage['Address'],
+        #             'serializer': serializerOBJpackage['Address'],
+        #             'required_fields': ['address', 'city', 'state_division', 'country']
+        #         },
+        #         'bank_account': {
+        #             'model': classOBJpackage['Bankaccount'],
+        #             'serializer': serializerOBJpackage['Bankaccount'],
+        #             'required_fields': ['bank_name', 'branch_name', 'account_type', 'account_no', 'routing_no']
+        #         }
+        #     }
+        # }
+        # addbankaccountdetails = None
+        # if salaryAndLeaves:
+        #     if 'bank_account' in salaryAndLeaves:
+        #         if salaryAndLeaves['bank_account']:
+        #             addbankaccountdetails=self.nestedObjectPrepare(details)
+        #             print(addbankaccountdetails)
+        #             input()
+        #             if not addbankaccountdetails['flag']:
+        #                 response['message'].extend([f'user\'s {each}' for each in addbankaccountdetails['message']])
+        #                 # response['flag'] = False
+        #                 addbankaccountdetails = None
 
 
 
@@ -529,46 +529,42 @@ class Minihelps(Microhelps):
         return response
     
     
-    def addLeavepolicy(self, classOBJpackage, leavepolicylist, userdata): # New 
-        response_message = []
-        if leavepolicylist:
-            if 'Generalsettings' in classOBJpackage:
-                if 'Leavepolicy' in classOBJpackage:
-                    if 'Leavepolicyassign' in classOBJpackage:
-                        if 'Leavesummary' in classOBJpackage:
-                            fiscalyear_response = self.findFiscalyear(classOBJpackage['Generalsettings'])
-                            if fiscalyear_response['fiscalyear']:
-                                if leavepolicylist:
-                                    if isinstance(leavepolicylist, list):
-                                        for id in leavepolicylist:
-                                            leavepolicy = self.getobject(classOBJpackage['Leavepolicy'], {'id': id})
-                                            if leavepolicy:
-                                                leavepolicyassign_flag = True
-                                                if not classOBJpackage['Leavepolicyassign'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).exists():
-                                                    try: classOBJpackage['Leavepolicyassign'].objects.create(user=userdata['instance'], leavepolicy=leavepolicy, created_by=userdata['created_by'], updated_by=userdata['updated_by'])
-                                                    except: leavepolicyassign_flag = False
-                                                if not classOBJpackage['Leavesummary'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).exists():
-                                                    if leavepolicyassign_flag:
-                                                        try: classOBJpackage['Leavesummary'].objects.create(
-                                                                user=userdata['instance'],
-                                                                leavepolicy=leavepolicy,
-                                                                fiscal_year=fiscalyear_response['fiscalyear'],
-                                                                total_allocation=leavepolicy.allocation_days,
-                                                                total_consumed=0,
-                                                                total_left=leavepolicy.allocation_days
-                                                            )
-                                                        except:
-                                                            classOBJpackage['Leavepolicyassign'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).delete()
-                                                            response_message.append(f'couldn\'t assign {leavepolicy.name} leavepolicy({id})!')
-                                                    else:
-                                                        classOBJpackage['Leavepolicyassign'].objects.filter(user=userdata['instance'], leavepolicy=leavepolicy).delete()
-                                                        response_message.append(f'couldn\'t assign {leavepolicy.name} leavepolicy({id})!')
-                                            else: response_message.append('leavepolicy doesn\'t exist!')
-                                    else: response_message.append('leavepolicy type should be list!')
-                                else: response_message.append('leavepolicy should not be empty!')
-                            else: response_message.extend(fiscalyear_response['message'])
-                        else: response_message.append('Leavesummary Model is missing!')
-                    else: response_message.append('Leavepolicyassign Model is missing!')
-                else: response_message.append('Leavepolicy Model is missing!')
-            else: response_message.append('Generalsettings Model is missing!')
-        return response_message
+    def assignLeavepolicyToBulkUser(self, classOBJpackage, userlist, leavepolicyid, fiscalyear, manipulate_info): # New
+        response = {'flag': False, 'message': []}
+        if userlist:
+            if isinstance(userlist, list):
+
+                leavepolicy = self.getobject(classOBJpackage['Leavepolicy'], {'id': leavepolicyid})
+                if leavepolicy:
+                    for userid in userlist:
+                        user = self.getobject(classOBJpackage['User'], {'id': userid})
+                        if user:
+                            is_already_assigned = True
+                            leavepolicyassign = classOBJpackage['Leavepolicyassign'].objects.filter(user=user, leavepolicy=leavepolicy)
+                            if not leavepolicyassign.exists():
+                                created_by = classOBJpackage['User'].objects.get(id=manipulate_info['created_by'])
+                                leavepolicyassign = classOBJpackage['Leavepolicyassign'].objects.create(user=user, leavepolicy=leavepolicy, created_by=created_by, updated_by=created_by)
+                                is_already_assigned = False
+                            leavesummary = classOBJpackage['Leavesummary'].objects.filter(user=user, leavepolicy=leavepolicy)
+                            if not leavesummary.exists():
+                                classOBJpackage['Leavesummary'].objects.create(
+                                    user=user,
+                                    leavepolicy=leavepolicy,
+                                    fiscal_year=fiscalyear,
+                                    total_allocation=leavepolicy.allocation_days,
+                                    total_consumed=0,
+                                    total_left=leavepolicy.allocation_days
+                                )
+                                is_already_assigned = False
+                            if is_already_assigned:
+                                response['flag'] = True
+                                response['message'].append(f'{leavepolicy.name} leavepolicy is already assigned to {user.get_full_name()}({userid})!')
+                            else:
+                                response['flag'] = True
+                                response['message'].append(f'successfully assigned {leavepolicy.name}({leavepolicyid}) to {user.get_full_name()}({userid})')
+                        else: response['message'].append(f'user{userid} doesn\'t exist therefor couldn\'t assign leavepolicy!')
+                else: response['message'].append(f'leavepolicy{leavepolicyid} doesn\'t exist therefor couldn\'t assign to given users!')
+            else: response['message'].append('userid will be placed in list!')
+        else: response['message'].append('user list is blank!')
+        return response
+    

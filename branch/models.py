@@ -19,7 +19,7 @@ class Operatinghour(Basic):
 
 class Branch(Basic):
     name = models.CharField(max_length=100)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='branchone')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='branch_company')
     description = models.TextField(blank=True, null=True)
     email = models.EmailField(unique=True, blank=True, null=True)
     phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)

@@ -8,11 +8,14 @@ from branch import models as MODELS_BRAN
 from department import models as MODELS_DEPA
 from hrm_settings import models as MODELS_SETT
 from jobrecord.serializer import serializers as SRLZER_JOBR
+from jobrecord.serializer.CUSTOM import serializers as CSRLZER_JOBR
 from jobrecord.serializer.POST import serializers as PSRLZER_JOBR
+from user.serializer.POST import serializers as PSRLZER_USER
 from rest_framework.response import Response
 from rest_framework import status
 from helps.common.generic import Generichelps as ghelp
 from helps.choice import common as CHOICE
+import re
 
 
 @api_view(['GET'])
@@ -46,7 +49,7 @@ def getjobhistorys(request):
     page_size = int(request.GET.get('page_size')) if request.GET.get('page_size') else 10
     if page and page_size: employeejobhistorys = employeejobhistorys[(page-1)*page_size:page*page_size]
 
-    employeejobhistoryserializers = SRLZER_JOBR.Employeejobhistoryserializer(employeejobhistorys, many=True)
+    employeejobhistoryserializers = CSRLZER_JOBR.Employeejobhistoryserializer(employeejobhistorys, many=True)
     return Response({'data': {
         'count': total_count,
         'page': page,
@@ -67,150 +70,237 @@ def addjobhistory(request):
     if requestdata.get('user'):
         user = MODELS_USER.User.objects.filter(id=requestdata.get('user'))
         if user.exists():
-            previous_employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id)
-            if previous_employeejobhistory.exists():
-                previous_employeejobhistory = previous_employeejobhistory.order_by('id').last()
-                
-                salary = requestdata.get('salary')
-                if salary:
-                    try: salary = float(salary)
-                    except: pass
-                else: salary = previous_employeejobhistory.salary
-                if salary:
-                    BasicSalary = ghelp().getBasicSalary(MODELS_SETT.Generalsettings, salary)
-                    if not BasicSalary['flag']: response_message.extend(BasicSalary['message'])
-                
-                if not response_message:
-                    employeejobhistorydata = {'user': user.first().id, 'appraisal_by': request.user.id}
-                    if requestdata.get('effective_from'): employeejobhistorydata.update({'effective_from': requestdata.get('effective_from')})
-                    if requestdata.get('increment_on'): employeejobhistorydata.update({'increment_on': requestdata.get('increment_on')})
-                    
+            if user.first().job_status == CHOICE.JOB_STATUS[0][1]:
+                previous_employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id)
+                if previous_employeejobhistory.exists():
+                    previous_employeejobhistory = previous_employeejobhistory.order_by('id').last()
 
-                    prev_salary = previous_employeejobhistory.salary
-                    if prev_salary:
-                        employeejobhistorydata.update({'salary': f'{salary}'})
-                        increment_amount = salary - prev_salary
-                        employeejobhistorydata.update({'increment_amount': f'{increment_amount}'})
-                        percentage = (increment_amount*100)/prev_salary
-                        employeejobhistorydata.update({'percentage': f'{percentage}'})
+                    userdatatoupdate = {}
+                    employeejobhistorydata = {}
+                    allowed_fields = ['user', 'effective_from', 'status_adjustment', 'appraisal_by', 'comment', 'doc']
+                    required_fields = ['user', 'effective_from', 'status_adjustment', 'appraisal_by']
+                    choice_fields = []
+                    fields_regex = [{'field': 'effective_from', 'type': 'date'}]
                     
-                    
-                    if requestdata.get('employee_type'): employeejobhistorydata.update({'employee_type': requestdata.get('employee_type')})
-                    if requestdata.get('date'): employeejobhistorydata.update({'date': requestdata.get('date')})
-                    
-                    if requestdata.get('status_adjustment'): employeejobhistorydata.update({'status_adjustment': requestdata.get('status_adjustment')})
+                    employeejobhistorydata.update({'user': requestdata.get('user'), 'appraisal_by': request.user.id})
 
-                    companyid = requestdata.get('company')
-                    if companyid:
-                        company = MODELS_COMP.Company.objects.filter(id=companyid)
-                        if company.exists():
-                            companyid = company.first().id
-                            employeejobhistorydata.update({'company': companyid})
-                        else:
-                            if previous_employeejobhistory.company:
-                                companyid = previous_employeejobhistory.company.id
-                                employeejobhistorydata.update({'company': companyid})
-                    else:
-                        if previous_employeejobhistory.company:
-                            companyid = previous_employeejobhistory.company.id
-                            employeejobhistorydata.update({'company': companyid})
-                    
-                    branchid = None
-                    if companyid:
-                        branchid = requestdata.get('branch')
-                        if branchid:
-                            branch = MODELS_BRAN.Branch.objects.filter(id=branchid, company=companyid)
-                            if branch.exists():
-                                branchid = branch.first().id
-                                employeejobhistorydata.update({'branch': branchid})
-                            else:
-                                if previous_employeejobhistory.branch:
-                                    branchid = previous_employeejobhistory.branch.id
-                                    if MODELS_BRAN.Branch.objects.filter(id=branchid, company=companyid).exists():
-                                        employeejobhistorydata.update({'branch': branchid})
-                                    else: branchid = None
-                                else: branchid = None
-                        else:
-                            if previous_employeejobhistory.branch:
-                                branchid = previous_employeejobhistory.branch.id
-                                if MODELS_BRAN.Branch.objects.filter(id=branchid, company=companyid).exists():
-                                    employeejobhistorydata.update({'branch': branchid})
-                                else: branchid = None
-                            else: branchid = None
+                    effective_from = requestdata.get('effective_from')
+                    if effective_from: employeejobhistorydata.update({'effective_from': effective_from})
 
-                    departmentid = None
-                    if branchid:
-                        departmentid = requestdata.get('department')
-                        if departmentid:
-                            department = MODELS_DEPA.Department.objects.filter(id=departmentid, branch=branchid)
-                            if department.exists():
-                                departmentid = department.first().id
-                                employeejobhistorydata.update({'department': departmentid})
-                            else:
-                                if previous_employeejobhistory.department:
-                                    departmentid = previous_employeejobhistory.department.id
-                                    if MODELS_DEPA.Department.objects.filter(id=departmentid, branch=branchid).exists():
-                                        employeejobhistorydata.update({'department': departmentid})
-                                    else: departmentid = None
-                                else: departmentid = None
-                        else:
-                            if previous_employeejobhistory.department:
-                                departmentid = previous_employeejobhistory.department.id
-                                if MODELS_DEPA.Department.objects.filter(id=departmentid, branch=branchid).exists():
-                                    employeejobhistorydata.update({'department': departmentid})
-                                else: departmentid = None
-                            else: departmentid = None
+                    comment = requestdata.get('comment')
+                    if effective_from: employeejobhistorydata.update({'comment': comment})
 
-                    designation = requestdata.get('designation')
-                    if designation:
-                        designation = MODELS_USER.Designation.objects.filter(id=designation)
-                        if designation.exists():
-                            employeejobhistorydata.update({'designation': designation.first().id})
-                        else:
-                            if previous_employeejobhistory.designation:
-                                employeejobhistorydata.update({'designation': previous_employeejobhistory.designation.id})
-                    else:
-                        if previous_employeejobhistory.designation:
-                            employeejobhistorydata.update({'designation': previous_employeejobhistory.designation.id})
-                    
-                    if employeejobhistorydata:
-                        allowed_fields = ['user', 'effective_from', 'increment_on', 'salary', 'increment_amount', 'percentage', 'employee_type', 'date', 'status_adjustment', 'company', 'branch', 'department', 'designation', 'comment', 'doc', 'appraisal_by']
-                        required_fields = ['user', 'effective_from', 'salary', 'increment_amount', 'percentage', 'employee_type', 'date', 'status_adjustment', 'company', 'designation']
-                        choice_fields = [
-                            {'name': 'increment_on', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
-                            {'name': 'status_adjustment', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]},
-                            {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
-                        ]
-                        fields_regex = [
-                            {'field': 'effective_from', 'type': 'date'},
-                            {'field': 'date', 'type': 'date'}
-                        ]
-                        extra_fields = {'previous_id': previous_employeejobhistory.id}
-                        response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-                            classOBJ=MODELS_JOBR.Employeejobhistory,
-                            Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
-                            data=employeejobhistorydata,
-                            allowed_fields=allowed_fields,
-                            required_fields=required_fields,
-                            choice_fields=choice_fields,
-                            fields_regex=fields_regex,
-                            extra_fields=extra_fields
-                        )
-                        if response_successflag == 'success':
-                            instance = response_data.instance
-                            MODELS_JOBR.Employeejobhistory.objects.filter(id=previous_employeejobhistory.id).update(next_id=instance.id)
+                    doc = request.FILES.get('doc')
+                    if doc: employeejobhistorydata.update({'doc': doc})
+
+                    status_adjustment = requestdata.get('status_adjustment')
+                    if status_adjustment:
+                        if isinstance(status_adjustment, str):
+                            status_adjustment = status_adjustment.replace(', ', '-').replace('[', '').replace(']', '').split('-')
+                        
+                        if status_adjustment:
+                            employeejobhistorydata.update({'status_adjustment': status_adjustment})
+                            choice_fields.append({'name': 'status_adjustment', 'type': 'list-string', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]})
+                            if_anyone_checked = False
+
                             
-                            if instance.salary == user.first().gross_salary: user.update(designation=instance.designation)
-                            else: user.update(designation=instance.designation, gross_salary=instance.salary, basic_salary=BasicSalary['basic_salary'])
-                            
-                            if departmentid:
-                                if previous_employeejobhistory.department.id != departmentid:
-                                    previous_employeejobhistory.department.user.remove(user.first())
-                                    response_data.instance.department.user.add(user.first())
-                            else: previous_employeejobhistory.department.user.remove(user.first())
-                            
-                            response_data = response_data.data
-            else: response_message.append('last employeejobhistory doesn\'t exist!')
+                            if CHOICE.STATUS_ADJUSTMENT[1][1] in status_adjustment: # Promotion
+                                if_anyone_checked = True
+                                allowed_fields.extend(['designation'])
+                                required_fields.extend(['designation'])
+                                
+                                designation = requestdata.get('designation')
+                                if designation:
+                                    employeejobhistorydata.update({'designation': designation})
+                                    userdatatoupdate.update({'designation': designation})
+                            # else:
+                            #     if previous_employeejobhistory.designation:
+                            #         allowed_fields.extend(['designation'])
+                            #         required_fields.extend(['designation'])
+                            #         employeejobhistorydata.update({'designation': previous_employeejobhistory.designation.id})
+
+                            if CHOICE.STATUS_ADJUSTMENT[2][1] in status_adjustment: # Increment
+                                if_anyone_checked = True
+                                
+                                allowed_fields.extend(['increment_on', 'salary', 'increment_amount', 'percentage'])
+                                required_fields.extend(['increment_on', 'salary', 'increment_amount', 'percentage'])
+
+                                increment_on = requestdata.get('increment_on')
+                                if increment_on: employeejobhistorydata.update({'increment_on': increment_on})
+
+                                salary = requestdata.get('salary')
+                                if salary:
+                                    try:
+                                        salary = float(salary)
+                                        basic_salary_response = ghelp().getBasicSalary(MODELS_SETT.Generalsettings, salary)
+                                        if basic_salary_response['flag']:
+                                            employeejobhistorydata.update({'salary': salary})
+                                            userdatatoupdate.update({'gross_salary': salary, 'basic_salary': basic_salary_response['basic_salary']})
+                                    except: pass
+
+                                percentage = requestdata.get('percentage')
+                                if percentage: employeejobhistorydata.update({'percentage': percentage})
+                                
+                                increment_amount = requestdata.get('increment_amount')
+                                if increment_amount: employeejobhistorydata.update({'increment_amount': increment_amount})
+                            # else:
+                            #     allowed_fields.extend(['increment_on', 'salary', 'increment_amount', 'percentage'])
+                            #     if previous_employeejobhistory.increment_on:
+                            #         employeejobhistorydata.update({'increment_on': previous_employeejobhistory.increment_on})
+                            #     if previous_employeejobhistory.salary:
+                            #         employeejobhistorydata.update({'salary': previous_employeejobhistory.salary})
+                            #     if previous_employeejobhistory.percentage:
+                            #         employeejobhistorydata.update({'percentage': previous_employeejobhistory.percentage})
+                            #     if previous_employeejobhistory.increment_amount:
+                            #         employeejobhistorydata.update({'increment_amount': previous_employeejobhistory.increment_amount})
+
+                            departmentid = None
+                            if CHOICE.STATUS_ADJUSTMENT[3][1] in status_adjustment: # Transfer
+                                if_anyone_checked = True
+                                allowed_fields.extend(['company', 'branch', 'department'])
+                                required_fields.extend(['company', 'branch', 'department'])
+
+                                companyid = requestdata.get('company')
+                                if companyid:
+                                    company = MODELS_COMP.Company.objects.filter(id=companyid)
+                                    if company.exists():
+                                        companyid = company.first().id
+                                        employeejobhistorydata.update({'company': companyid, 'branch': None, 'department': None})
+                                    else:
+                                        if previous_employeejobhistory.company:
+                                            companyid = previous_employeejobhistory.company.id
+                                            employeejobhistorydata.update({'company': companyid, 'branch': None, 'department': None})
+                                        else: companyid = None
+                                else:
+                                    if previous_employeejobhistory.company:
+                                        companyid = previous_employeejobhistory.company.id
+                                        employeejobhistorydata.update({'company': companyid, 'branch': None, 'department': None})
+                                    else: companyid = None
+                                
+                                branchid = None
+                                if companyid:
+                                    branchid = requestdata.get('branch')
+                                    if branchid:
+                                        branch = MODELS_BRAN.Branch.objects.filter(id=branchid, company=companyid)
+                                        if branch.exists():
+                                            branchid = branch.first().id
+                                            employeejobhistorydata.update({'branch': branchid, 'department': None})
+                                        else:
+                                            if previous_employeejobhistory.branch:
+                                                branchid = previous_employeejobhistory.branch.id
+                                                if MODELS_BRAN.Branch.objects.filter(id=branchid, company=companyid).exists():
+                                                    employeejobhistorydata.update({'branch': branchid, 'department': None})
+                                                else: branchid = None
+                                            else: branchid = None
+                                    else:
+                                        if previous_employeejobhistory.branch:
+                                            branchid = previous_employeejobhistory.branch.id
+                                            if MODELS_BRAN.Branch.objects.filter(id=branchid, company=companyid).exists():
+                                                employeejobhistorydata.update({'branch': branchid, 'department': None})
+                                            else: branchid = None
+                                        else: branchid = None
+
+                                departmentid = None
+                                if branchid:
+                                    departmentid = requestdata.get('department')
+                                    if departmentid:
+                                        department = MODELS_DEPA.Department.objects.filter(id=departmentid, branch=branchid)
+                                        if department.exists():
+                                            departmentid = department.first().id
+                                            employeejobhistorydata.update({'department': departmentid})
+                                        else:
+                                            if previous_employeejobhistory.department:
+                                                departmentid = previous_employeejobhistory.department.id
+                                                if MODELS_DEPA.Department.objects.filter(id=departmentid, branch=branchid).exists():
+                                                    employeejobhistorydata.update({'department': departmentid})
+                                                else: departmentid = None
+                                            else: departmentid = None
+                                    else:
+                                        if previous_employeejobhistory.department:
+                                            departmentid = previous_employeejobhistory.department.id
+                                            if MODELS_DEPA.Department.objects.filter(id=departmentid, branch=branchid).exists():
+                                                employeejobhistorydata.update({'department': departmentid})
+                                            else: departmentid = None
+                                        else: departmentid = None
+                            # else:
+                            #     allowed_fields.extend(['company', 'branch', 'department'])
+                            #     if previous_employeejobhistory.company:
+                            #         employeejobhistorydata.update({'company': previous_employeejobhistory.company.id})
+                            #     if previous_employeejobhistory.branch:
+                            #         employeejobhistorydata.update({'branch': previous_employeejobhistory.branch.id})
+                            #     if previous_employeejobhistory.department:
+                            #         employeejobhistorydata.update({'department': previous_employeejobhistory.department.id})
+
+                            if CHOICE.STATUS_ADJUSTMENT[4][1] in status_adjustment: # Status Update
+                                employee_type = requestdata.get('employee_type')
+                                if employee_type:
+                                    allowed_fields.append('employee_type')
+                                    required_fields.append('employee_type')
+                                    choice_fields.append({'name': 'employee_type', 'type': 'single-string', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]})
+
+                                    employeejobhistorydata.update({'employee_type': employee_type})
+                                    userdatatoupdate.update({'employee_type': employee_type})
+                                
+                                # current job status will hold both user and employee transition table
+
+                                if not if_anyone_checked:
+                                    job_status = requestdata.get('job_status')
+                                    if job_status:
+                                        allowed_fields.append('job_status')
+                                        required_fields.append('job_status')
+                                        choice_fields.append({'name': 'job_status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.JOB_STATUS]})
+                                        employeejobhistorydata.update({'job_status': job_status})
+                                        userdatatoupdate.update({'job_status': job_status})
+                                        if job_status in [CHOICE.JOB_STATUS[1][1], CHOICE.JOB_STATUS[2][1], CHOICE.JOB_STATUS[3][1]]:
+                                            userdatatoupdate.update({'is_active': False})
+                                            employeejobhistorydata.update({'status_adjustment': [job_status]})
+                            # else:
+                            #     allowed_fields.extend(['employee_type', 'job_status'])
+                            #     if previous_employeejobhistory.employee_type:
+                            #         employeejobhistorydata.update({'employee_type': previous_employeejobhistory.employee_type})
+                            #     if previous_employeejobhistory.job_status:
+                            #         employeejobhistorydata.update({'job_status': previous_employeejobhistory.job_status})
+
+                            extra_fields = {'previous_id': previous_employeejobhistory.id}
+                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                                classOBJ=MODELS_JOBR.Employeejobhistory,
+                                Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
+                                data=employeejobhistorydata,
+                                allowed_fields=allowed_fields,
+                                required_fields=required_fields,
+                                choice_fields=choice_fields,
+                                fields_regex=fields_regex,
+                                extra_fields=extra_fields
+                            )
+                            if responsesuccessflag == 'success':
+                                instance = responsedata.instance
+                                MODELS_JOBR.Employeejobhistory.objects.filter(id=previous_employeejobhistory.id).update(next_id=instance.id)
+
+                                if departmentid:
+                                    if previous_employeejobhistory.department.id != departmentid:
+                                        previous_employeejobhistory.department.user.remove(user.first())
+                                        responsedata.instance.department.user.add(user.first())
+                                else:
+                                    if previous_employeejobhistory.department:
+                                        previous_employeejobhistory.department.user.remove(user.first())
+                                
+                                response_data = responsedata.data
+                                response_status = responsestatus
+                                response_successflag = responsesuccessflag
+
+                                ghelp().updaterecord(
+                                    classOBJ=MODELS_USER.User,
+                                    Serializer=PSRLZER_USER.Userserializer,
+                                    id=user.first().id,
+                                    data=userdatatoupdate
+                                )
+                            elif responsesuccessflag == 'error': response_message.extend(responsemessage)
+                            response_status = responsestatus
+                            response_successflag = responsesuccessflag
+                        else: response_message.append('no valid status_adjustment provided!')
+                    else: response_message.append('please select status_adjustment!')
+                else: response_message.append('last employeejobhistory doesn\'t exist!')
+            else: response_message.append(f'user is already {user.first().job_status}!')
         else: response_message.append('user doesn\'t exist!')
     else: response_message.append('user id is missing!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -304,9 +394,9 @@ def addjobhistory(request):
 #                             next_employeejobhistory.update(increment_amount=increment_amount, percentage=percentage)
                         
 #                         choice_fields = [
-#                             {'name': 'increment_on', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
-#                             {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
-#                             {'name': 'status_adjustment', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]}
+#                             {'name': 'increment_on', 'type': 'single-string', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
+#                             {'name': 'employee_type', 'type': 'single-string', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
+#                             {'name': 'status_adjustment', 'type': 'single-string', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]}
 #                         ]
 #                         fields_regex = [
 #                             {'field': 'effective_from', 'type': 'date'},
@@ -406,9 +496,9 @@ def addjobhistory(request):
 #                                 preparedata.update({'department': None})
                     
 #                     choice_fields = [
-#                         {'name': 'increment_on', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
-#                         {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
-#                         {'name': 'status_adjustment', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]}
+#                         {'name': 'increment_on', 'type': 'single-string', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
+#                         {'name': 'employee_type', 'type': 'single-string', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
+#                         {'name': 'status_adjustment', 'type': 'single-string', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]}
 #                     ]
 #                     fields_regex = [
 #                         {'field': 'effective_from', 'type': 'date'},
@@ -453,9 +543,9 @@ def addjobhistory(request):
 #                         next_employeejobhistory.update(increment_amount=increment_amount, percentage=percentage)
                     
 #                     choice_fields = [
-#                         {'name': 'increment_on', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
-#                         {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
-#                         {'name': 'status_adjustment', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]}
+#                         {'name': 'increment_on', 'type': 'single-string', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
+#                         {'name': 'employee_type', 'type': 'single-string', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
+#                         {'name': 'status_adjustment', 'type': 'single-string', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]}
 #                     ]
 #                     fields_regex = [
 #                         {'field': 'effective_from', 'type': 'date'},
@@ -555,9 +645,9 @@ def addjobhistory(request):
 #                             preparedata.update({'department': None})
                 
 #                 choice_fields = [
-#                     {'name': 'increment_on', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
-#                     {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
-#                     {'name': 'status_adjustment', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]}
+#                     {'name': 'increment_on', 'type': 'single-string', 'values': [item[1] for item in CHOICE.INCREMENT_ON]},
+#                     {'name': 'employee_type', 'type': 'single-string', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]},
+#                     {'name': 'status_adjustment', 'type': 'single-string', 'values': [item[1] for item in CHOICE.STATUS_ADJUSTMENT]}
 #                 ]
 #                 fields_regex = [
 #                     {'field': 'effective_from', 'type': 'date'},

@@ -23,6 +23,7 @@ from helps.common.generic import Generichelps as ghelp
 from helps.choice import common as CHOICE
 # from django.core.paginator import Paginator
 from drf_nested_forms.utils import NestedForm
+from django.shortcuts import get_list_or_404
 import random
 
 @api_view(['GET'])
@@ -400,7 +401,7 @@ def addshiftchangerequest(request):
     extra_fields.update({'status': CHOICE.STATUS[0][1]})
     allowed_fields = ['reqshiftid', 'fromdate', 'todate',  'reqnote']
     choice_fields = [
-        {'name': 'status', 'values': [item[1] for item in CHOICE.STATUS]}
+        {'name': 'status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.STATUS]}
     ]
     required_fields = ['user', 'reqshiftid', 'fromdate', 'todate']
     fields_regex = [
@@ -878,7 +879,13 @@ def getemployee(request):
         {'name': 'official_email', 'convert': None, 'replace':'official_email__icontains'},
         {'name': 'official_phone', 'convert': None, 'replace':'official_phone__icontains'},
         {'name': 'employee_type', 'convert': None, 'replace':'employee_type__icontains'},
-        {'name': 'gross_salary', 'convert': None, 'replace':'gross_salary'},
+        
+        # {'name': 'department', 'convert': None, 'replace':'departmenttwo__id'},
+        # {'name': 'company', 'convert': None, 'replace':'branch_company__department_branch'},
+        # {'name': 'branch', 'convert': None, 'replace':'department_branch'},
+
+        {'name': 'gross_salary_from', 'convert': None, 'replace':'gross_salary__gte'},
+        {'name': 'gross_salary_to', 'convert': None, 'replace':'gross_salary__lte'},
         {'name': 'payment_in', 'convert': None, 'replace':'payment_in__icontains'},
         {'name': 'supervisor', 'convert': None, 'replace':'supervisor'},
         {'name': 'expense_approver', 'convert': None, 'replace':'expense_approver'},
@@ -886,14 +893,38 @@ def getemployee(request):
         {'name': 'shift_request_approver', 'convert': None, 'replace':'shift_request_approver'},
         {'name': 'grade', 'convert': None, 'replace':'grade'},
         {'name': 'shift', 'convert': None, 'replace':'shift'},
-        {'name': 'joining_date', 'convert': None, 'replace':'joining_date'},
+        {'name': 'joining_date_from', 'convert': None, 'replace':'joining_date__gte'},
+        {'name': 'joining_date_to', 'convert': None, 'replace':'joining_date__lte'},
         {'name': 'allow_overtime', 'convert': 'bool', 'replace':'allow_overtime'},
         {'name': 'allow_remote_checkin', 'convert': 'bool', 'replace':'allow_remote_checkin'},
         {'name': 'job_status', 'convert': None, 'replace':'job_status__icontains'},
         {'name': 'official_note', 'convert': None, 'replace':'official_note__icontains'},
         {'name': 'rfid', 'convert': None, 'replace':'rfid__icontains'}
     ]
-    users = MODELS_USER.User.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    users = None
+    flag_company_branch_department = False
+    companyid = request.GET.get('company')
+    if companyid:
+        flag_company_branch_department = True
+        branchs = MODELS_BRAN.Branch.objects.filter(company=companyid)
+        departments = MODELS_DEPA.Department.objects.filter(branch__in=[each.id for each in branchs])
+        users = MODELS_USER.User.objects.filter(departmenttwo__in=[each.id for each in departments]).distinct('id').order_by('id')
+    branchid = request.GET.get('branch')
+    if branchid:
+        if not flag_company_branch_department:
+            flag_company_branch_department = True
+            departments = MODELS_DEPA.Department.objects.filter(branch=branchid)
+            users = MODELS_USER.User.objects.filter(departmenttwo__in=[each.id for each in departments]).distinct('id').order_by('id')
+    departmentid = request.GET.get('department')
+    if departmentid:
+        if not flag_company_branch_department:
+            users = MODELS_USER.User.objects.filter(department=departmentid).distinct('id').order_by('id')
+
+    kwargs = ghelp().KWARGS(request, filter_fields)
+    kwargs.update({'is_active': True})
+    
+    users = MODELS_USER.User.objects.all() if users == None else users
+    users = users.filter(**kwargs)
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: users = users.order_by(column_accessor)
     
@@ -964,7 +995,7 @@ def addemployee(request):
             'to_be_apply': ['choice_fields', 'fields_regex'],
             'required_fields': ['official_id', 'ethnic_group', 'joining_date', 'company', 'branch', 'department', 'designation', 'employee_type'],
             'fields_regex': [{'field': 'official_id', 'type': 'employeeid'}, {'field': 'joining_date', 'type': 'date'}],
-            'choice_fields': [{'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]}]
+            'choice_fields': [{'name': 'employee_type', 'type': 'single-string', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]}]
         },
         {
             'data': salaryAndLeaves,
@@ -1046,8 +1077,9 @@ def addemployee(request):
                             if ethnicgroup.name != 'all': ethnicgroup.user.add(userinstance)
             
             if salaryAndLeaves:
-                userdata = {'instance': userinstance, 'created_by': created_by, 'updated_by': created_by}
-                leavepolicy_response = ghelp().addLeavepolicy(classOBJpackage, salaryAndLeaves.get('leavepolicy'), userdata)
+                userlist=[userinstance.id]
+                manipulate_info = {'created_by': request.user.id, 'updated_by': request.user.id}
+                leavepolicy_response = ghelp().assignBulkUserToBulkLeavepolicy(classOBJpackage, salaryAndLeaves.get('leavepolicy'), userlist, manipulate_info)
             
             if officialDetails:
                 if salaryAndLeaves:
@@ -1060,11 +1092,12 @@ def addemployee(request):
                         'department': officialDetails['department'],
                         'designation': officialDetails['designation'],
                         'employee_type': officialDetails['employee_type'],
-                        'date': officialDetails['joining_date'],
-                        'status_adjustment': CHOICE.STATUS_ADJUSTMENT[0][1],
-                        'appraisal_by': created_by.id
+                        'status_adjustment': [CHOICE.STATUS_ADJUSTMENT[0][1]],
+                        'job_status': CHOICE.JOB_STATUS[0][1],
+                        # 'appraisal_by': created_by.id
+                        'appraisal_by': request.user.id
                     }
-                    required_fields = ['user', 'effective_from', 'new_salary', 'company', 'branch', 'department', 'designation', 'employee_type', 'from_date']
+                    required_fields = ['user', 'effective_from', 'salary', 'company', 'branch', 'department', 'designation', 'employee_type']
                     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                         classOBJ=MODELS_JOBR.Employeejobhistory,
                         Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
@@ -1143,8 +1176,7 @@ def updateprofilepic(request, userid=None):
     photo = request.FILES.get('photo')
     if photo:
         photo_response = ghelp().validateprofilepic(photo)
-        if photo_response['flag']: response_message.update({'photo': photo})
-        else: response_message.extend(photo_response['message'])
+        if not photo_response['flag']: response_message.extend(photo_response['message'])
 
         if not response_message:
 
@@ -1187,9 +1219,9 @@ def updateprofile(request, userid=None):
     allowed_fields = ['first_name', 'last_name', 'designation', 'joining_date', 'personal_phone', 'personal_email', 'dob', 'gender', 'blood_group', 'marital_status', 'spouse_name', 'supervisor']
     unique_fields = ['personal_phone', 'personal_email']
     choice_fields = [
-        {'name': 'gender', 'values': [item[1] for item in CHOICE.GENDER]},
-        {'name': 'blood_group', 'values': [item[1] for item in CHOICE.BLOOD_GROUP]},
-        {'name': 'marital_status', 'values': [item[1] for item in CHOICE.MARITAL_STATUS]}
+        {'name': 'gender', 'type': 'single-string', 'values': [item[1] for item in CHOICE.GENDER]},
+        {'name': 'blood_group', 'type': 'single-string', 'values': [item[1] for item in CHOICE.BLOOD_GROUP]},
+        {'name': 'marital_status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MARITAL_STATUS]}
     ]
     fields_regex = [
         {'field': 'personal_phone', 'type': 'phonenumber'},
@@ -1206,7 +1238,21 @@ def updateprofile(request, userid=None):
         choice_fields=choice_fields,
         fields_regex=fields_regex
     )
-    if response_successflag == 'success': response_data = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
+    if response_successflag == 'success':
+        
+        employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=userid).order_by('id')
+        last_employeejobhistory = employeejobhistory.last()
+        while last_employeejobhistory:
+            if last_employeejobhistory.designation:
+                if response_data.instance.designation.id != last_employeejobhistory.designation.id:
+                    MODELS_JOBR.Employeejobhistory.objects.filter(id=last_employeejobhistory.id).update(designation=response_data.instance.designation)
+                break
+            else: last_employeejobhistory = last_employeejobhistory.previous_id
+
+        if response_data.instance.joining_date != employeejobhistory.first().effective_from:
+            MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(effective_from=response_data.instance.joining_date)
+
+        response_data = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -1423,12 +1469,12 @@ def updateofficialdetails(request, userid=None):
             fields_regex=fields_regex
         )
         if responsesuccessflag == 'success':
-
             userserializer = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False)
+
             employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id')
 
-            if userserializer.instance.joining_date != employeejobhistory.first().date:
-                MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(date=userserializer.instance.joining_date)
+            if userserializer.instance.joining_date != employeejobhistory.first().effective_from:
+                MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(effective_from=userserializer.instance.joining_date)
             
             employeejobhistory = employeejobhistory.last()
             # 'company'
@@ -1437,10 +1483,15 @@ def updateofficialdetails(request, userid=None):
                 company = MODELS_COMP.Company.objects.filter(id=companyid)
                 if company.exists():
                     company = company.first()
-                    if employeejobhistory.company:
-                        if company.id != employeejobhistory.company.id:
-                            employeejobhistory.department.user.remove(user.first())
-                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(company=company, branch=None, department=None)
+                    if employeejobhistory.department:
+
+                        while employeejobhistory:
+                            if employeejobhistory.company:
+                                if company.id != employeejobhistory.company.id:
+                                    employeejobhistory.department.user.remove(user.first())
+                                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(company=company, branch=None, department=None)
+                                break
+                            else: employeejobhistory = employeejobhistory.previous_id
             # 'branch'
             if 'branch' in requestdata:
                 branchid = requestdata['branch']
@@ -1448,10 +1499,13 @@ def updateofficialdetails(request, userid=None):
                 if branch.exists():
                     branch = branch.first()
                     if employeejobhistory.department:
-                        if employeejobhistory.branch:
-                            if branch.id != employeejobhistory.branch.id:
-                                employeejobhistory.department.user.remove(user.first())
-                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(branch=branch, department=None)
+                        while employeejobhistory:
+                            if employeejobhistory.branch:
+                                if branch.id != employeejobhistory.branch.id:
+                                    employeejobhistory.department.user.remove(user.first())
+                                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(branch=branch, department=None)
+                                break
+                            else: employeejobhistory = employeejobhistory.previous_id
             response_data = userserializer.data
         
         response_message.extend(responsemessage)
@@ -1477,7 +1531,6 @@ def updatesalaryleaves(request, userid=None):
         if 'gross_salary' in requesteddata:
             try:
                 gross_salary = float(requesteddata['gross_salary'])
-                prev_salary = user.first().gross_salary
                 basicSalary = ghelp().getBasicSalary(MODELS_SETT.Generalsettings, gross_salary)
                 if basicSalary['flag']: requesteddata.update({'basic_salary': basicSalary['basic_salary']})
                 else: response_message.extend(basicSalary['message'])
@@ -1591,7 +1644,7 @@ def updatesalaryleaves(request, userid=None):
                 del requesteddata['leavepolicy']
 
             allowed_fields = ['payment_in', 'gross_salary', 'basic_salary', 'bankaccount']
-            choice_fields = [{'name': 'payment_in', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}]
+            choice_fields = [{'name': 'payment_in', 'type': 'single-string', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}]
             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                 classOBJ=MODELS_USER.User,
                 Serializer=PSRLZER_USER.Userserializer,
@@ -1601,13 +1654,14 @@ def updatesalaryleaves(request, userid=None):
                 choice_fields=choice_fields
             )
             if responsesuccessflag == 'success':
-                employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id').last()
-                
-                if gross_salary:
-                    increment_amount = gross_salary - prev_salary
-                    percentage = (increment_amount*100)/prev_salary
 
-                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=gross_salary, increment_amount=increment_amount, percentage=percentage)
+                employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id').last()
+                while employeejobhistory:
+                    if employeejobhistory.salary:
+                        if employeejobhistory.salary != responsedata.instance.gross_salary:
+                            MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=responsedata.instance.gross_salary)
+                        break
+                    else: employeejobhistory = employeejobhistory.previous_id
                 
                 response_data = responsedata.data
                 response_successflag=responsesuccessflag
@@ -1933,7 +1987,7 @@ def getnote(request):
 def addnote(request):
     extra_fields = {'created_by': request.user.id, 'updated_by': request.user.id}
     choice_fields = [
-        {'name': 'priority', 'values': [item[1] for item in CHOICE.PRIORITY]}
+        {'name': 'priority', 'type': 'single-string', 'values': [item[1] for item in CHOICE.PRIORITY]}
     ]
     fields_regex = [
         {'field': 'reminder', 'type': 'date'}

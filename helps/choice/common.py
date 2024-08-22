@@ -14,13 +14,13 @@ ATTENDANCE_OVERTIME = (('Disabled', 'Disabled'), ('Overtime', 'Overtime'),)
 PAYMENT_IN = (('Cash','Cash'), ('Cheque', 'Cheque'), ('Bank', 'Bank'))
 INCREMENT_ON = (('Gross Salary','Gross Salary'), ('Basic Salary', 'Basic Salary'))
 PRIORITY = (('High','High'), ('Medium', 'Medium'), ('Low', 'Low'))
-STATUS_ADJUSTMENT = (('Joining', 'Joining'), ('Increment', 'Increment'), ('Promotion', 'Promotion'), ('Demotion', 'Demotion'), ('Transfer', 'Transfer'), ('Terminated', 'Terminated'))
+STATUS_ADJUSTMENT = (('Joining', 'Joining'), ('Promotion', 'Promotion'), ('Increment', 'Increment'), ('Transfer', 'Transfer'), ('Status Update', 'Status Update'), ('Resigned', 'Resigned'), ('Terminated', 'Terminated'), ('Retired', 'Retired'))
 LEAVEREQUEST_TYPE = (('Regular Leave', 'Regular Leave'), ('Extend Existing', 'Extend Existing'), ('New Allocation', 'New Allocation'))
 JOB_STATUS = (
     ('OnGoing', 'OnGoing'),
     ('Resigned', 'Resigned'),
     ('Terminated', 'Terminated'),
-    ('Retired', 'Retired'),
+    ('Retired', 'Retired')
 )
 EMPLOYEE_TYPE = (
     ('Trainee', 'Trainee'),
