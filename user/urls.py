@@ -58,8 +58,9 @@ urlpatterns = [
     path('update-official-details/<int:userid>', views.updateofficialdetails, name='update-official-details'),
     path('update-salary-leaves/<int:userid>', views.updatesalaryleaves, name='update-salary-leaves'),
     path('update-emergency-contact/<int:userid>', views.updateemergencycontact, name='update-emergency-contact'),
-    path('update-education-experience/<int:userid>', views.updateeducationexperience, name='update-education-experience'),
-    path('update-documents/<int:userid>', views.updatedocuments, name='update-documents'),
+    path('update-education/<int:userid>', views.updateeducation, name='update-education'),
+    path('update-education/<int:userid>', views.updateeducation, name='update-education'),
+    path('update-experience/<int:userid>', views.updateexperience, name='update-experience'),
 
     path('get-note/', views.getnote, name='get-note'),
     path('add-note/', views.addnote, name='add-note'),

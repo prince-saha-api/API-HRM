@@ -181,13 +181,13 @@ class Employeecontact(Basic):
     name =  models.CharField(max_length=150)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_contact')
     age = models.IntegerField(validators=[MinValueValidator(10)], blank=True, null=True)
-    phone_no = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
+    phone_no = models.CharField(max_length=14, validators=[validate_phone_number], blank=True, null=True)
     email = models.EmailField(blank=True)
     address = models.OneToOneField(CNTRIB.Address, on_delete=models.SET_NULL, blank=True, null=True)
     relation = models.CharField(max_length=150, blank=True, null=True)
 
     def __str__(self):
-        return f'{self.user.username} - {self.relation}'
+        return f'{self.id} - {self.user.username} - {self.relation}'
     
 
 class Employeedocs(Basic):
@@ -196,7 +196,7 @@ class Employeedocs(Basic):
     attachment = models.FileField(upload_to=uploaddocs, blank=True, null=True)
 
     def __str__(self):
-        return f'{self.title}'
+        return f'{self.id} - {self.user.username} - {self.title}'
     
 class Employeeacademichistory(Basic):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_academichistory')
@@ -207,7 +207,7 @@ class Employeeacademichistory(Basic):
     year_of_passing = models.IntegerField(validators=[MinValueValidator(1950)])
 
     def __str__(self):
-        return f'{self.board_institute_name}'
+        return f'{self.id} - {self.user.username} - {self.board_institute_name}'
     
 class Employeeexperiencehistory(Basic):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_experiencehistory')
@@ -218,7 +218,7 @@ class Employeeexperiencehistory(Basic):
     to_date = models.DateField()
 
     def __str__(self):
-        return f'{self.company_name}'
+        return f'{self.id} - {self.user.username} - {self.company_name}'
 
 class Ethnicgroup(Basic):
     name = models.CharField(max_length=50, unique=True)
