@@ -45,18 +45,16 @@ def getdevices(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
 def adddevice(request):
-    # userid = request.user.id
-    unique_fields = ['title']
-    # if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    allowed_fields = ['title', 'username', 'password', 'location', 'macaddress', 'deviceip']
     required_fields = ['title', 'deviceip']
-    fields_regex = [
-        {'field': 'username', 'type': 'username'}
-    ]
+    unique_fields = ['title']
+    fields_regex = [{'field': 'username', 'type': 'username'}]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
         classOBJ=MODELS_DEVI.Device, 
         Serializer=PSRLZER_DEVI.Deviceserializer, 
-        data=request.data, 
-        unique_fields=unique_fields, 
+        data=request.data,
+        allowed_fields=allowed_fields,
+        unique_fields=unique_fields,
         required_fields=required_fields,
         fields_regex=fields_regex
     )
@@ -67,17 +65,17 @@ def adddevice(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updatedevice(request, deviceid=None):
-    # userid = request.user.id
-    extra_fields = {}
-    # if userid: extra_fields.update({'updated_by': userid})
+    allowed_fields = ['title', 'username', 'password', 'location', 'macaddress', 'deviceip']
     unique_fields = ['title']
+    fields_regex = [{'field': 'username', 'type': 'username'}]
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         classOBJ=MODELS_DEVI.Device,
         Serializer=PSRLZER_DEVI.Deviceserializer,
         id=deviceid,
         data=request.data,
-        extra_fields=extra_fields,
-        unique_fields=unique_fields
+        allowed_fields=allowed_fields,
+        unique_fields=unique_fields,
+        fields_regex=fields_regex
     )
     response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -93,7 +91,7 @@ def deletedevice(request, deviceid=None):
         classOBJ=MODELS_DEVI.Device,
         id=deviceid,
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
-        )
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 

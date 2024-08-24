@@ -1765,149 +1765,132 @@ def updatesalaryleaves(request, userid=None):
     if user.exists():
         requestdata = request.data.copy()
 
-        gross_salary = None
-        if 'gross_salary' in requestdata:
-            try:
-                gross_salary = float(requestdata['gross_salary'])
-                basicSalary = ghelp().getBasicSalary(MODELS_SETT.Generalsettings, gross_salary)
-                if basicSalary['flag']: requestdata.update({'basic_salary': basicSalary['basic_salary']})
-                else: response_message.extend(basicSalary['message'])
-            except: pass
-        if not response_message:
-            if 'bankaccount' in requestdata:
-                if user.first().bank_account:
-                    bankaccount = requestdata['bankaccount']
+        if 'bankaccount' in requestdata:
+            if user.first().bank_account:
+                bankaccount = requestdata['bankaccount']
 
-                    if user.first().bank_account.address:
-                        if 'address' in bankaccount:
-                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                                classOBJ=MODELS_CONT.Address,
-                                Serializer=PSRLZER_CONT.Addressserializer,
-                                id=user.first().bank_account.address.id,
-                                data=bankaccount['address']
-                            )
-                            if responsesuccessflag == 'error':
-                                response_message.extend([f'bank account address\'s {each}' for each in responsemessage])
-                                del bankaccount['address']
-                            elif responsesuccessflag == 'success': del bankaccount['address']
-                    else:
-                        if 'id' in bankaccount['address']: del bankaccount['address']['id']
-                        required_fields = ['address', 'city', 'state_division', 'country']
-                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                if user.first().bank_account.address:
+                    if 'address' in bankaccount:
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                             classOBJ=MODELS_CONT.Address,
                             Serializer=PSRLZER_CONT.Addressserializer,
-                            data=bankaccount['address'],
-                            required_fields=required_fields
+                            id=user.first().bank_account.address.id,
+                            data=bankaccount['address']
                         )
-                        if responsesuccessflag == 'success': bankaccount.update({'address': responsedata.data['id']})
-                        elif responsesuccessflag == 'error':
-                            response_message.extend(responsemessage)
+                        if responsesuccessflag == 'error':
+                            response_message.extend([f'bank account address\'s {each}' for each in responsemessage])
                             del bankaccount['address']
-
-                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                        classOBJ=MODELS_CONT.Bankaccount,
-                        Serializer=PSRLZER_CONT.Bankaccountserializer,
-                        id=user.first().bank_account.id,
-                        data=bankaccount
-                    )
-                    if responsesuccessflag == 'success': bankaccount.update({'bankaccount': responsedata.data['id']})
-                    elif responsesuccessflag == 'error':
-                        del bankaccount['bankaccount']
-                        response_message.extend([f'Bank Account\'s {each}' for each in responsemessage])
+                        elif responsesuccessflag == 'success': del bankaccount['address']
                 else:
-                    classOBJpackage = {'Address': MODELS_CONT.Address, 'Bankaccount': MODELS_CONT.Bankaccount}
-                    serializerOBJpackage = {'Address': PSRLZER_CONT.Addressserializer, 'Bankaccount': PSRLZER_CONT.Bankaccountserializer}
+                    if 'id' in bankaccount['address']: del bankaccount['address']['id']
+                    required_fields = ['address', 'city', 'state_division', 'country']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_CONT.Address,
+                        Serializer=PSRLZER_CONT.Addressserializer,
+                        data=bankaccount['address'],
+                        required_fields=required_fields
+                    )
+                    if responsesuccessflag == 'success': bankaccount.update({'address': responsedata.data['id']})
+                    elif responsesuccessflag == 'error':
+                        response_message.extend(responsemessage)
+                        del bankaccount['address']
 
-                    addbankaccountdetails=ghelp().addbankaccount(classOBJpackage, serializerOBJpackage, requestdata['bankaccount'])
-                    if addbankaccountdetails['flag']: requestdata.update({'bankaccount': addbankaccountdetails['instance'].id})
-                    else:
-                        response_message.extend(addbankaccountdetails['message'])
-                        del requestdata['bankaccount']
-            # leavepolicy
-            if 'leavepolicy' in requestdata:
-                new_leavepolicyids = requestdata['leavepolicy']
-                if isinstance(new_leavepolicyids, list):
-                    fiscalyear_response = ghelp().findFiscalyear(MODELS_SETT.Generalsettings)
-                    if fiscalyear_response['fiscalyear']:
-                        add_leavepolicys = []
-                        remove_leavepolicys = []
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                    classOBJ=MODELS_CONT.Bankaccount,
+                    Serializer=PSRLZER_CONT.Bankaccountserializer,
+                    id=user.first().bank_account.id,
+                    data=bankaccount
+                )
+                if responsesuccessflag == 'success': bankaccount.update({'bankaccount': responsedata.data['id']})
+                elif responsesuccessflag == 'error':
+                    del bankaccount['bankaccount']
+                    response_message.extend([f'Bank Account\'s {each}' for each in responsemessage])
+            else:
+                classOBJpackage = {'Address': MODELS_CONT.Address, 'Bankaccount': MODELS_CONT.Bankaccount}
+                serializerOBJpackage = {'Address': PSRLZER_CONT.Addressserializer, 'Bankaccount': PSRLZER_CONT.Bankaccountserializer}
 
-                        previous_leavepolicys = {f'{each.id}': each for each in MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first().id)}
-                        new_leavepolicyids = [str(leavepolicyid) for leavepolicyid in new_leavepolicyids]
-                        for new_leavepolicyid in new_leavepolicyids:
-                            if new_leavepolicyid not in previous_leavepolicys:
-                                leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=new_leavepolicyid)
-                                if leavepolicy.exists(): add_leavepolicys.append(leavepolicy.first())
-                        for id in previous_leavepolicys.keys():
-                            if id not in new_leavepolicyids:
-                                leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=id)
-                                if leavepolicy.exists(): remove_leavepolicys.append(leavepolicy.first())
+                addbankaccountdetails=ghelp().addbankaccount(classOBJpackage, serializerOBJpackage, requestdata['bankaccount'])
+                if addbankaccountdetails['flag']: requestdata.update({'bankaccount': addbankaccountdetails['instance'].id})
+                else:
+                    response_message.extend(addbankaccountdetails['message'])
+                    del requestdata['bankaccount']
+        
+        # leavepolicy
+        if 'leavepolicy' in requestdata:
+            new_leavepolicyids = requestdata['leavepolicy']
+            if isinstance(new_leavepolicyids, list):
+                fiscalyear_response = ghelp().findFiscalyear(MODELS_SETT.Generalsettings)
+                if fiscalyear_response['fiscalyear']:
+                    add_leavepolicys = []
+                    remove_leavepolicys = []
 
-                        for remove_leavepolicy in remove_leavepolicys:
-                            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
-                            if leavesummary.exists():
-                                if leavesummary.first().total_consumed == 0:
-                                    leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
-                                    if leaverequests.exists(): leaverequests.delete()
-                                    leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
-                                    if leavepolicyassign.exists(): leavepolicyassign.delete()
-                                    leavesummary.delete()
-                                else:
-                                    response_message.append(f'couldn\'t remove {remove_leavepolicy.name} leavepolicy({remove_leavepolicy.id}), because you have already consumed!')
-                            else:
+                    previous_leavepolicys = {f'{each.id}': each for each in MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first().id)}
+                    new_leavepolicyids = [str(leavepolicyid) for leavepolicyid in new_leavepolicyids]
+                    for new_leavepolicyid in new_leavepolicyids:
+                        if new_leavepolicyid not in previous_leavepolicys:
+                            leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=new_leavepolicyid)
+                            if leavepolicy.exists(): add_leavepolicys.append(leavepolicy.first())
+                    for id in previous_leavepolicys.keys():
+                        if id not in new_leavepolicyids:
+                            leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=id)
+                            if leavepolicy.exists(): remove_leavepolicys.append(leavepolicy.first())
+
+                    for remove_leavepolicy in remove_leavepolicys:
+                        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                        if leavesummary.exists():
+                            if leavesummary.first().total_consumed == 0:
                                 leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
                                 if leaverequests.exists(): leaverequests.delete()
                                 leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
                                 if leavepolicyassign.exists(): leavepolicyassign.delete()
+                                leavesummary.delete()
+                            else:
+                                response_message.append(f'couldn\'t remove {remove_leavepolicy.name} leavepolicy({remove_leavepolicy.id}), because you have already consumed!')
+                        else:
+                            leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                            if leaverequests.exists(): leaverequests.delete()
+                            leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                            if leavepolicyassign.exists(): leavepolicyassign.delete()
+                    
+                    for add_leavepolicy in add_leavepolicys:
+                        # create leavepolicyassign 
+                        leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
+                        if not leavepolicyassign.exists():
+                            MODELS_LEAV.Leavepolicyassign.objects.create(user=user.first(), leavepolicy=add_leavepolicy)
                         
-                        for add_leavepolicy in add_leavepolicys:
-                            # create leavepolicyassign 
-                            leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
-                            if not leavepolicyassign.exists():
-                                MODELS_LEAV.Leavepolicyassign.objects.create(user=user.first(), leavepolicy=add_leavepolicy)
-                            
-                            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
-                            if not leavesummary.exists():
-                                MODELS_LEAV.Leavesummary.objects.create(
-                                    user=user.first(),
-                                    leavepolicy=add_leavepolicy,
-                                    fiscal_year=fiscalyear_response['fiscalyear'],
-                                    total_allocation=add_leavepolicy.allocation_days,
-                                    total_consumed=0,
-                                    total_left=add_leavepolicy.allocation_days
-                                )
+                        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
+                        if not leavesummary.exists():
+                            MODELS_LEAV.Leavesummary.objects.create(
+                                user=user.first(),
+                                leavepolicy=add_leavepolicy,
+                                fiscal_year=fiscalyear_response['fiscalyear'],
+                                total_allocation=add_leavepolicy.allocation_days,
+                                total_consumed=0,
+                                total_left=add_leavepolicy.allocation_days
+                            )
 
-                    else: response_message.extend(fiscalyear_response['message'])
-                else: response_message.append('please provide leavepolicy as list!')
-                del requestdata['leavepolicy']
+                else: response_message.extend(fiscalyear_response['message'])
+            else: response_message.append('please provide leavepolicy as list!')
+            del requestdata['leavepolicy']
 
-            allowed_fields = ['payment_in', 'bankaccount']
-            choice_fields = [{'name': 'payment_in', 'type': 'single-string', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}]
-            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                classOBJ=MODELS_USER.User,
-                Serializer=PSRLZER_USER.Userserializer,
-                id=userid,
-                data=requestdata,
-                allowed_fields=allowed_fields,
-                choice_fields=choice_fields
-            )
-            if responsesuccessflag == 'success':
-
-                # employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id').last()
-                # while employeejobhistory:
-                #     if employeejobhistory.salary:
-                #         if employeejobhistory.salary != responsedata.instance.gross_salary:
-                #             MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=responsedata.instance.gross_salary)
-                #         break
-                #     else: employeejobhistory = employeejobhistory.previous_id
-                
-                response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
-                response_successflag=responsesuccessflag
-                response_status=responsestatus
-            elif responsesuccessflag == 'error':
-                response_successflag=responsesuccessflag
-                response_message.extend(responsemessage)
-                response_status=responsestatus
+        allowed_fields = ['payment_in', 'bankaccount']
+        choice_fields = [{'name': 'payment_in', 'type': 'single-string', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}]
+        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+            classOBJ=MODELS_USER.User,
+            Serializer=PSRLZER_USER.Userserializer,
+            id=userid,
+            data=requestdata,
+            allowed_fields=allowed_fields,
+            choice_fields=choice_fields
+        )
+        if responsesuccessflag == 'success':
+            response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
+            response_successflag=responsesuccessflag
+            response_status=responsestatus
+        elif responsesuccessflag == 'error':
+            response_successflag=responsesuccessflag
+            response_message.extend(responsemessage)
+            response_status=responsestatus
     else: response_message.append('user doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 

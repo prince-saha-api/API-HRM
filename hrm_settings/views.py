@@ -15,8 +15,12 @@ from rest_framework import status
 def getweekdays(request):
     for day in [each[1] for each in CHOICE.DAYS]:
         if not MODELS_SETT.Weekdays.objects.filter(day=day).exists():
-            try: MODELS_SETT.Weekdays.objects.create(day=day)
-            except: pass
+            is_created = False
+            while not is_created:
+                try:
+                    MODELS_SETT.Weekdays.objects.create(day=day)
+                    is_created = True
+                except: pass
     filter_fields = [
         {'name': 'id', 'convert': None, 'replace':'id'},
         {'name': 'day', 'convert': None, 'replace':'day__icontains'}
@@ -93,6 +97,16 @@ def getweekdays(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getgeneralsettings(request):
+    
+    for day in [each[1] for each in CHOICE.DAYS]:
+        if not MODELS_SETT.Weekdays.objects.filter(day=day).exists():
+            is_created = False
+            while not is_created:
+                try:
+                    MODELS_SETT.Weekdays.objects.create(day=day)
+                    is_created = True
+                except: pass
+
     generalsettingsserializer = {}
     resonse_status = status.HTTP_400_BAD_REQUEST
     generalsetting = ghelp().findGeneralsettings(MODELS_SETT.Generalsettings)
