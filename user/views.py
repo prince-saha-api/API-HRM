@@ -11,7 +11,7 @@ from company import models as MODELS_COMP
 from branch import models as MODELS_BRAN
 from jobrecord import models as MODELS_JOBR
 from jobrecord.serializer.POST import serializers as PSRLZER_JOBR
-from user.serializer import profiledetails
+from user.serializer.CUSTOM import serializers as CSRLZER_USER
 from user.serializer import serializers as SRLZER_USER
 from user.serializer.POST import serializers as PSRLZER_USER
 from contribution.serializer.POST import serializers as PSRLZER_CONT
@@ -1156,7 +1156,7 @@ def getprofiledetails(request, userid=None):
 
     user=MODELS_USER.User.objects.filter(id=userid)
     if user.exists():
-        userserializer = profiledetails.Userserializer(user.first(), many=False)
+        userserializer = CSRLZER_USER.Userserializer(user.first(), many=False)
         response_data=userserializer.data
         response_successflag='success'
         response_status = status.HTTP_200_OK
@@ -1215,8 +1215,7 @@ def updateprofile(request, userid=None):
         if department.exists(): department.first().user.add(user)
 
         del requesteddata['department']
-
-    allowed_fields = ['first_name', 'last_name', 'designation', 'joining_date', 'personal_phone', 'personal_email', 'dob', 'gender', 'blood_group', 'marital_status', 'spouse_name', 'supervisor']
+    allowed_fields = ['first_name', 'last_name', 'personal_phone', 'personal_email', 'dob', 'gender', 'blood_group', 'marital_status', 'spouse_name', 'supervisor']
     unique_fields = ['personal_phone', 'personal_email']
     choice_fields = [
         {'name': 'gender', 'type': 'single-string', 'values': [item[1] for item in CHOICE.GENDER]},
@@ -1240,19 +1239,19 @@ def updateprofile(request, userid=None):
     )
     if response_successflag == 'success':
         
-        employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=userid).order_by('id')
-        last_employeejobhistory = employeejobhistory.last()
-        while last_employeejobhistory:
-            if last_employeejobhistory.designation:
-                if response_data.instance.designation.id != last_employeejobhistory.designation.id:
-                    MODELS_JOBR.Employeejobhistory.objects.filter(id=last_employeejobhistory.id).update(designation=response_data.instance.designation)
-                break
-            else: last_employeejobhistory = last_employeejobhistory.previous_id
+        # employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=userid).order_by('id')
+        # last_employeejobhistory = employeejobhistory.last()
+        # while last_employeejobhistory:
+        #     if last_employeejobhistory.designation:
+        #         if response_data.instance.designation.id != last_employeejobhistory.designation.id:
+        #             MODELS_JOBR.Employeejobhistory.objects.filter(id=last_employeejobhistory.id).update(designation=response_data.instance.designation)
+        #         break
+        #     else: last_employeejobhistory = last_employeejobhistory.previous_id
 
-        if response_data.instance.joining_date != employeejobhistory.first().effective_from:
-            MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(effective_from=response_data.instance.joining_date)
+        # if response_data.instance.joining_date != employeejobhistory.first().effective_from:
+        #     MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(effective_from=response_data.instance.joining_date)
 
-        response_data = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
+        response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
@@ -1264,20 +1263,25 @@ def updatepersonaldetails(request, userid=None):
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
 
-
+    present_address_flag = False
     user = MODELS_USER.User.objects.filter(id=userid)
     if user.exists():
         requesteddata = request.data.copy()
-
+        
+        present_address_flag = False
         if 'present_address' in requesteddata:
+            
             if user.first().present_address:
+                
                 responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                     classOBJ=MODELS_CONT.Address,
                     Serializer=PSRLZER_CONT.Addressserializer,
                     id=user.first().present_address.id,
                     data=requesteddata['present_address']
                 )
-                if responsesuccessflag == 'success': del requesteddata['present_address']
+                if responsesuccessflag == 'success':
+                    del requesteddata['present_address']
+                    present_address_flag = True
                 elif responsesuccessflag == 'error': response_message.extend(responsemessage)
             else:
                 if 'id' in requesteddata['present_address']: del requesteddata['present_address']['id']
@@ -1292,24 +1296,29 @@ def updatepersonaldetails(request, userid=None):
                 elif responsesuccessflag == 'error':
                     response_message.extend(responsemessage)
                     del requesteddata['present_address']
-
+        
+        # if 'present_address' in requesteddata:
         same_as_present_address = False
         if 'permanentAddressSameAsPresent' in requesteddata:
             if requesteddata['permanentAddressSameAsPresent']: same_as_present_address = True
 
         if same_as_present_address:
-            if user.first().present_address:
-                if user.first().permanent_address:
-                    if user.first().present_address.id != user.first().permanent_address.id:
+            if user.first().permanent_address:
+                if user.first().present_address:
+                    if user.first().present_address.id == user.first().permanent_address.id:
+                        pass
+                    else:
                         previous_permanent_address = user.first().permanent_address
                         user.update(permanent_address=user.first().present_address)
                         if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
                         previous_permanent_address.delete()
-                else:
-                    user.update(permanent_address=user.first().present_address)
-                    if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
+                # if user.first().present_address.id != user.first().permanent_address.id:
+                #     previous_permanent_address = user.first().permanent_address
+                #     user.update(permanent_address=user.first().present_address)
+                #     if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
+                #     previous_permanent_address.delete()
             else:
-                user.update(permanent_address=None)
+                user.update(permanent_address=user.first().present_address)
                 if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
         else:
             if 'permanent_address' in requesteddata:
@@ -1374,20 +1383,30 @@ def updatepersonaldetails(request, userid=None):
                             response_message.extend(responsemessage)
                             del requesteddata['permanent_address']
 
-        allowed_fields = ['fathers_name', 'mothers_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no', 'permanent_address', 'permanent_address']
-        unique_fields = ['nid_passport_no', 'tin_no']
-        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-            classOBJ=MODELS_USER.User,
-            Serializer=PSRLZER_USER.Userserializer,
-            id=userid,
-            data=requesteddata,
-            allowed_fields=allowed_fields,
-            unique_fields=unique_fields
-        )
-        response_data = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
-        response_message.extend(responsemessage)
-        response_successflag = responsesuccessflag
-        response_status = responsestatus
+        # print(requesteddata)
+        # input()
+        if requesteddata:
+            allowed_fields = ['fathers_name', 'mothers_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no', 'permanent_address', 'permanent_address']
+            unique_fields = ['nid_passport_no', 'tin_no']
+            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                classOBJ=MODELS_USER.User,
+                Serializer=PSRLZER_USER.Userserializer,
+                id=userid,
+                data=requesteddata,
+                allowed_fields=allowed_fields,
+                unique_fields=unique_fields
+            )
+            if responsesuccessflag == 'success':
+                response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
+            elif responsesuccessflag == 'error':
+                response_message.extend(responsemessage)
+            response_successflag = responsesuccessflag
+            response_status = responsestatus
+        else:
+            if present_address_flag:
+                response_successflag = 'success'
+                response_status = status.HTTP_200_OK
+
     else: response_message.append('user doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -1448,7 +1467,7 @@ def updateofficialdetails(request, userid=None):
                 for add_ethnicgroup in add_ethnicgroups: add_ethnicgroup.user.add(user.first())
             else: response_message.append('please provide ethnic_group as list!')
 
-        allowed_fields = ['official_email', 'official_phone', 'employee_type', 'shift', 'grade', 'role_permission', 'official_note', 'joining_date', 'expense_approver', 'leave_approver', 'shift_request_approver']
+        allowed_fields = ['official_email', 'official_phone', 'shift', 'grade', 'role_permission', 'official_note', 'expense_approver', 'leave_approver', 'shift_request_approver']
         unique_fields = ['official_email', 'official_phone']
         choice_fields = [
             {'name': 'employee_type', 'values': [item[1] for item in CHOICE.EMPLOYEE_TYPE]}
@@ -1469,43 +1488,43 @@ def updateofficialdetails(request, userid=None):
             fields_regex=fields_regex
         )
         if responsesuccessflag == 'success':
-            userserializer = profiledetails.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False)
+            userserializer = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False)
 
-            employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id')
+            # employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id')
 
-            if userserializer.instance.joining_date != employeejobhistory.first().effective_from:
-                MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(effective_from=userserializer.instance.joining_date)
+            # if userserializer.instance.joining_date != employeejobhistory.first().effective_from:
+            #     MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.first().id).update(effective_from=userserializer.instance.joining_date)
             
-            employeejobhistory = employeejobhistory.last()
-            # 'company'
-            if 'company' in requestdata:
-                companyid = requestdata['company']
-                company = MODELS_COMP.Company.objects.filter(id=companyid)
-                if company.exists():
-                    company = company.first()
-                    if employeejobhistory.department:
+            # employeejobhistory = employeejobhistory.last()
+            # # 'company'
+            # if 'company' in requestdata:
+            #     companyid = requestdata['company']
+            #     company = MODELS_COMP.Company.objects.filter(id=companyid)
+            #     if company.exists():
+            #         company = company.first()
+            #         if employeejobhistory.department:
 
-                        while employeejobhistory:
-                            if employeejobhistory.company:
-                                if company.id != employeejobhistory.company.id:
-                                    employeejobhistory.department.user.remove(user.first())
-                                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(company=company, branch=None, department=None)
-                                break
-                            else: employeejobhistory = employeejobhistory.previous_id
-            # 'branch'
-            if 'branch' in requestdata:
-                branchid = requestdata['branch']
-                branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
-                if branch.exists():
-                    branch = branch.first()
-                    if employeejobhistory.department:
-                        while employeejobhistory:
-                            if employeejobhistory.branch:
-                                if branch.id != employeejobhistory.branch.id:
-                                    employeejobhistory.department.user.remove(user.first())
-                                    MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(branch=branch, department=None)
-                                break
-                            else: employeejobhistory = employeejobhistory.previous_id
+            #             while employeejobhistory:
+            #                 if employeejobhistory.company:
+            #                     if company.id != employeejobhistory.company.id:
+            #                         employeejobhistory.department.user.remove(user.first())
+            #                         MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(company=company, branch=None, department=None)
+            #                     break
+            #                 else: employeejobhistory = employeejobhistory.previous_id
+            # # 'branch'
+            # if 'branch' in requestdata:
+            #     branchid = requestdata['branch']
+            #     branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
+            #     if branch.exists():
+            #         branch = branch.first()
+            #         if employeejobhistory.department:
+            #             while employeejobhistory:
+            #                 if employeejobhistory.branch:
+            #                     if branch.id != employeejobhistory.branch.id:
+            #                         employeejobhistory.department.user.remove(user.first())
+            #                         MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(branch=branch, department=None)
+            #                     break
+            #                 else: employeejobhistory = employeejobhistory.previous_id
             response_data = userserializer.data
         
         response_message.extend(responsemessage)
@@ -1643,7 +1662,7 @@ def updatesalaryleaves(request, userid=None):
                 else: response_message.append('please provide leavepolicy as list!')
                 del requesteddata['leavepolicy']
 
-            allowed_fields = ['payment_in', 'gross_salary', 'basic_salary', 'bankaccount']
+            allowed_fields = ['payment_in', 'bankaccount']
             choice_fields = [{'name': 'payment_in', 'type': 'single-string', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}]
             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                 classOBJ=MODELS_USER.User,
@@ -1655,15 +1674,15 @@ def updatesalaryleaves(request, userid=None):
             )
             if responsesuccessflag == 'success':
 
-                employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id').last()
-                while employeejobhistory:
-                    if employeejobhistory.salary:
-                        if employeejobhistory.salary != responsedata.instance.gross_salary:
-                            MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=responsedata.instance.gross_salary)
-                        break
-                    else: employeejobhistory = employeejobhistory.previous_id
+                # employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id').last()
+                # while employeejobhistory:
+                #     if employeejobhistory.salary:
+                #         if employeejobhistory.salary != responsedata.instance.gross_salary:
+                #             MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=responsedata.instance.gross_salary)
+                #         break
+                #     else: employeejobhistory = employeejobhistory.previous_id
                 
-                response_data = responsedata.data
+                response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
                 response_successflag=responsesuccessflag
                 response_status=responsestatus
             elif responsesuccessflag == 'error':

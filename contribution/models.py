@@ -14,7 +14,7 @@ class Address(Basic, Createdinfoint):
     longitude = models.FloatField(validators=[MinValueValidator(-180), MaxValueValidator(180)], blank=True, null=True)
 
     def __str__(self):
-        return f'{self.city} -- {self.address}'
+        return f'{self.id} - {self.city} -- {self.address}'
 
 class Bankaccounttype(Basic):
     name = models.CharField(max_length=50, unique=True)

@@ -5,6 +5,7 @@ from jobrecord import models as MODELS_JOBR
 from department import models as MODELS_DEPA
 from company import models as MODELS_COMP
 from branch import models as MODELS_BRAN
+from leave import models as MODELS_LEAV
 
 class Permissionserializer(serializers.ModelSerializer):
     class Meta:
@@ -115,6 +116,23 @@ class Ethnicgroupserializer(serializers.ModelSerializer):
         model = MODELS_USER.Ethnicgroup
         fields = ['id', 'name']
 
+class Leavepolicyserializer(serializers.ModelSerializer):
+    class Meta:
+        model = MODELS_LEAV.Leavepolicy
+        fields = ['id', 'name']
+
+# class Leavepolicyassignserializer(serializers.ModelSerializer):
+#     leavepolicy=Leavepolicyserializer(many=False)
+#     class Meta:
+#         model = MODELS_LEAV.Leavepolicyassign
+#         fields = ['id', 'leavepolicy']
+
+class Leavesummaryserializer(serializers.ModelSerializer):
+    leavepolicy=Leavepolicyserializer(many=False)
+    class Meta:
+        model = MODELS_LEAV.Leavesummary
+        fields = ['id', 'leavepolicy', 'total_allocation', 'total_consumed', 'total_left']
+
 class Userserializer(serializers.ModelSerializer):
     designation=Designationserializer(many=False)
     religion=Religionserializer(many=False)
@@ -135,6 +153,8 @@ class Userserializer(serializers.ModelSerializer):
     leave_approver=Otheruserserializer(many=False)
     shift_request_approver=Otheruserserializer(many=False)
     role_permission=Rolepermissionserializer(many=True)
+    # leavepolicyassign_user=Leavepolicyassignserializer(many=True)
+    leavesummary_user=Leavesummaryserializer(many=True)
     class Meta:
         model = MODELS_USER.User
         exclude = ('password', 'uniqueid', 'dummy_salary', 'created_by', 'updated_by')

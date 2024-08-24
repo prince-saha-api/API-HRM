@@ -69,11 +69,11 @@ class Leavepolicy(Basic):
         return f'{self.name}'
     
 class Leavepolicyassign(Basic):
-    user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='leavepolicyassignone')
+    user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='leavepolicyassign_user')
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
 
-    updated_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicyassigntwo')
-    created_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicyassignthree')
+    updated_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicyassign_updated_by')
+    created_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leavepolicyassign_created_by')
     
     def __str__(self):
         return f'{self.user.username} - {self.leavepolicy.name}'
@@ -94,12 +94,12 @@ class Approvedleave(Basic):
         constraints = [models.UniqueConstraint(fields=['leavepolicy', 'user', 'date'], name='Leaveallocation_leavepolicy_user_date')]
 
 class Leavesummary(Basic):
-    user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE)
-    leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE)
+    user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='leavesummary_user')
+    leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE, related_name='leavesummary_leavepolicy')
     total_allocation = models.IntegerField(validators=[MinValueValidator(1)])
     total_consumed = models.IntegerField(validators=[MinValueValidator(0)])
     total_left  = models.IntegerField(validators=[MinValueValidator(0)])
-    fiscal_year = models.ForeignKey(MODELS_SETT.Fiscalyear, on_delete=models.CASCADE)
+    fiscal_year = models.ForeignKey(MODELS_SETT.Fiscalyear, on_delete=models.CASCADE, related_name='leavesummary_fiscal_year')
 
     def __str__(self):
         return f'{self.total_left} - {self.user.username} - { self.leavepolicy.name}'
