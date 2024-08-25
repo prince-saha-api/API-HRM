@@ -1,7 +1,6 @@
 from helps.decorators.decorator import CommonDecorator as deco
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from datetime import timedelta
 from user import models as MODELS_USER
 from leave import models as MODELS_LEAV
 from leave.serializer import serializers as SRLZER_LEAV

@@ -9,7 +9,6 @@ from company import models as MODELS_COMP
 from department import models as MODELS_DEPA
 from notice.serializer import serializers as SRLZER_NOTI
 from notice.serializer.POST import serializers as PSRLZER_NOTI
-from drf_nested_forms.utils import NestedForm
 from rest_framework.response import Response
 from rest_framework import status
 import random
@@ -161,26 +160,29 @@ def addnoticeboard(request):
     userid = request.user.id
     extra_fields = {}
     if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
-    unique_fields = []
-    required_fields = ['title', 'description', 'publish_date', 'expiry_date']
-    
+    allowed_fields = ['title', 'description', 'attachment', 'expiry_date']
+    required_fields = ['title', 'description', 'expiry_date']
+    fields_regex = [{'field': 'expiry_date', 'type': 'date'}]
     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
         classOBJ=MODELS_NOTI.Noticeboard, 
         Serializer=SRLZER_NOTI.Noticeboardserializer, 
         data=request.data, 
+        allowed_fields=allowed_fields,
         extra_fields=extra_fields, 
-        unique_fields=unique_fields, 
-        required_fields=required_fields
+        required_fields=required_fields,
+        fields_regex=fields_regex
     )
     response_message = responsemessage
     response_status = responsestatus
+
     if responsesuccessflag == 'success':
-        response_data = responsedata.data.copy()
-        noticeid = responsedata.instance.id
+        response_data = responsedata.data
+        noticeid = response_data['id']
         if 'company' in requestdata:
-            if isinstance(requestdata['company'], list):
-                if requestdata['company']:
-                    for companyid in requestdata['company']:
+            companys = eval(requestdata['company'])
+            if isinstance(companys, list):
+                if companys:
+                    for companyid in companys:
                         branchs = MODELS_BRAN.Branch.objects.filter(company=companyid)
                         if branchs.exists():
                             for branch in branchs:
@@ -197,7 +199,6 @@ def addnoticeboard(request):
                                                 data=prepare_data, 
                                                 required_fields=required_fields
                                             )
-
                         prepare_data=({'noticeboard': noticeid, 'company': companyid})
                         required_fields = ['noticeboard', 'company']
                         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
@@ -206,12 +207,13 @@ def addnoticeboard(request):
                             data=prepare_data, 
                             required_fields=required_fields,
                         )
-                    response_successflag  = responsesuccessflag
+                    response_successflag  = 'success'
 
         if 'branch' in requestdata:
-            if isinstance(requestdata['branch'], list):
-                if requestdata['branch']:
-                    for branchid in requestdata['branch']: 
+            branchs = eval(requestdata['branch'])
+            if isinstance(branchs, list):
+                if branchs:
+                    for branchid in branchs: 
                         branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
                         if branch.exists():
                             departments = MODELS_DEPA.Department.objects.filter(branch=branch.first().id)
@@ -233,14 +235,14 @@ def addnoticeboard(request):
                             Serializer=PSRLZER_NOTI.Noticeboardbranchserializer, 
                             data=prepare_data, 
                             required_fields=required_fields,
-
                         )
-                    response_successflag  = responsesuccessflag
+                    response_successflag  = 'success'
 
         if 'department' in requestdata:
-            if isinstance(requestdata['department'], list):
-                if requestdata['department']:
-                    for departmentid in requestdata['department']:
+            departments = eval(requestdata['department'])
+            if isinstance(departments, list):
+                if departments:
+                    for departmentid in departments:
                         department = MODELS_DEPA.Department.objects.filter(id=departmentid)
                         if department.exists():
                             users = department.first().user.all()
@@ -262,11 +264,12 @@ def addnoticeboard(request):
                             required_fields=required_fields,
 
                         )
-                    response_successflag  = responsesuccessflag
+                    response_successflag  = 'success'
 
         if 'user' in requestdata:
-            if isinstance(requestdata['user'], list):
-                for userid in requestdata['user']:
+            users = eval(requestdata['user'])
+            if isinstance(users, list):
+                for userid in users:
                     
                     prepare_data = {'noticeboard': noticeid, 'user': userid}
                     required_fields = ['noticeboard', 'user']
@@ -276,7 +279,7 @@ def addnoticeboard(request):
                         data=prepare_data, 
                         required_fields=required_fields
                     )
-                response_successflag  = responsesuccessflag
+                response_successflag  = 'success'
         else:
             for company in MODELS_COMP.Company.objects.all():
                 branchs = MODELS_BRAN.Branch.objects.filter(company=company.id)
@@ -304,7 +307,9 @@ def addnoticeboard(request):
                     data=prepare_data, 
                     required_fields=required_fields,
                 )
-            response_successflag  = responsesuccessflag
+            response_successflag  = 'success'
+    elif responsesuccessflag == 'error':response_message.extend(responsemessage)
+    
     return Response({'status': response_successflag, 'message': response_message, 'data': response_data}, status=response_status)
 
 @api_view(['PUT'])

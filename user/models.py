@@ -3,15 +3,11 @@ from django.db import models
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Basic, Timedetailscode
 from django.core.validators import MinValueValidator, MaxValueValidator
-from contribution import models as CNTRIB
+from contribution import models as MODELS_CONT
 from helps.choice import common as CHOICE
-from django.db.models import Sum
-from helps.validators.common import validate_phone_number, validate_office_id
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
-# from company import models as MODELS_COMP
-# from branch import models as MODELS_BRAN
-# from department import models as MODELS_DEPA
+
 
 def generate_unique_code():
     return ghelp().getUniqueCodePattern()
@@ -22,20 +18,10 @@ def getyear():
 def getmonth():
     return ghelp().getMonth()
 
-def uploadphoto(instance, filename):
-    return "user/{unique}/profilepic/{uniquecode}uniquevalue{filename}".format(unique=instance.uniqueid, uniquecode=generate_unique_code(), filename=filename)
-
-def uploaddocs(instance, filename):
-    if '.pdf' in filename:
-        return "user/{unique}/userdocs/pdf/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
-    elif '.csv' in filename:
-        return "user/{unique}/userdocs/csv/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
-    elif '.zip' in filename:
-        return "user/{unique}/userdocs/zip/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
-    elif '.jpg' in filename or '.jpeg' in filename or '.png' in filename or '.PNG' in filename or '.gif':
-        return "user/{unique}/userdocs/image/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
-    else:
-        return "user/{unique}/userdocs/others/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
+def upload_user_photo(instance, filename):
+    return "files/user/{unique}/profilepic/{uniquecode}uniquevalue{filename}".format(unique=instance.uniqueid, uniquecode=generate_unique_code(), filename=filename)
+def upload_employee_docs(instance, filename):
+    return "files/user/{unique}/userdocs/pdf/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
 
 class Responsibility(Basic):
     title = models.CharField(max_length=100, unique=True)
@@ -106,8 +92,6 @@ class User(AbstractUser, Timedetailscode):
     uniqueid = models.CharField(max_length=18, unique=True, default=generate_unique_code)
 
     designation = models.ForeignKey(Designation, on_delete=models.SET_NULL, blank=True, null=True) # Mandatory
-    # company = models.ForeignKey(MODELS_COMP.Company, on_delete=models.SET_NULL, blank=True, null=True)
-    # branch = models.ForeignKey(MODELS_BRAN.Branch, on_delete=models.SET_NULL, blank=True, null=True)
     ###
     dob = models.DateField(blank=True, null=True)
     blood_group = models.CharField(max_length=25, choices=CHOICE.BLOOD_GROUP, blank=True, null=True)
@@ -121,15 +105,15 @@ class User(AbstractUser, Timedetailscode):
     religion = models.ForeignKey(Religion, on_delete=models.SET_NULL, blank=True, null=True)
     nationality = models.CharField(max_length=50, blank=True, null=True)
     personal_email = models.EmailField(blank=True)
-    personal_phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
+    personal_phone = models.CharField(max_length=14, unique=True, blank=True, null=True)
     nid_passport_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
     tin_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    bank_account = models.OneToOneField(CNTRIB.Bankaccount, on_delete=models.SET_NULL, blank=True, null=True)
+    bank_account = models.OneToOneField(MODELS_CONT.Bankaccount, on_delete=models.SET_NULL, blank=True, null=True)
     #####
     ######
-    official_id = models.CharField(max_length=11, validators=[validate_office_id], unique=True, blank=True, null=True)
+    official_id = models.CharField(max_length=11, unique=True, blank=True, null=True)
     official_email = models.EmailField(blank=True)
-    official_phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
+    official_phone = models.CharField(max_length=14, unique=True, blank=True, null=True)
     employee_type = models.CharField(max_length=30, choices=CHOICE.EMPLOYEE_TYPE, blank=True, null=True)
     gross_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
     basic_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
@@ -145,8 +129,8 @@ class User(AbstractUser, Timedetailscode):
     grade = models.ForeignKey(Grade, on_delete=models.SET_NULL, blank=True, null=True)
     shift = models.ForeignKey(Shift, on_delete=models.SET_NULL, blank=True, null=True)
     ###
-    present_address = models.OneToOneField(CNTRIB.Address, on_delete=models.SET_NULL, blank=True, null=True, related_name='userseven')
-    permanent_address = models.OneToOneField(CNTRIB.Address, on_delete=models.SET_NULL, blank=True, null=True, related_name='usereight')
+    present_address = models.OneToOneField(MODELS_CONT.Address, on_delete=models.SET_NULL, blank=True, null=True, related_name='userseven')
+    permanent_address = models.OneToOneField(MODELS_CONT.Address, on_delete=models.SET_NULL, blank=True, null=True, related_name='usereight')
     #####
     dummy_salary = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
     joining_date = models.DateField(blank=True, null=True)
@@ -156,7 +140,7 @@ class User(AbstractUser, Timedetailscode):
     active_dummy_salary = models.BooleanField(default=False)
     job_status = models.CharField(max_length=30, choices=CHOICE.JOB_STATUS, blank=True, null=True)
     official_note = models.TextField(blank=True, null=True)
-    photo = models.ImageField(upload_to=uploadphoto, blank=True, null=True)
+    photo = models.ImageField(upload_to=upload_user_photo, blank=True, null=True)
     rfid = models.CharField(max_length=50, unique=True, blank=True, null=True)
     #########
     hr_password = models.CharField(max_length=550, blank=True, null=True)
@@ -181,9 +165,9 @@ class Employeecontact(Basic):
     name =  models.CharField(max_length=150)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_contact')
     age = models.IntegerField(validators=[MinValueValidator(10)], blank=True, null=True)
-    phone_no = models.CharField(max_length=14, validators=[validate_phone_number], blank=True, null=True)
+    phone_no = models.CharField(max_length=14, blank=True, null=True)
     email = models.EmailField(blank=True)
-    address = models.OneToOneField(CNTRIB.Address, on_delete=models.SET_NULL, blank=True, null=True)
+    address = models.OneToOneField(MODELS_CONT.Address, on_delete=models.SET_NULL, blank=True, null=True)
     relation = models.CharField(max_length=150, blank=True, null=True)
 
     def __str__(self):
@@ -193,7 +177,7 @@ class Employeecontact(Basic):
 class Employeedocs(Basic):
     title = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_docs')
-    attachment = models.FileField(upload_to=uploaddocs, blank=True, null=True)
+    attachment = models.FileField(upload_to=upload_employee_docs, blank=True, null=True)
 
     def __str__(self):
         return f'{self.id} - {self.user.username} - {self.title}'

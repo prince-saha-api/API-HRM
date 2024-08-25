@@ -20,7 +20,6 @@ class Group(Basic):
     def __str__(self):
         return f'{self.code} - {self.title}'
 
-
 class Devicegroup(Basic):
     title = models.CharField(max_length=50, unique=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)

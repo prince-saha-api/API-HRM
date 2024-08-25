@@ -1,6 +1,6 @@
 from django.db import models
 from user import models as MODELS_USER
-from helps.choice.common import ATTENDANCE_FROM, STATUS
+from helps.choice import common as CHOICE
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from hrm_settings import models as MODELS_SETT
@@ -29,7 +29,7 @@ class Attendance(Timedetails):
 
     buffer_time_minutes = models.CharField(max_length=25, null=True, blank=True)
     employee = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, null=True, blank=True)
-    attendance_from = models.CharField(max_length=20, choices=ATTENDANCE_FROM)
+    attendance_from = models.CharField(max_length=20, choices=CHOICE.ATTENDANCE_FROM)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['date', 'employee'], name='Attendance_date_employee')]
@@ -111,7 +111,7 @@ class Requestremoteattendance(Timedetailscode):
 
     in_out_times = ArrayField(models.TimeField(blank=True, null=True), null=True, blank=True)
 
-    status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
+    status = models.CharField(max_length=20, choices=CHOICE.STATUS, default=CHOICE.STATUS[0][1])
     reject_reason = models.CharField(max_length=200, blank=True, null=True)
 
     requested_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestremoteattendanceone')
@@ -144,7 +144,7 @@ class Requestmanualattendance(Timedetailscode):
 
     admin_note = models.CharField(max_length=200, blank=True, null=True)
 
-    status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
+    status = models.CharField(max_length=20, choices=CHOICE.STATUS, default=CHOICE.STATUS[0][1])
     reject_reason = models.CharField(max_length=200, blank=True, null=True)
 
     requested_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='requestmanualattendanceone')

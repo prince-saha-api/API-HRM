@@ -7,7 +7,6 @@ from leave import models as MODELS_LEAV
 from department import models as MODELS_DEPA
 from hrm_settings import models as MODELS_SETT
 from user import models as MODELS_USER
-from company import models as MODELS_COMP
 from branch import models as MODELS_BRAN
 from jobrecord import models as MODELS_JOBR
 from jobrecord.serializer.POST import serializers as PSRLZER_JOBR
@@ -21,9 +20,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from helps.common.generic import Generichelps as ghelp
 from helps.choice import common as CHOICE
-# from django.core.paginator import Paginator
 from drf_nested_forms.utils import NestedForm
-from django.shortcuts import get_list_or_404
 import random
 
 @api_view(['GET'])
@@ -1104,8 +1101,6 @@ def addemployee(request):
                         data=employeejobhistorydata,
                         required_fields=required_fields
                     )
-
-
             emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, PSRLZER_USER.Employeecontactserializer, MODELS_CONT.Address, PSRLZER_CONT.Addressserializer, userinstance, emergencyContact)
             academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, PSRLZER_USER.Employeeacademichistoryserializer, userinstance, academicRecord)
             previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, PSRLZER_USER.Employeeexperiencehistoryserializer, userinstance, previousExperience)

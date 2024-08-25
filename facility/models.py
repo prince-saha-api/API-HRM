@@ -7,4 +7,4 @@ class Facility(Basic):
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.code} -- {self.title}'
+        return f'{self.code} - {self.title}'

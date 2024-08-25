@@ -320,212 +320,119 @@ class Minihelps(Microhelps):
                                             if subList: subObj.update({field['field']: subList})
                     if subObj: mainObj.update({nestedfield['field']: subObj})
         return mainObj if mainObj else None
-
-    # def getOBJDetails(self, object, fields): # New
-    #     print(object)
-    #     input()
-    #     mainObj = {}
-    #     for field in fields['fieldlist']:
-    #         if field['field'] in object:
-    #             if isinstance(object[field['field']], list):
-    #                 if len(object[field['field']])>=1:
-    #                     if object[field['field']][0]:
-    #                         if field['type'] == 'str':
-    #                             # print('str')
-    #                             # print(field['field'])
-    #                             # print(object[field['field']])
-    #                             # print(object[field['field']][0])
-    #                             mainObj.update({field['field']: object[field['field']][0]})
-    #                         elif field['type'] == 'int':
-    #                             print('int')
-    #                             print(field['field'])
-    #                             print(object[field['field']])
-    #                             print(object[field['field']][0])
-    #                             mainObj.update({field['field']: int(object[field['field']][0])})
-    #                         elif field['type'] == 'bool':
-    #                             print('bool')
-    #                             print(field['field'])
-    #                             print(object[field['field']])
-    #                             print(object[field['field']][0])
-    #                             value = True if object[field['field']][0].lower() == 'true' else False if object[field['field']][0].lower() == 'false' else None
-    #                             if value != None: mainObj.update({field['field']: value})
-    #                         elif field['type'] == 'list-int':
-    #                             print('list-int')
-    #                             print(field['field'])
-    #                             print(object[field['field']])
-    #                             print(object[field['field']][0])
-    #                             subList = []
-    #                             for each in object[field['field']]:
-    #                                 if each.isnumeric():
-    #                                     if each not in subList: subList.append(int(each))
-    #                             if subList: mainObj.update({field['field']: subList})
-    #                         elif field['type'] == 'list-str':
-    #                             print('list-str')
-    #                             print(field['field'])
-    #                             print(object[field['field']])
-    #                             print(object[field['field']][0])
-    #                             subList = []
-    #                             for each in object[field['field']]:
-    #                                 if each:
-    #                                     if each not in subList: subList.append(each)
-    #                             if subList: mainObj.update({field['field']: subList})
-    #     if 'nestedfields' in fields:
-    #         for nestedfield in fields['nestedfields']:
-    #             if nestedfield['field'] in object:
-    #                 subObj = {}
-    #                 if nestedfield['fieldlist']:
-    #                     for field in nestedfield['fieldlist']:
-    #                         if field['field'] in object[nestedfield['field']]:
-    #                             if isinstance(object[nestedfield['field']][field['field']], list):
-    #                                 if len(object[nestedfield['field']][field['field']])>=1:
-    #                                     if object[nestedfield['field']][field['field']][0]:
-    #                                         if field['type'] == 'str':
-    #                                             print('str')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             subObj.update({field['field']: object[nestedfield['field']][field['field']][0]})
-    #                                         elif field['type'] == 'int':
-    #                                             print('int')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             subObj.update({field['field']: int(object[nestedfield['field']][field['field']][0])})
-    #                                         elif field['type'] == 'bool':
-    #                                             print('bool')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             value = True if object[nestedfield['field']][field['field']][0].lower() == 'true' else False if object[nestedfield['field']][field['field']][0].lower() == 'false' else None
-    #                                             if value != None: mainObj.update({field['field']: value})
-    #                                         elif field['type'] == 'list-int':
-    #                                             print('list-int')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             subList = []
-    #                                             for each in object[nestedfield['field']][field['field']]:
-    #                                                 if each.isnumeric():
-    #                                                     if each not in subList: subList.append(int(each))
-    #                                             if subList: mainObj.update({field['field']: subList})
-    #                                         elif field['type'] == 'list-str':
-    #                                             print('list-str')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             subList = []
-    #                                             for each in object[nestedfield['field']][field['field']]:
-    #                                                 if each:
-    #                                                     if each not in subList: subList.append(each)
-    #                                             if subList: mainObj.update({field['field']: subList})
-    #                 if subObj: mainObj.update({nestedfield['field']: subObj})
-    #     return mainObj if mainObj else None
     
     def addemergencycontact(self, Employeecontact, Employeecontactserializer, Address, Addressserializer, userinstance, emergencyContact): # New
         response = {'success': [], 'failed': [], 'message': []}
-        if isinstance(emergencyContact, list):
-            for index, details in enumerate(emergencyContact):
-                details_copy = details.copy()
-                details.update({'user': userinstance.id})
-                
-                address_flag = True
-                address_responsemessage = []
+        if emergencyContact:
+            if isinstance(emergencyContact, list):
+                for index, details in enumerate(emergencyContact):
+                    details_copy = details.copy()
+                    details.update({'user': userinstance.id})
+                    
+                    address_flag = True
+                    address_responsemessage = []
 
-                allowed_fields = ['alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
-                required_fields = ['address', 'city', 'state_division', 'country']
-                responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
-                    classOBJ=Address,
-                    Serializer=Addressserializer,
-                    data=details,
-                    allowed_fields=allowed_fields,
-                    required_fields=required_fields
-                )
 
-                if responsesuccessflag == 'success': details.update({'address': responsedata.instance.id})
-                elif responsesuccessflag == 'error':
-                    address_responsemessage.extend(responsemessage)
-                    address_flag = False
-                    del details['address']
+                    if 'address' in details:
+                        if details['address']:
+                            allowed_fields = ['alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                            required_fields = ['address', 'city', 'state_division', 'country']
+                            responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                                classOBJ=Address,
+                                Serializer=Addressserializer,
+                                data=details['address'],
+                                allowed_fields=allowed_fields,
+                                required_fields=required_fields
+                            )
+                            if responsesuccessflag == 'success': details.update({'address': responsedata.instance.id})
+                            elif responsesuccessflag == 'error':
+                                address_responsemessage.extend(responsemessage)
+                                address_flag = False
+                                del details['address']
+                        else: del details['address']
 
-                allowed_fields = ['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation']
-                required_fields = ['name', 'user']
-                unique_fields = ['phone_no']
-                fields_regex = [
-                    {'field': 'phone_no', 'type': 'phonenumber'},
-                    {'field': 'email', 'type': 'email'}
-                ]
-                response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    classOBJ=Employeecontact,
-                    Serializer=Employeecontactserializer,
-                    data=details,
-                    allowed_fields=allowed_fields,
-                    required_fields=required_fields,
-                    unique_fields=unique_fields,
-                    fields_regex=fields_regex
-                )
-                if response_successflag == 'success':
-                    objects = {'details': details_copy, 'message': []}
-                    if not address_flag: objects['message'].extend([f'{index+1} user\'s emergency contact address {each}' for each in address_responsemessage])
-                    response['success'].append(objects)
-                elif response_successflag == 'error':
-                    objects = {'details': details_copy, 'message': []}
-                    objects['message'].extend([f'{index+1} user\'s emergency contact {each}' for each in response_message])
-                    if not address_flag: objects['message'].extend([f'{index+1} user\'s emergency contact address {each}' for each in address_responsemessage])
-                    response['failed'].append(objects)
-        else: response['message'].append('emergencycontact is not list type!')
+                    allowed_fields = ['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation']
+                    required_fields = ['name', 'user']
+                    unique_fields = ['phone_no']
+                    fields_regex = [
+                        {'field': 'phone_no', 'type': 'phonenumber'},
+                        {'field': 'email', 'type': 'email'}
+                    ]
+                    response_data, response_message, response_successflag, response_status = self.addtocolass(
+                        classOBJ=Employeecontact,
+                        Serializer=Employeecontactserializer,
+                        data=details,
+                        allowed_fields=allowed_fields,
+                        required_fields=required_fields,
+                        unique_fields=unique_fields,
+                        fields_regex=fields_regex
+                    )
+                    if response_successflag == 'success':
+                        objects = {'details': details_copy, 'message': []}
+                        if not address_flag: objects['message'].extend([f'{index+1} user\'s emergency contact address {each}' for each in address_responsemessage])
+                        response['success'].append(objects)
+                    elif response_successflag == 'error':
+                        objects = {'details': details_copy, 'message': []}
+                        objects['message'].extend([f'{index+1} user\'s emergency contact {each}' for each in response_message])
+                        if not address_flag: objects['message'].extend([f'{index+1} user\'s emergency contact address {each}' for each in address_responsemessage])
+                        response['failed'].append(objects)
+            else: response['message'].append('emergencycontact is not list type!')
+        else: response['message'].append('emergencycontact is blank!')
         return response
     
     def addacademicrecord(self, Employeeacademichistory, Employeeacademichistoryserializer, userinstance, academicRecord): # New
         response = {'success': [], 'failed': [], 'message': []}
-        if isinstance(academicRecord, list):
-            for index, details in enumerate(academicRecord):
-                details_copy = details.copy()
-                details.update({'user': userinstance.id})
+        if academicRecord:
+            if isinstance(academicRecord, list):
+                for index, details in enumerate(academicRecord):
+                    
+                    details_copy = details.copy()
+                    details.update({'user': userinstance.id})
 
-                required_fields = ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
-                response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    classOBJ=Employeeacademichistory,
-                    Serializer=Employeeacademichistoryserializer,
-                    data=details,
-                    required_fields=required_fields
-                )
-                if response_successflag == 'success':
-                    objects = {'details': details_copy, 'message': []}
-                    response['success'].append(objects)
-                elif response_successflag == 'error':
-                    objects = {'details': details_copy, 'message': []}
-                    objects['message'].extend([f'{index+1} user\'s academic record {each}' for each in response_message])
-                    response['failed'].append(objects)
-        else: response['message'].append('academicrecord is not list type!')
+                    required_fields = ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
+                    response_data, response_message, response_successflag, response_status = self.addtocolass(
+                        classOBJ=Employeeacademichistory,
+                        Serializer=Employeeacademichistoryserializer,
+                        data=details,
+                        required_fields=required_fields
+                    )
+                    if response_successflag == 'success':
+                        objects = {'details': details_copy, 'message': []}
+                        response['success'].append(objects)
+                    elif response_successflag == 'error':
+                        objects = {'details': details_copy, 'message': []}
+                        objects['message'].extend([f'{index+1} user\'s academic record {each}' for each in response_message])
+                        response['failed'].append(objects)
+            else: response['message'].append('academicrecord is not list type!')
+        else: response['message'].append('academicrecord is blank!')
         return response
     
     def addpreviousexperience(self, Employeeexperiencehistory, Employeeexperiencehistoryserializer, userinstance, previousExperience): # New 
         response = {'success': [], 'failed': [], 'message': []}
-        if isinstance(previousExperience, list):
-            for index, details in enumerate(previousExperience):
-                details_copy = details.copy()
-                details.update({'user': userinstance.id})
+        if previousExperience:
+            if isinstance(previousExperience, list):
+                for index, details in enumerate(previousExperience):
+                    details_copy = details.copy()
+                    details.update({'user': userinstance.id})
 
-                required_fields = ['user', 'company_name', 'designation', 'address', 'from_date', 'to_date']
-                fields_regex = [
-                    {'field': 'from_date', 'type': 'date'},
-                    {'field': 'to_date', 'type': 'date'}
-                ]
-                response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    classOBJ=Employeeexperiencehistory,
-                    Serializer=Employeeexperiencehistoryserializer,
-                    data=details,
-                    required_fields=required_fields,
-                    fields_regex=fields_regex
-                )
-                if response_successflag == 'success':
-                    objects = {'details': details_copy, 'message': []}
-                    response['success'].append(objects)
-                elif response_successflag == 'error':
-                    objects = {'details': details_copy, 'message': []}
-                    objects['message'].extend([f'{index+1} user\'s previous experience {each}' for each in response_message])
-                    response['failed'].append(objects)
-        else: response['message'].append('previousexperience is not list type!')
+                    required_fields = ['user', 'company_name', 'designation', 'address', 'from_date', 'to_date']
+                    fields_regex = [{'field': 'from_date', 'type': 'date'}, {'field': 'to_date', 'type': 'date'}]
+                    response_data, response_message, response_successflag, response_status = self.addtocolass(
+                        classOBJ=Employeeexperiencehistory,
+                        Serializer=Employeeexperiencehistoryserializer,
+                        data=details,
+                        required_fields=required_fields,
+                        fields_regex=fields_regex
+                    )
+                    if response_successflag == 'success':
+                        objects = {'details': details_copy, 'message': []}
+                        response['success'].append(objects)
+                    elif response_successflag == 'error':
+                        objects = {'details': details_copy, 'message': []}
+                        objects['message'].extend([f'{index+1} user\'s previous experience {each}' for each in response_message])
+                        response['failed'].append(objects)
+            else: response['message'].append('previousexperience is not list type!')
+        else: response['message'].append('previousexperience is blank!')
         return response
     
     

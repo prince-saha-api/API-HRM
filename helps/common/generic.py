@@ -116,7 +116,7 @@ class Generichelps(Minihelps):
                 {'name': 'job_status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.JOB_STATUS]}
             ]
             fields_regex = [
-                # {'field': 'dob', 'type': 'date'},
+                {'field': 'dob', 'type': 'date'},
                 {'field': 'personal_email', 'type': 'email'},
                 {'field': 'personal_phone', 'type': 'phonenumber'},
                 {'field': 'official_id', 'type': 'employeeid'},

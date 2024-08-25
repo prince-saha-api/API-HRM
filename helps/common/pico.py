@@ -1,7 +1,5 @@
 from django.contrib.auth.hashers import make_password
 from datetime import datetime, date, timedelta
-from PIL import Image
-import numpy as np
 import random
 import pytz
 import os
@@ -53,18 +51,6 @@ class Picohelps:
       strdatetime = datetime.utcfromtimestamp(int(strdatetime))
       strdatetime = pytz.timezone('UTC').localize(strdatetime)
       return strdatetime.astimezone(pytz.timezone('Asia/Dhaka'))
-   
-
-   def convert_bytesio_ndarray(self, bytesio_image):
-      response = {'flag': False, 'message': [], 'image': None}
-      try:
-         image = Image.open(bytesio_image)
-         try:
-            response['image'] = np.asarray(image)
-            response['flag'] = True
-         except: response['message'].append('couldn\'t convert image from bytesio to ndarray!')
-      except: response['message'].append('image type should be bytesio!')
-      return response
     
    def getToday(self):
       return date.today()
@@ -181,7 +167,7 @@ class Picohelps:
          'email': {'regex': '^[a-z._0-9]*@[a-z]*\.[a-z]*$', 'format': 'demo@demo.com (allowed chars a-z, 0-9, ., _)'},
          'phonenumber': {'regex': '^01[3456789][0-9]{8}$|^8801[3456789][0-9]{8}$|^\+8801[3456789][0-9]{8}$', 'format': '01700000000, 8801700000000, +8801700000000'},
          'username': {'regex': '^[a-z._]*[0-9]*$', 'format': 'alex (allowed chars a-z, 0-9, ., _)'},
-         'employeeid': {'regex': '^[A-Z0-9]*$', 'format': 'A-Z and 0-9 chars are allowed!'},
+         'employeeid': {'regex': '^[A-Z]{3}[0-9]{7}$', 'format': 'A-Z and 0-9 chars are allowed!'},
          'date': {'regex': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'format': '2024-01-01'},
          'time': {'regex': '^[0-9]{2}:[0-9]{2}:[0-9]{2}$', 'format': '15:12:13'},
          'datetime': {'regex': '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$', 'format': '2024-01-01 15:12:13'},

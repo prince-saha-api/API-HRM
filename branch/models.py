@@ -1,12 +1,8 @@
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Basic
-from user import models as MODELS_USER
 from django.db import models
-from facility.models import *
-from user.models import User
-from company.models import Company
-from helps.validators.common import validate_phone_number
-from contribution import models as CNTRIB
+from company import models as MODELS_COMP
+from contribution import models as MODELS_CONT
 
 class Operatinghour(Basic):
     operating_hour_from = models.TimeField()
@@ -19,33 +15,12 @@ class Operatinghour(Basic):
 
 class Branch(Basic):
     name = models.CharField(max_length=100)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='branch_company')
+    company = models.ForeignKey(MODELS_COMP.Company, on_delete=models.CASCADE, related_name='branch_company')
     description = models.TextField(blank=True, null=True)
     email = models.EmailField(unique=True, blank=True, null=True)
-    phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
+    phone = models.CharField(max_length=14, unique=True, blank=True, null=True)
     fax = models.CharField(max_length=100, unique=True, blank=True, null=True)
-    address = models.OneToOneField(CNTRIB.Address, on_delete=models.SET_NULL, blank=True, null=True)
+    address = models.OneToOneField(MODELS_CONT.Address, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):
         return f'{self.id} - {self.name}'
-
-class Branchphonenumber(Basic):
-    phone = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return f'{self.branch.company.basic_information.name} - {self.branch.name} - {self.phone}'
-
-class Branchemail(Basic):
-    email = models.EmailField(unique=True, blank=True, null=True)
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.branch.company.basic_information.name} - {self.branch.name} - {self.email}'
-
-class Contactperson(Basic):
-    person = models.OneToOneField(User, on_delete=models.CASCADE)
-    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.branch.company.basic_information.name} - {self.branch.name} - {self.person.username}'

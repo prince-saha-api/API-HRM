@@ -1,14 +1,14 @@
 from django.shortcuts import render
 from helps.decorators.decorator import CommonDecorator as deco
 from rest_framework.decorators import api_view, permission_classes
-from helps.choice.common import ATTENDANCE_FROM, STATUS
+from helps.choice import common as CHOICE
 from rest_framework.permissions import IsAuthenticated
 from helps.common.generic import Generichelps as ghelp
 from helps.accesscontroldevice.a_devicehelp import Decicehelps as dhelp
 from attendance import models as MODELS_ATTE
 from attendance.serializer.POST import serializers as PSRLZER_ATTE
 from attendance.serializer import serializers as SRLZER_ATTE
-from device.models import Device
+from device import models as MODELS_DEVI
 from rest_framework.response import Response
 from rest_framework import status
 from user import models as MODELS_USER
@@ -113,10 +113,10 @@ def approvemanualattendence(request, manualattendenceid=None):
     requestmanualattendance = MODELS_ATTE.Requestmanualattendance.objects.filter(id=manualattendenceid)
     if requestmanualattendance.exists():
         attendance = MODELS_ATTE.Attendance.objects.filter(date=requestmanualattendance.first().date, employee=requestmanualattendance.first().requested_by.id)
-        if requestmanualattendance.first().status != STATUS[2][1]:
-            if requestmanualattendance.first().status != STATUS[1][1]:
+        if requestmanualattendance.first().status != CHOICE.STATUS[2][1]:
+            if requestmanualattendance.first().status != CHOICE.STATUS[1][1]:
                 if not attendance.exists():
-                    data = {'status': STATUS[1][1], 'decisioned_by': request.user.id}
+                    data = {'status': CHOICE.STATUS[1][1], 'decisioned_by': request.user.id}
                     requestmanualattendanceserializer = PSRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
                     if requestmanualattendanceserializer.is_valid(raise_exception=True):
                         requestmanualattendanceserializer.save()
@@ -125,12 +125,12 @@ def approvemanualattendence(request, manualattendenceid=None):
                             in_time=requestmanualattendance.first().in_time,
                             out_time=requestmanualattendance.first().out_time,
                             employee=MODELS_USER.User.objects.get(id=requestmanualattendance.first().requested_by.id),
-                            attendance_from=ATTENDANCE_FROM[1][1]
+                            attendance_from=CHOICE.ATTENDANCE_FROM[1][1]
                         ).save()
                         return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializer.data}, status=status.HTTP_200_OK)
                     else: return Response({'status': 'error', 'message': 'something went wrong!', 'data': requestmanualattendanceserializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    data = {'status': STATUS[1][1], 'decisioned_by': request.user.id}
+                    data = {'status': CHOICE.STATUS[1][1], 'decisioned_by': request.user.id}
                     requestmanualattendanceserializer = PSRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
                     if requestmanualattendanceserializer.is_valid(raise_exception=True):
                         requestmanualattendanceserializer.save()
@@ -142,7 +142,7 @@ def approvemanualattendence(request, manualattendenceid=None):
                         in_time=requestmanualattendance.first().in_time,
                         out_time=requestmanualattendance.first().out_time,
                         employee=MODELS_USER.User.objects.get(id=requestmanualattendance.first().requested_by.id),
-                        attendance_from=ATTENDANCE_FROM[1][1]
+                        attendance_from=CHOICE.ATTENDANCE_FROM[1][1]
                     ).save()
                 return Response({'status': 'error', 'message': 'already approved!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -161,7 +161,7 @@ def rejectmanualattendence(request, manualattendenceid=None):
         if attendance.exists():
             attendance.delete()
 
-        data = {'status': STATUS[2][1], 'decisioned_by': request.user.id}
+        data = {'status': CHOICE.STATUS[2][1], 'decisioned_by': request.user.id}
         if request.data.get('reject_reason'): data.update({'reject_reason': request.data.get('reject_reason')})
         requestmanualattendanceserializer = PSRLZER_ATTE.Requestmanualattendanceserializer(instance=requestmanualattendance.first(), data=data, partial=True)
         if requestmanualattendanceserializer.is_valid(raise_exception=True):
@@ -314,7 +314,7 @@ def addremoteattendance(request):
             requestremoteattendanceinstance.in_time=inlog.time
             requestremoteattendanceinstance.out_time=outlog.time
             requestremoteattendanceinstance.in_out_times=[remotelog.time for remotelog in remotelogs]
-            requestremoteattendanceinstance.status=STATUS[0][1]
+            requestremoteattendanceinstance.status=CHOICE.STATUS[0][1]
             requestremoteattendanceinstance.requested_by=MODELS_USER.User.objects.get(id=request.user.id)
             requestremoteattendanceinstance.save()
             requestremoteattendanceserializer = SRLZER_ATTE.Requestremoteattendanceserializer(requestremoteattendanceinstance, many=False)
@@ -364,10 +364,10 @@ def approveremoteattendence(request, remoteattendenceid=None):
     requestremoteattendance = MODELS_ATTE.Requestremoteattendance.objects.filter(id=remoteattendenceid)
     if requestremoteattendance.exists():
         attendance = MODELS_ATTE.Attendance.objects.filter(date=requestremoteattendance.first().date, employee=requestremoteattendance.first().requested_by.id)
-        if requestremoteattendance.first().status != STATUS[2][1]:
-            if requestremoteattendance.first().status != STATUS[1][1]:
+        if requestremoteattendance.first().status != CHOICE.STATUS[2][1]:
+            if requestremoteattendance.first().status != CHOICE.STATUS[1][1]:
                 if not attendance.exists():
-                    data = {'status': STATUS[1][1], 'decisioned_by': request.user.id}
+                    data = {'status': CHOICE.STATUS[1][1], 'decisioned_by': request.user.id}
                     requestremoteattendanceserializer = PSRLZER_ATTE.Requestremoteattendanceserializer(instance=requestremoteattendance.first(), data=data, partial=True)
                     if requestremoteattendanceserializer.is_valid(raise_exception=True):
                         requestremoteattendanceserializer.save()
@@ -376,12 +376,12 @@ def approveremoteattendence(request, remoteattendenceid=None):
                             in_time=requestremoteattendance.first().in_time,
                             out_time=requestremoteattendance.first().out_time,
                             employee=MODELS_USER.User.objects.get(id=requestremoteattendance.first().requested_by.id),
-                            attendance_from=ATTENDANCE_FROM[2][1]
+                            attendance_from=CHOICE.ATTENDANCE_FROM[2][1]
                         ).save()
                         return Response({'status': 'success', 'message': '', 'data': requestremoteattendanceserializer.data}, status=status.HTTP_200_OK)
                     else: return Response({'status': 'error', 'message': 'something went wrong!', 'data': requestremoteattendanceserializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    data = {'status': STATUS[1][1], 'decisioned_by': request.user.id}
+                    data = {'status': CHOICE.STATUS[1][1], 'decisioned_by': request.user.id}
                     requestremoteattendanceserializer = PSRLZER_ATTE.Requestremoteattendanceserializer(instance=requestremoteattendance.first(), data=data, partial=True)
                     if requestremoteattendanceserializer.is_valid(raise_exception=True):
                         requestremoteattendanceserializer.save()
@@ -393,7 +393,7 @@ def approveremoteattendence(request, remoteattendenceid=None):
                         in_time=requestremoteattendance.first().in_time,
                         out_time=requestremoteattendance.first().out_time,
                         employee=MODELS_USER.User.objects.get(id=requestremoteattendance.first().requested_by.id),
-                        attendance_from=ATTENDANCE_FROM[2][1]
+                        attendance_from=CHOICE.ATTENDANCE_FROM[2][1]
                     ).save()
                 return Response({'status': 'error', 'message': 'already approved!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -412,7 +412,7 @@ def rejectremoteattendence(request, remoteattendenceid=None):
         if attendance.exists():
             attendance.delete()
 
-        data = {'status': STATUS[2][1], 'decisioned_by': request.user.id}
+        data = {'status': CHOICE.STATUS[2][1], 'decisioned_by': request.user.id}
         if request.data.get('reject_reason'): data.update({'reject_reason': request.data.get('reject_reason')})
         requestremoteattendanceserializer = PSRLZER_ATTE.Requestremoteattendanceserializer(instance=requestremoteattendance.first(), data=data, partial=True)
         if requestremoteattendanceserializer.is_valid(raise_exception=True):
@@ -426,7 +426,7 @@ def rejectremoteattendence(request, remoteattendenceid=None):
 # @deco.get_permission(['get company info', 'all'])
 def addattendancefromlogsalldevices(request, minutes=None):
 
-    devices = Device.objects.filter(is_active=True)
+    devices = MODELS_DEVI.Device.objects.filter(is_active=True)
     start , end = ghelp().getStarttimeEndtime(minutes)
 
     usernames = [cuser.username for cuser in MODELS_USER.User.objects.all()]
@@ -468,7 +468,7 @@ def addattendancefromlogsalldevices(request, minutes=None):
                         out_time=outtime,
                         in_out_times=[assending_log.in_time for assending_log in assending_logs],
                         employee=employee,
-                        attendance_from=ATTENDANCE_FROM[0][1]
+                        attendance_from=CHOICE.ATTENDANCE_FROM[0][1]
                     )
 
     return Response({'status': 'success', 'message': '', 'data': logs}, status=status.HTTP_200_OK)

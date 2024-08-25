@@ -169,8 +169,7 @@ class Microhelps(Nanohelps):
                             del data['address']
                     else: del data['address']
                 else: response['message'].append('bank aocount address\'s type should be dict!')
-            
-            if response['flag']:
+            if not response['flag']:
                 required_fields = ['bank_name', 'branch_name', 'account_type', 'account_no', 'routing_no']
                 responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
                     classOBJ=classOBJpackage['Bankaccount'],
@@ -186,8 +185,6 @@ class Microhelps(Nanohelps):
                     response['message'].extend([f'bank account\'s {each}' for each in responsemessage])
         return response
     
-
-
     def nestedObjectPrepare(self, details): # New
         response = {'flag': False, 'message': [], 'data': {}}
         if details: 
@@ -258,11 +255,6 @@ class Microhelps(Nanohelps):
          image_name = image._name
          if '.jpg' in image_name[len(image_name)-4:]:
                if image.size <= 99999: response['flag'] = True
-                #    image_response = self.countPersonInImage(image.file)
-                #    if image_response['person_count']>0:
-                #        if image_response['person_count'] == 1: response['flag'] = True
-                #        else: response['message'].append(f'please, don\'t provide an image having multiple persons({image_response["person_count"]})!')
-                #    else: response['message'].extend(image_response['message'])
                else: response['message'].append('provide an image within 100kb!')
          else: response['message'].append('image should be jpg format!')
       else: response['message'].append('no image provided!')

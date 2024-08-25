@@ -3,7 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from company import models as MODELS_COMP
 from branch import models as MODELS_BRAN
-from department import models as MODELS_DEPA
+from jobrecord import models as MODELS_JOBR
+from notice import models as MODELS_NOTI
 from company.serializer import serializers as SRLZER_COMP
 from company.serializer.POST import serializers as PSRLZER_COMP
 from helps.common.generic import Generichelps as ghelp
@@ -123,7 +124,8 @@ def deletecompany(request, companyid=None):
     classOBJpackage_tocheck_assciaativity = [
         {'model': MODELS_BRAN.Branch, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
         {'model': MODELS_COMP.Bankinformation, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_JOBR.Employeejobhistory, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_NOTI.Noticeboardcompany, 'fields': [{'field': 'company', 'relation': 'foreignkey', 'records': []}]},
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_COMP.Company,

@@ -2,7 +2,6 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from device import models as MODELS_DEVI
-from user import models as MODELS_USER
 from device.serializer import serializers as SRLZER_DEVI
 from device.serializer.POST import serializers as PSRLZER_DEVI
 from helps.common.generic import Generichelps as ghelp
@@ -23,8 +22,10 @@ def getdevices(request):
         {'name': 'deviceip', 'convert': None, 'replace':'deviceip'},
         {'name': 'is_active', 'convert': 'bool', 'replace':'is_active'},
     ]
+    kwargs = ghelp().KWARGS(request, filter_fields)
+    if 'is_active' not in kwargs: kwargs.update({'is_active': True})
     
-    devices = MODELS_DEVI.Device.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    devices = MODELS_DEVI.Device.objects.filter(**kwargs)
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: devices = devices.order_by(column_accessor)
     
@@ -127,13 +128,15 @@ def getgroups(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
 def addgroup(request):
+    allowed_fields = ['title', 'description']
     unique_fields = ['title']
     required_fields = ['title']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
         classOBJ=MODELS_DEVI.Group, 
         Serializer=PSRLZER_DEVI.Groupserializer, 
         data=request.data,
-        unique_fields=unique_fields, 
+        allowed_fields=allowed_fields,
+        unique_fields=unique_fields,
         required_fields=required_fields
     )
     if response_data: response_data = response_data.data
@@ -143,12 +146,14 @@ def addgroup(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updategroup(request, groupid=None):
+    allowed_fields = ['title', 'description']
     unique_fields = ['title']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         classOBJ=MODELS_DEVI.Group,
         Serializer=PSRLZER_DEVI.Groupserializer,
         id=groupid,
         data=request.data,
+        allowed_fields=allowed_fields,
         unique_fields=unique_fields
     )
     response_data = response_data.data if response_successflag == 'success' else {}
@@ -203,12 +208,14 @@ def getdevicegroup(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
 def adddevicegroup(request):
+    allowed_fields = ['title', 'group', 'device']
     unique_fields = ['title']
     required_fields = ['title']
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
         classOBJ=MODELS_DEVI.Devicegroup, 
         Serializer=PSRLZER_DEVI.Devicegroupserializer, 
         data=request.data,
+        allowed_fields=allowed_fields,
         unique_fields=unique_fields, 
         required_fields=required_fields
     )
@@ -219,12 +226,14 @@ def adddevicegroup(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updatedevicegroup(request, devicegroupid=None):
-    unique_fields=['title']
+    allowed_fields = ['title', 'group', 'device']
+    unique_fields = ['title']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         classOBJ=MODELS_DEVI.Devicegroup,
         Serializer=PSRLZER_DEVI.Devicegroupserializer,
         id=devicegroupid,
         data=request.data,
+        allowed_fields=allowed_fields,
         unique_fields=unique_fields
     )
     response_data = response_data.data if response_successflag == 'success' else {}
