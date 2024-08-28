@@ -181,7 +181,8 @@ class Employeedocs(Basic):
 
     def __str__(self):
         return f'{self.id} - {self.user.username} - {self.title}'
-    
+
+
 class Employeeacademichistory(Basic):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_academichistory')
     board_institute_name = models.CharField(max_length=150)
@@ -192,7 +193,7 @@ class Employeeacademichistory(Basic):
 
     def __str__(self):
         return f'{self.id} - {self.user.username} - {self.board_institute_name}'
-    
+
 class Employeeexperiencehistory(Basic):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee_experiencehistory')
     company_name = models.CharField(max_length=150)

@@ -298,7 +298,7 @@ def addjobhistory(request):
                         else: response_message.append('no valid status_adjustment provided!')
                     else: response_message.append('please select status_adjustment!')
                 else: response_message.append('last employeejobhistory doesn\'t exist!')
-            else: response_message.append(f'user is already {user.first().job_status}!')
+            else: response_message.append(f'user\'s job_status is not {CHOICE.JOB_STATUS[0][1]}!')
         else: response_message.append('user doesn\'t exist!')
     else: response_message.append('user id is missing!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

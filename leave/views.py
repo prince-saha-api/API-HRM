@@ -182,6 +182,10 @@ def assignleavepolicy(request):
     }
     leavepolicylist = request.data.get('leavepolicy')
     leavepolicy_response = ghelp().assignBulkUserToBulkLeavepolicy(classOBJpackage, leavepolicylist, userlist, manipulate_info)
+    
+    if leavepolicy_response['backend_message']:
+        response_message.append('inform backend, data is missing in backend!')
+    
     if leavepolicy_response['flag']:
         response_message.extend(leavepolicy_response['message'])
         response_successflag = 'success'

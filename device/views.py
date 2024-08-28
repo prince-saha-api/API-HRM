@@ -5,6 +5,7 @@ from device import models as MODELS_DEVI
 from device.serializer import serializers as SRLZER_DEVI
 from device.serializer.POST import serializers as PSRLZER_DEVI
 from helps.common.generic import Generichelps as ghelp
+from helps.device.a_device import A_device as DEVICE
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -248,3 +249,67 @@ def deletedevicegroup(request, devicegroupid=None):
         id=devicegroupid
     )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+
+
+
+
+
+
+
+
+@api_view(['POST'])
+# @permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def insertUserWithoutImage(request):
+
+    ip = '10.10.20.51'
+    name = 'DummyABC'
+    cardno = 147258369258456
+    userid = 'DummyID'
+    password = ''
+    reg_date = '20240827'
+    valid_date = '20300827'
+    uname = 'admin'
+    pword = 'admin1234'
+    response = DEVICE().insertusrwithoutimg(ip, name, cardno, userid, password, reg_date,  valid_date, uname, pword)
+    
+    return Response({"response": response}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def existanceUser(request):
+
+    ip = '10.10.20.51'
+    userid = 'DummyID'
+    uname = 'admin'
+    pword = 'admin1234'
+    response = DEVICE().existanceofuser(ip, userid, uname, pword)
+    
+    return Response({"response": response}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def getRecordNumber(request):
+
+    ip = '10.10.20.51'
+    userid = 'DummyID'
+    uname = 'admin'
+    pword = 'admin1234'
+    response = DEVICE().get_record_number(ip, userid, uname, pword)
+    
+    return Response({"response": response}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def isDeviceActive(request):
+
+    ip = '10.10.20.51'
+    response = DEVICE().is_device_active(ip)
+    
+    return Response({"response": response}, status=status.HTTP_200_OK)

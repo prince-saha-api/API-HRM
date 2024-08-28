@@ -256,6 +256,7 @@ class Picohelps:
                   {'field': 'role_permission', 'type': 'list-int'},
                   {'field': 'official_note', 'type': 'str'},
                   {'field': 'ethnic_group', 'type': 'list-int'},
+                  {'field': 'group_of_device', 'type': 'list-int'},
                   {'field': 'joining_date', 'type': 'str'},
                   {'field': 'job_status', 'type': 'str'},
                   {'field': 'rfid', 'type': 'str'},
@@ -372,6 +373,13 @@ class Picohelps:
                ]
             }
    
+   def removeFile(self, OBJ, key):
+      photo = getattr(OBJ, key, None)
+      if photo:
+         if photo.path:
+               if os.path.exists(photo.path):
+                  os.remove(photo.path)
+
    def removeFile(self, OBJ, key):
       photo = getattr(OBJ, key, None)
       if photo:
