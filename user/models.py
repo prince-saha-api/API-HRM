@@ -4,6 +4,7 @@ from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Basic, Timedetailscode
 from django.core.validators import MinValueValidator, MaxValueValidator
 from contribution import models as MODELS_CONT
+from device import models as MODELS_DEVI
 from helps.choice import common as CHOICE
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
@@ -211,6 +212,15 @@ class Ethnicgroup(Basic):
 
     def __str__(self):
         return f'{self.name}'
+    
+class Userdevicegroup(Basic):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devicegroup')
+    group = models.ForeignKey(MODELS_DEVI.Group, on_delete=models.CASCADE, related_name='user')
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'group'], name='user_group')]
+    
+    def __str__(self):
+        return f'{self.user.username} - {self.group.title}'
 
 
 class Shiftchangelog(Basic):

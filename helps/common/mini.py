@@ -1,6 +1,7 @@
 import random
-from django.contrib.auth.hashers import make_password
+from helps.device.a_device import A_device as DEVICE
 from helps.common.micro import Microhelps
+import os
 
 class Minihelps(Microhelps):
 
@@ -447,9 +448,74 @@ class Minihelps(Microhelps):
                             else:
                                 response['flag'] = True
                                 response['message'].append(f'successfully assigned {leavepolicy.name}({leavepolicyid}) to {user.get_full_name()}({userid})')
-                        else: response['message'].append(f'user{userid} doesn\'t exist therefor couldn\'t assign leavepolicy!')
-                else: response['message'].append(f'leavepolicy{leavepolicyid} doesn\'t exist therefor couldn\'t assign to given users!')
+                        else: response['message'].append(f'user{userid} doesn\'t exist therefore couldn\'t assign leavepolicy!')
+                else: response['message'].append(f'leavepolicy{leavepolicyid} doesn\'t exist therefore couldn\'t assign to given users!')
             else: response['message'].append('userid will be placed in list!')
         else: response['message'].append('user list is blank!')
         return response
     
+
+    def assignGroupToBulkUser(self, classOBJpackage, userlist, groupid): # New
+        response = {'flag': False, 'message': []}
+        if userlist:
+            if isinstance(userlist, list):
+
+                group = self.getobject(classOBJpackage['Group'], {'id': groupid})
+                if group:
+                    for userid in userlist:
+                        # user = self.getobject(classOBJpackage['User'], {'id': userid})
+                        user = classOBJpackage['User'].objects.filter(id=userid)
+                        if user.exists():
+                            userdevicegroup = classOBJpackage['Userdevicegroup'].objects.filter(user=user.first(), group=group)
+                            instance = userdevicegroup if userdevicegroup.exists() else classOBJpackage['Userdevicegroup'].objects.create(user=user.first(), group=group)
+                            devicegroup = classOBJpackage['Devicegroup'].objects.filter(group=groupid)
+                            for device in [each.device for each in devicegroup]:
+
+
+                                user_register_info = self.getUserInfoToRegisterIntoDevice(classOBJpackage['User'], user.first(), device)
+                                if user_register_info['flag']:
+                                    user_register_response = self.registerUserToDevice([user_register_info['data']])
+                                    if user_register_response['flag']: response['flag'] = True
+                                    else: instance.delete()
+                                    response['message'].extend(user_register_response['message'])
+                                else:
+                                    instance.delete()
+                                    response['message'].extend(user_register_info['message'])
+                                    
+                                # user_to_device = self.addUserToDevice(user, device) 
+                                # if user_to_device['flag']: response['flag'] = True
+                                # else: instance.delete()
+                                # response['message'].extend(user_to_device['message'])
+                        else: response['message'].append(f'user{userid} doesn\'t exist therefore couldn\'t assign to group!')
+                else: response['message'].append(f'group{groupid} doesn\'t exist therefore couldn\'t assign to given users!')
+            else: response['message'].append('userid will be placed in list!')
+        else: response['message'].append('user list is blank!')
+        return response
+
+    
+    def assignShiftToBulkUser(self, classOBJpackage, userlist, shiftid): # New
+        response = {'flag': False, 'message': []}
+        if userlist:
+            if isinstance(userlist, list):
+                if shiftid:
+                    shift = self.getobject(classOBJpackage['Shift'], {'id': shiftid})
+                    if shift:
+                        for userid in userlist:
+                            user = classOBJpackage['User'].objects.filter(id=userid)
+                            if user.exists():
+                                if user.first().shift:
+                                    if user.first().shift.id == shift.id:
+                                        response['flag'] = True
+                                        response['message'].append(f'{shift.name}({shiftid}) is already assigned to {user.first().get_full_name()}({userid})')
+                                        continue
+                                try:
+                                    user.update(shift=shift)
+                                    response['flag'] = True
+                                    response['message'].append(f'successfully assigned {shift.name}({shiftid}) to {user.first().get_full_name()}({userid})')
+                                except: response['message'].append(f'couldn\'t assign {shift.name}({shiftid}) to {user.first().get_full_name()}({userid})')
+                            else: response['message'].append(f'user{userid} doesn\'t exist therefore couldn\'t assign shift!')
+                    else: response['message'].append(f'shift{shiftid} doesn\'t exist therefore couldn\'t assign to given users!')
+                else: response['message'].append('shift id is blank!')
+            else: response['message'].append('userid will be placed in list!')
+        else: response['message'].append('user list is blank!')
+        return response

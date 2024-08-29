@@ -199,6 +199,31 @@ class Generichelps(Minihelps):
         else: response['backend_message'].append('Generalsettings Model is missing!')
         return response
     
+
+    def assignBulkUserToBulkGroup(self, classOBJpackage, grouplist, userlist): # New
+        response = {'flag': False, 'message': [], 'backend_message': []}
+
+        if 'User' in classOBJpackage:
+            if 'Group' in classOBJpackage:
+                if 'Userdevicegroup' in classOBJpackage:
+                    if 'Devicegroup' in classOBJpackage:
+
+                        if grouplist:
+                            if isinstance(grouplist, list):
+                                for groupid in grouplist:
+                                    assign_leavepolicy_response = self.assignGroupToBulkUser(classOBJpackage, userlist, groupid)
+                                    if assign_leavepolicy_response['flag']: response['flag'] = True
+                                    response['message'].extend(assign_leavepolicy_response['message'])
+                            else: response['message'].append('leavepolicy type should be list!')
+                        else: response['message'].append('group should not be empty!')
+
+                    else: response['backend_message'].append('Devicegroup Model is missing!')
+                else: response['backend_message'].append('Userdevicegroup Model is missing!')
+            else: response['backend_message'].append('Group Model is missing!')
+        else: response['backend_message'].append('User Model is missing!')
+        return response
+
+    
     def addGenarelSettings(self, classOBJ, Serializer, requestdata=None):
         response = {'flag': False, 'data': None, 'message': [], 'backend_message': []}
         

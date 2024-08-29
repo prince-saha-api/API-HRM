@@ -1,5 +1,8 @@
 from rest_framework import status
 from helps.common.nano import Nanohelps
+from datetime import datetime, timedelta
+from helps.device.a_device import A_device as DEVICE
+import os
 
 class Microhelps(Nanohelps):
 
@@ -259,3 +262,146 @@ class Microhelps(Nanohelps):
          else: response['message'].append('image should be jpg format!')
       else: response['message'].append('no image provided!')
       return response
+    
+    def getInfoOfUserToRemoveFromDevice(self, Devicegroup, Userdevicegroup, devicegroupid): # New
+        remove_info_from_device = []
+        devicegroup = Devicegroup.objects.filter(id=devicegroupid)
+        if devicegroup.exists():
+            
+            deviceid = devicegroup.first().device.id
+            ip = devicegroup.first().device.deviceip
+            uname = devicegroup.first().device.username
+            pword = devicegroup.first().device.password
+            device_name = devicegroup.first().device.title
+            info_for_device = {'ip': ip, 'uname': uname, 'pword': pword, 'device_name': device_name}
+            userdevicegroups = Userdevicegroup.objects.filter(group=devicegroup.first().group.id)
+            for userdevicegroup in userdevicegroups:
+                id_user = userdevicegroup.user.id
+                userid = userdevicegroup.user.official_id
+                assgned_user_devicegroup = Userdevicegroup.objects.filter(user=id_user).exclude(id=userdevicegroup.id)
+                groupids = [each.group.id for each in assgned_user_devicegroup]
+                assigned_devices = [each.device.id for each in Devicegroup.objects.filter(group__in=groupids)]
+                
+                if deviceid not in assigned_devices:
+                    full_name = userdevicegroup.user.get_full_name()
+                    group_name = userdevicegroup.group.title
+                    info_for_device.update({'userid': userid, 'full_name': full_name, 'group_name': group_name})
+                    remove_info_from_device.append(info_for_device)
+        return remove_info_from_device
+    
+    # def addUserToDevice(self, user, device): # New
+    #     response = {'flag': False, 'message': []}
+
+    #     ip = device.deviceip
+    #     uname = device.username
+    #     pword = device.password
+
+    #     userid = user.first().official_id
+    #     name = user.first().get_full_name()
+    #     cardno = user.first().uniqueid
+    #     reg_date = user.first().joining_date
+
+    #     if cardno == None:
+    #         uniqueid_flag = False
+    #         while not uniqueid_flag:
+    #             try:
+    #                 cardno = self.generateUniqueCode()
+    #                 user.update(uniqueid=cardno)
+    #                 uniqueid_flag = True
+    #             except: pass
+        
+    #     if userid: response['message'].append('official_id is missing, this user can\'t register to device without official_id!')
+    #     if reg_date: response['message'].append('joining_date is missing, this user can\'t register to device without joining_date!')
+    #     if name: response['message'].append('either first_name or last_name is required!')
+        
+    #     if not response['message']:
+    #         password = userid
+    #         valid_date = reg_date + timedelta(days=3650)
+    #         reg_date = f'{reg_date}'.replace('-', '')
+    #         valid_date = f'{valid_date}'.replace('-', '')
+
+    #         if user.first().photo:
+    #             if user.first().photo.path:
+    #                 if os.path.exists(user.first().photo.path):
+    #                     image_paths = [user.first().photo.path]
+    #                     existance_response = DEVICE().existanceofuser(ip, userid, uname, pword)
+    #                     if existance_response['flag']:
+    #                         DEVICE().deleteusrallimg(ip, userid, uname, pword)
+    #                         if DEVICE().addphototouser(ip, name, userid, image_paths, uname, pword):
+    #                             response['message'].append(f'successfully {name} added to the device({ip})')
+    #                         else: response['message'].append(f'created user({name}) instance at device({ip}) but couldn\'t add image!')
+    #                         response['flag'] = True
+    #                     else:
+    #                         user_train_and_add_image = DEVICE().createUserAndTrainImage(ip, name, cardno, userid, image_paths, password, reg_date,  valid_date, uname, pword)
+    #                         if user_train_and_add_image['flag']:
+    #                             response['message'].append(f'successfully {name} added to the device({ip}).')
+    #                             response['flag'] = True
+    #                         else: response['message'].extend(user_train_and_add_image['message'])
+    #                 else:
+    #                     existance_response = DEVICE().existanceofuser(ip, userid, uname, pword)
+    #                     if existance_response['flag']:
+    #                         DEVICE().deleteusrallimg(ip, userid, uname, pword)
+    #                         response['message'].append(f'already {name} exist in this device({ip}).')
+    #                         response['flag'] = True
+    #                     else:
+    #                         withoutimg_response = DEVICE().insertusrwithoutimg(ip, name, cardno, userid, password, reg_date,  valid_date, uname, pword)
+    #                         if withoutimg_response['flag']:
+    #                             response['message'].append(f'successfully {name} added to the device({ip}), without image(No image in database).')
+    #                             response['flag'] = True
+    #                         else: response['message'].extend(withoutimg_response['message'])
+    #             else:
+    #                 existance_response = DEVICE().existanceofuser(ip, userid, uname, pword)
+    #                 if existance_response['flag']:
+    #                     DEVICE().deleteusrallimg(ip, userid, uname, pword)
+    #                     response['message'].append(f'already {name} exist in this device({ip}).')
+    #                     response['flag'] = True
+    #                 else:
+    #                     withoutimg_response = DEVICE().insertusrwithoutimg(ip, name, cardno, userid, password, reg_date,  valid_date, uname, pword)
+    #                     if withoutimg_response['flag']:
+    #                         response['message'].append(f'successfully {name} added to the device({ip}), without image(No image in database).')
+    #                         response['flag'] = True
+    #                     else: response['message'].extend(withoutimg_response['message'])
+    #         else:
+    #             existance_response = DEVICE().existanceofuser(ip, userid, uname, pword)
+    #             if existance_response['flag']:
+    #                 DEVICE().deleteusrallimg(ip, userid, uname, pword)
+    #                 response['message'].append(f'already {name} exist in this device({ip}).')
+    #                 response['flag'] = True
+    #             else:
+    #                 withoutimg_response = DEVICE().insertusrwithoutimg(ip, name, cardno, userid, password, reg_date,  valid_date, uname, pword)
+    #                 if withoutimg_response['flag']:
+    #                     response['message'].append(f'successfully {name} added to the device({ip}), without image(No image in database).')
+    #                     response['flag'] = True
+    #                 else: response['message'].extend(withoutimg_response['message'])
+    #     return response
+    
+    def registerUserToDevice(self, user_info): # New
+        response = {'flag': False, 'message': []}
+        for info in user_info:
+            if 'image_paths' in info:
+                existance_response = DEVICE().existanceofuser(info['ip'], info['userid'], info['uname'], info['pword'])
+                if existance_response['flag']:
+                    DEVICE().deleteusrallimg(info['ip'], info['userid'], info['uname'], info['pword'])
+                    if DEVICE().addphototouser(info['ip'], info['name'], info['userid'], info['image_paths'], info['uname'], info['pword']):
+                        response['message'].append(f'successfully {info["name"]} added to the device({info["ip"]})')
+                    else: response['message'].append(f'created user({info["name"]}) instance at device({info["ip"]}) but couldn\'t add image!')
+                    response['flag'] = True
+                else:
+                    user_train_and_add_image = DEVICE().createUserAndTrainImage(info['ip'], info['name'], info['cardno'], info['userid'], info['image_paths'], info['password'], info['reg_date'],  info['valid_date'], info['uname'], info['pword'])
+                    if user_train_and_add_image['flag']:
+                        response['message'].append(f'successfully {info["name"]} added to the device({info["ip"]}).')
+                        response['flag'] = True
+                    else: response['message'].extend(user_train_and_add_image['message'])
+            else:
+                existance_response = DEVICE().existanceofuser(info['ip'], info['userid'], info['uname'], info['pword'])
+                if existance_response['flag']:
+                    DEVICE().deleteusrallimg(info['ip'], info['userid'], info['uname'], info['pword'])
+                    response['message'].append(f'already {info["name"]} exist in this device({info["ip"]}).')
+                    response['flag'] = True
+                else:
+                    withoutimg_response = DEVICE().insertusrwithoutimg(info['ip'], info['name'], info['cardno'], info['userid'], info['password'], info['reg_date'],  info['valid_date'], info['uname'], info['pword'])
+                    if withoutimg_response['flag']:
+                        response['message'].append(f'successfully {info["name"]} added to the device({info["ip"]}), without image(No image in database).')
+                        response['flag'] = True
+                    else: response['message'].extend(withoutimg_response['message'])
+        return response

@@ -82,12 +82,17 @@ class D_device:
         return response
     
     #############
+    def deleteusrallimg(self, ip, userid, uname, pword):
+        url = f'http://{ip}/cgi-bin/FaceInfoManager.cgi?action=remove&UserID={userid}'
+        requests.get(url,auth=HTTPDigestAuth(uname, pword))
+    
+    #############
     def insertusrwithoutimg(self, ip, name, cardno, userid, password, reg_date,  valid_date, uname, pword):
         response = {'flag': False, 'message': []}
         url = f'http://{ip}/cgi-bin/recordUpdater.cgi?action=insert&name=AccessControlCard&CardName={name}&CardNo={cardno}&UserID={userid}&CardStatus=0&CardType=0&Password={password}&Doors[{0}]=0&VTOPosition=01018001&ValidDateStart={reg_date}%20093811&ValidDateEnd={valid_date}%20093811'
         STATUSCODE = requests.get(url, auth=HTTPDigestAuth(uname, pword)).status_code
         if STATUSCODE == 200: response['flag'] = True
-        else: response['message'].append(f'couldn\'t create an user to device({ip})!')
+        else: response['message'].append(f'couldn\'t create user({name}) to device({ip})!')
         return response
     
     # def getimagepath(self, img_path):

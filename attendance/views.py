@@ -427,9 +427,9 @@ def rejectremoteattendence(request, remoteattendenceid=None):
 def addattendancefromlogsalldevices(request, minutes=None):
 
     devices = MODELS_DEVI.Device.objects.filter(is_active=True)
-    start , end = ghelp().getStarttimeEndtime(minutes)
+    start, end = ghelp().getStarttimeEndtime(minutes)
 
-    usernames = [cuser.username for cuser in MODELS_USER.User.objects.all()]
+    usernames = [each.username for each in MODELS_USER.User.objects.filter(is_active=True)]
     # usernames = ['rashed', 'shakil', 'tamim_pm', 'NAYEEM']
 
     

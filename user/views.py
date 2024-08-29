@@ -311,11 +311,11 @@ def addshift(request):
         {'field': 'out_time', 'type': 'time'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        classOBJ=MODELS_USER.Shift, 
-        Serializer=PSRLZER_USER.Shiftserializer, 
-        data=request.data, 
-        unique_fields=unique_fields, 
-        extra_fields=extra_fields, 
+        classOBJ=MODELS_USER.Shift,
+        Serializer=PSRLZER_USER.Shiftserializer,
+        data=request.data,
+        unique_fields=unique_fields,
+        extra_fields=extra_fields,
         required_fields=required_fields,
         fields_regex=fields_regex
     )
@@ -361,6 +361,28 @@ def deleteshift(request, shiftid=None):
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def assignshift(request):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
+    userlist = request.data.get('user')
+    classOBJpackage = {'User': MODELS_USER.User, 'Shift': MODELS_USER.Shift}
+    shiftid = request.data.get('shift')
+    response = ghelp().assignShiftToBulkUser(classOBJpackage, userlist, shiftid)
+    
+    if response['flag']:
+        response_successflag = 'success'
+        response_status = status.HTTP_202_ACCEPTED
+    response_message.extend(response['message'])
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1060,30 +1082,30 @@ def addemployee(request):
         if response['flag']:
             userinstance = response['userinstance']
 
-            name = userinstance.get_full_name()
-            cardno = userinstance.uniqueid
-            userid = userinstance.official_id
-            password = ''
+            # name = userinstance.get_full_name()
+            # cardno = userinstance.uniqueid
+            # userid = userinstance.official_id
+            # password = ''
             
-            reg_date = userinstance.joining_date
-            valid_date = reg_date + timedelta(days=3650)
-            reg_date = f'{reg_date}'.replace('-', '')
-            valid_date = f'{valid_date}'.replace('-', '')
+            # reg_date = userinstance.joining_date
+            # valid_date = reg_date + timedelta(days=3650)
+            # reg_date = f'{reg_date}'.replace('-', '')
+            # valid_date = f'{valid_date}'.replace('-', '')
 
-            image_paths = [userinstance.photo.path]
+            # image_paths = [userinstance.photo.path]
 
-            if 'group_of_device' in officialDetails:
-                group_list = officialDetails['group_of_device']
-                if group_list:
-                    devicegroups = MODELS_DEVI.Devicegroup.objects.filter(group__in=group_list)
-                    done_device = []
-                    for devicegroup in devicegroups:
-                        if devicegroup.device.id not in done_device:
-                            ip = devicegroup.device.deviceip
-                            uname = devicegroup.device.username
-                            pword = devicegroup.device.password
-                            DEVICE().createUserAndTrainImage(ip, name, cardno, userid, image_paths, password, reg_date,  valid_date, uname, pword)
-                            done_device.append(devicegroup.device.id)
+            # if 'group_of_device' in officialDetails:
+            #     group_list = officialDetails['group_of_device']
+            #     if group_list:
+            #         devicegroups = MODELS_DEVI.Devicegroup.objects.filter(group__in=group_list)
+            #         done_device = []
+            #         for devicegroup in devicegroups:
+            #             if devicegroup.device.id not in done_device:
+            #                 ip = devicegroup.device.deviceip
+            #                 uname = devicegroup.device.username
+            #                 pword = devicegroup.device.password
+            #                 DEVICE().createUserAndTrainImage(ip, name, cardno, userid, image_paths, password, reg_date,  valid_date, uname, pword)
+            #                 done_device.append(devicegroup.device.id)
                             
             # Add Role-Permissions
             rolepermission_officialDetails = officialDetails.get('role_permission')
@@ -2370,4 +2392,35 @@ def deletenote(request, noteid=None):
         classOBJ=MODELS_USER.Note,
         id=noteid,
         )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def assignusergroup(request):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
+    userlist = request.data.get('user')
+    
+    classOBJpackage = {
+        'Devicegroup': MODELS_DEVI.Devicegroup,
+        'Group': MODELS_DEVI.Group,
+        'Userdevicegroup': MODELS_USER.Userdevicegroup,
+        'User': MODELS_USER.User
+    }
+    grouplist = request.data.get('group')
+    group_response = ghelp().assignBulkUserToBulkGroup(classOBJpackage, grouplist, userlist)
+    
+    if group_response['backend_message']:
+        response_message.append('inform backend, data is missing in backend!')
+    
+    if group_response['flag']:
+        response_message.extend(group_response['message'])
+        response_successflag = 'success'
+        response_status = status.HTTP_202_ACCEPTED
+    else: response_message.extend(group_response['message'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

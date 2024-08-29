@@ -256,7 +256,7 @@ class Picohelps:
                   {'field': 'role_permission', 'type': 'list-int'},
                   {'field': 'official_note', 'type': 'str'},
                   {'field': 'ethnic_group', 'type': 'list-int'},
-                  {'field': 'group_of_device', 'type': 'list-int'},
+                  # {'field': 'group_of_device', 'type': 'list-int'},
                   {'field': 'joining_date', 'type': 'str'},
                   {'field': 'job_status', 'type': 'str'},
                   {'field': 'rfid', 'type': 'str'},
@@ -386,3 +386,46 @@ class Picohelps:
          if photo.path:
                if os.path.exists(photo.path):
                   os.remove(photo.path)
+
+   def getUserInfoToRegisterIntoDevice(self, User, user, device): # New
+      response = {'flag': False, 'data': {}, 'message': []}
+
+      userid = user.official_id
+      if not userid: response['message'].append('official_id is missing, this user can\'t register to device without official_id!')
+      reg_date = user.joining_date
+      if not reg_date: response['message'].append('joining_date is missing, this user can\'t register to device without joining_date!')
+      name = user.get_full_name()
+      if not name: response['message'].append('either first_name or last_name is required!')
+
+      if not response['message']:
+            valid_date = reg_date + timedelta(days=3650)
+            reg_date = f'{reg_date}'.replace('-', '')
+            valid_date = f'{valid_date}'.replace('-', '')
+
+            cardno = user.uniqueid
+            if cardno == None:
+               uniqueid_flag = False
+               while not uniqueid_flag:
+                  try:
+                        cardno = self.generateUniqueCode()
+                        User.objects.filter(id=user.id).update(uniqueid=cardno)
+                        uniqueid_flag = True
+                  except: pass
+
+            response['data'].update({
+               'ip': device.deviceip,
+               'uname': device.username,
+               'pword': device.password,
+               'userid': userid,
+               'name': name,
+               'cardno': cardno,
+               'password': userid,
+               'reg_date': reg_date,
+               'valid_date': valid_date,
+            })
+            if user.photo:
+               if user.photo.path:
+                  if os.path.exists(user.photo.path):
+                        response['data'].update({'image_paths': [user.photo.path]})
+            response['flag'] = True
+      return response

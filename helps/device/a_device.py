@@ -3,10 +3,14 @@ from helps.device.b_device import B_device
 class A_device(B_device):
 
     def createUserAndTrainImage(self, ip, name, cardno, userid, image_paths, password, reg_date,  valid_date, uname, pword):
-        flag = False
-        if self.insertusrwithoutimg(ip, name, cardno, userid, password, reg_date,  valid_date, uname, pword):        
-            if self.addphototouser(ip, name, userid, image_paths, uname, pword): flag = True
-        return flag
+        response = {'flag': False, 'message': []}
+        withoutimg_response = self.insertusrwithoutimg(ip, name, cardno, userid, password, reg_date,  valid_date, uname, pword)
+        if withoutimg_response['flag']:        
+            if not self.addphototouser(ip, name, userid, image_paths, uname, pword):
+                response['message'].append(f'created user({name}) instance at device({ip}) but couldn\'t add image!')
+            response['flag'] = True
+        else: response['message'].extend(withoutimg_response['message'])
+        return response
     
 #     def trainemployeewithimg(self, employee, devices):
 #         response = {'flag': False, 'train': False, 'details': {}}
