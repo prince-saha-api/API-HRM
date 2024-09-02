@@ -12,6 +12,8 @@ class Groupserializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class Devicegroupserializer(serializers.ModelSerializer):
+    device=Deviceserializer(many=False)
+    group=Groupserializer(many=False)
     class Meta:
         model = models.Devicegroup
         fields = '__all__'

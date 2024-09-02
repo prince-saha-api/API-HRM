@@ -20,6 +20,7 @@ urlpatterns = [
     path('add-shift/', views.addshift, name='add-shift'),
     path('update-shift/<int:shiftid>', views.updateshift, name='update-shift'),
     path('delete-shift/<int:shiftid>', views.deleteshift, name='delete-shift'),
+    path('assign-shift/', views.assignshift, name='assign-shift'),
 
     path('get-shiftchangerequest/', views.getshiftchangerequest, name='get-shiftchangerequest'),
     path('add-shiftchangerequest/', views.addshiftchangerequest, name='add-shiftchangerequest'),
@@ -58,7 +59,8 @@ urlpatterns = [
     path('update-official-details/<int:userid>', views.updateofficialdetails, name='update-official-details'),
     path('update-salary-leaves/<int:userid>', views.updatesalaryleaves, name='update-salary-leaves'),
     path('update-emergency-contact/<int:userid>', views.updateemergencycontact, name='update-emergency-contact'),
-    path('update-education-experience/<int:userid>', views.updateeducationexperience, name='update-education-experience'),
+    path('update-education/<int:userid>', views.updateeducation, name='update-education'),
+    path('update-experience/<int:userid>', views.updateexperience, name='update-experience'),
     path('update-documents/<int:userid>', views.updatedocuments, name='update-documents'),
 
     path('get-note/', views.getnote, name='get-note'),
@@ -66,4 +68,5 @@ urlpatterns = [
     path('update-note/<int:noteid>', views.updatenote, name='update-note'),
     path('delete-note/<int:noteid>', views.deletenote, name='delete-note'),
     
+    path('assign-user-group/', views.assignusergroup, name='assign-user-group'),
 ]

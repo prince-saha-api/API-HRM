@@ -16,6 +16,7 @@ admin.site.register([
     models.Employeeacademichistory,
     models.Employeeexperiencehistory,
     models.Ethnicgroup,
+    models.Userdevicegroup,
     models.Shiftchangelog,
     models.Shiftchangerequest,
     models.Note

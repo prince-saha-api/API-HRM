@@ -9,8 +9,8 @@ from company import models as MODELS_COMP
 from department import models as MODELS_DEPA
 from notice.serializer import serializers as SRLZER_NOTI
 from notice.serializer.POST import serializers as PSRLZER_NOTI
-from drf_nested_forms.utils import NestedForm
 from rest_framework.response import Response
+from drf_nested_forms.utils import NestedForm
 from rest_framework import status
 import random
 
@@ -36,6 +36,58 @@ def getnoticeboards(request):
     if page and page_size: noticeboards = noticeboards[(page-1)*page_size:page*page_size]
 
     noticeboardserializers = SRLZER_NOTI.Noticeboardserializer(noticeboards, many=True)
+    for each in noticeboardserializers.data:
+        users_to_preview = {}
+
+        noticeboardcompanys = each['noticeboardcompany_noticeboard']
+        companyid_list = []
+        if noticeboardcompanys:
+            for noticeboardcompany in noticeboardcompanys:
+                companyid_list.append(noticeboardcompany['company']['id'])
+        branchid_list = [each.id for each in MODELS_BRAN.Branch.objects.filter(company__in=companyid_list)]
+        departments = MODELS_DEPA.Department.objects.filter(branch__in=branchid_list).distinct('id')
+        for department in departments:
+            user_list = department.user.all()
+            for user in user_list:
+                if user.id not in users_to_preview:
+                    users_to_preview.update({str(user.id): {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}})
+
+        noticeboardbranchs = each['noticeboardbranch_noticeboard']
+        branchid_list = []
+        if noticeboardbranchs:
+            for noticeboardbranch in noticeboardbranchs:
+                branchid_list.append(noticeboardbranch['branch']['id'])
+        departments = MODELS_DEPA.Department.objects.filter(branch__in=branchid_list).distinct('id')
+        for department in departments:
+            user_list = department.user.all()
+            for user in user_list:
+                if user.id not in users_to_preview:
+                    users_to_preview.update({str(user.id): {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}})
+
+        noticeboarddepartments = each['noticeboarddepartment_noticeboard']
+        departmentid_list = []
+        if noticeboarddepartments:
+            for noticeboarddepartment in noticeboarddepartments:
+                departmentid_list.append(noticeboarddepartment['department']['id'])
+        departments = MODELS_DEPA.Department.objects.filter(id__in=departmentid_list).distinct('id')
+        for department in departments:
+            user_list = department.user.all()
+            for user in user_list:
+                if user.id not in users_to_preview:
+                    users_to_preview.update({str(user.id): {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}})
+
+        noticeboardemployees = each['noticeboardemployee_noticeboard']
+        employeeid_list = []
+        if noticeboardemployees:
+            for noticeboardemployee in noticeboardemployees:
+                employeeid_list.append(noticeboardemployee['user']['id'])
+        user_list = MODELS_USER.User.objects.filter(id__in=employeeid_list).distinct('id')
+        for user in user_list:
+            if user.id not in users_to_preview:
+                users_to_preview.update({str(user.id): {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}})
+
+        each.update({'users_to_preview': [users_to_preview[each] for each in users_to_preview.keys()]})
+
     return Response({'data': {
         'count': total_count,
         'page': page,
@@ -157,48 +209,61 @@ def addnoticeboard(request):
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
 
-    requestdata = request.data.copy()
+    requestdata = dict(request.data)
+    requestdata.update({'abcdef[abcdef]': ['abcdef']})
+    options = {'allow_blank': True, 'allow_empty': False}
+    form = NestedForm(requestdata, **options)
+    form.is_nested(raise_exception=True)
+
+    requestdata = ghelp().prepareData(form.data, 'noticeboard')
+    # {'title': 'Vacation', 'description': 'Vacation description', 'expiry_date': '2024-08-23', 'branch': [1], 'user': [23]}
+    # print(requestdata)
+    # input()
+
     userid = request.user.id
     extra_fields = {}
     if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
-    unique_fields = []
-    required_fields = ['title', 'description', 'publish_date', 'expiry_date']
+    allowed_fields = ['title', 'description', 'attachment', 'expiry_date']
+    required_fields = ['title', 'description', 'expiry_date']
+    fields_regex = [{'field': 'expiry_date', 'type': 'date'}]
     
     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
         classOBJ=MODELS_NOTI.Noticeboard, 
-        Serializer=SRLZER_NOTI.Noticeboardserializer, 
-        data=request.data, 
+        Serializer=PSRLZER_NOTI.Noticeboardserializer, 
+        data=requestdata, 
+        allowed_fields=allowed_fields,
         extra_fields=extra_fields, 
-        unique_fields=unique_fields, 
-        required_fields=required_fields
+        required_fields=required_fields,
+        fields_regex=fields_regex
     )
     response_message = responsemessage
     response_status = responsestatus
-    if responsesuccessflag == 'success':
-        response_data = responsedata.data.copy()
-        noticeid = responsedata.instance.id
-        if 'company' in requestdata:
-            if isinstance(requestdata['company'], list):
-                if requestdata['company']:
-                    for companyid in requestdata['company']:
-                        branchs = MODELS_BRAN.Branch.objects.filter(company=companyid)
-                        if branchs.exists():
-                            for branch in branchs:
-                                departments = MODELS_DEPA.Department.objects.filter(branch=branch.id)
-                                if departments.exists():
-                                    for department in departments:
-                                        users = department.user.all()
-                                        for user in users:
-                                            prepare_data = {'noticeboard': noticeid, 'user': user.id}
-                                            required_fields = ['noticeboard', 'user']
-                                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                                                classOBJ=MODELS_NOTI.Noticeboardemployee, 
-                                                Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
-                                                data=prepare_data, 
-                                                required_fields=required_fields
-                                            )
 
-                        prepare_data=({'noticeboard': noticeid, 'company': companyid})
+    if responsesuccessflag == 'success':
+        response_data = responsedata.data
+        noticeid = response_data['id']
+        if 'company' in requestdata:
+            companys = requestdata['company']
+            if isinstance(companys, list):
+                if companys:
+                    for companyid in companys:
+                        # branchs = MODELS_BRAN.Branch.objects.filter(company=companyid)
+                        # if branchs.exists():
+                        #     for branch in branchs:
+                        #         departments = MODELS_DEPA.Department.objects.filter(branch=branch.id)
+                        #         if departments.exists():
+                        #             for department in departments:
+                        #                 users = department.user.all()
+                        #                 for user in users:
+                        #                     prepare_data = {'noticeboard': noticeid, 'user': user.id}
+                        #                     required_fields = ['noticeboard', 'user']
+                        #                     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        #                         classOBJ=MODELS_NOTI.Noticeboardemployee, 
+                        #                         Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
+                        #                         data=prepare_data, 
+                        #                         required_fields=required_fields
+                        #                     )
+                        prepare_data={'noticeboard': noticeid, 'company': companyid}
                         required_fields = ['noticeboard', 'company']
                         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                             classOBJ=MODELS_NOTI.Noticeboardcompany, 
@@ -206,54 +271,55 @@ def addnoticeboard(request):
                             data=prepare_data, 
                             required_fields=required_fields,
                         )
-                    response_successflag  = responsesuccessflag
+                    response_successflag  = 'success'
 
         if 'branch' in requestdata:
-            if isinstance(requestdata['branch'], list):
-                if requestdata['branch']:
-                    for branchid in requestdata['branch']: 
-                        branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
-                        if branch.exists():
-                            departments = MODELS_DEPA.Department.objects.filter(branch=branch.first().id)
-                            for department in departments:
-                                users = department.user.all()
-                                for user in users:
-                                    prepare_data = {'noticeboard': noticeid, 'user': user.id}
-                                    required_fields = ['noticeboard', 'user']
-                                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                                        classOBJ=MODELS_NOTI.Noticeboardemployee, 
-                                        Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
-                                        data=prepare_data, 
-                                        required_fields=required_fields
-                                    )
-                        prepare_data=({'noticeboard': noticeid, 'branch': branchid})
+            branchs = requestdata['branch']
+            if isinstance(branchs, list):
+                if branchs:
+                    for branchid in branchs: 
+                        # branch = MODELS_BRAN.Branch.objects.filter(id=branchid)
+                        # if branch.exists():
+                        #     departments = MODELS_DEPA.Department.objects.filter(branch=branch.first().id)
+                        #     for department in departments:
+                        #         users = department.user.all()
+                        #         for user in users:
+                        #             prepare_data = {'noticeboard': noticeid, 'user': user.id}
+                        #             required_fields = ['noticeboard', 'user']
+                        #             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        #                 classOBJ=MODELS_NOTI.Noticeboardemployee, 
+                        #                 Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
+                        #                 data=prepare_data, 
+                        #                 required_fields=required_fields
+                        #             )
+                        prepare_data={'noticeboard': noticeid, 'branch': branchid}
                         required_fields = ['noticeboard', 'branch']
                         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                             classOBJ=MODELS_NOTI.Noticeboardbranch, 
                             Serializer=PSRLZER_NOTI.Noticeboardbranchserializer, 
                             data=prepare_data, 
                             required_fields=required_fields,
-
                         )
-                    response_successflag  = responsesuccessflag
+                    response_successflag  = 'success'
 
         if 'department' in requestdata:
-            if isinstance(requestdata['department'], list):
-                if requestdata['department']:
-                    for departmentid in requestdata['department']:
-                        department = MODELS_DEPA.Department.objects.filter(id=departmentid)
-                        if department.exists():
-                            users = department.first().user.all()
-                            for user in users:
-                                prepare_data = {'noticeboard': noticeid, 'user': user.id}
-                                required_fields = ['noticeboard', 'user']
-                                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                                    classOBJ=MODELS_NOTI.Noticeboardemployee, 
-                                    Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
-                                    data=prepare_data, 
-                                    required_fields=required_fields
-                                )
-                        prepare_data=({'noticeboard': noticeid, 'department': departmentid})
+            departments = requestdata['department']
+            if isinstance(departments, list):
+                if departments:
+                    for departmentid in departments:
+                        # department = MODELS_DEPA.Department.objects.filter(id=departmentid)
+                        # if department.exists():
+                        #     users = department.first().user.all()
+                        #     for user in users:
+                        #         prepare_data = {'noticeboard': noticeid, 'user': user.id}
+                        #         required_fields = ['noticeboard', 'user']
+                        #         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        #             classOBJ=MODELS_NOTI.Noticeboardemployee, 
+                        #             Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
+                        #             data=prepare_data, 
+                        #             required_fields=required_fields
+                        #         )
+                        prepare_data={'noticeboard': noticeid, 'department': departmentid}
                         required_fields = ['noticeboard', 'department']
                         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                             classOBJ=MODELS_NOTI.Noticeboarddepartment, 
@@ -262,11 +328,12 @@ def addnoticeboard(request):
                             required_fields=required_fields,
 
                         )
-                    response_successflag  = responsesuccessflag
+                    response_successflag  = 'success'
 
         if 'user' in requestdata:
-            if isinstance(requestdata['user'], list):
-                for userid in requestdata['user']:
+            users = requestdata['user']
+            if isinstance(users, list):
+                for userid in users:
                     
                     prepare_data = {'noticeboard': noticeid, 'user': userid}
                     required_fields = ['noticeboard', 'user']
@@ -276,27 +343,27 @@ def addnoticeboard(request):
                         data=prepare_data, 
                         required_fields=required_fields
                     )
-                response_successflag  = responsesuccessflag
+                response_successflag  = 'success'
         else:
             for company in MODELS_COMP.Company.objects.all():
-                branchs = MODELS_BRAN.Branch.objects.filter(company=company.id)
-                if branchs.exists():
-                    for branch in branchs:
-                        departments = MODELS_DEPA.Department.objects.filter(branch=branch.id)
-                        if departments.exists():
-                            for department in departments:
-                                users = department.user.all()
-                                for user in users:
-                                    prepare_data = {'noticeboard': noticeid, 'user': user.id}
-                                    required_fields = ['noticeboard', 'user']
-                                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                                        classOBJ=MODELS_NOTI.Noticeboardemployee, 
-                                        Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
-                                        data=prepare_data, 
-                                        required_fields=required_fields
-                                    )
+                # branchs = MODELS_BRAN.Branch.objects.filter(company=company.id)
+                # if branchs.exists():
+                #     for branch in branchs:
+                #         departments = MODELS_DEPA.Department.objects.filter(branch=branch.id)
+                #         if departments.exists():
+                #             for department in departments:
+                #                 users = department.user.all()
+                #                 for user in users:
+                #                     prepare_data = {'noticeboard': noticeid, 'user': user.id}
+                #                     required_fields = ['noticeboard', 'user']
+                #                     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                #                         classOBJ=MODELS_NOTI.Noticeboardemployee, 
+                #                         Serializer=PSRLZER_NOTI.Noticeboardemployeeserializer, 
+                #                         data=prepare_data, 
+                #                         required_fields=required_fields
+                #                     )
 
-                prepare_data=({'noticeboard': noticeid, 'company': company.id})
+                prepare_data={'noticeboard': noticeid, 'company': company.id}
                 required_fields = ['noticeboard', 'company']
                 responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                     classOBJ=MODELS_NOTI.Noticeboardcompany, 
@@ -304,7 +371,9 @@ def addnoticeboard(request):
                     data=prepare_data, 
                     required_fields=required_fields,
                 )
-            response_successflag  = responsesuccessflag
+            response_successflag  = 'success'
+    elif responsesuccessflag == 'error':response_message.extend(responsemessage)
+    
     return Response({'status': response_successflag, 'message': response_message, 'data': response_data}, status=response_status)
 
 @api_view(['PUT'])

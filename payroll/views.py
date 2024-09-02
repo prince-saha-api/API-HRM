@@ -82,6 +82,20 @@ def updatepayrollearning(request, payrollearningid=None):
     response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletepayrollearning(request, payrollearningid=None):
+    classOBJpackage_tocheck_assciaativity = [
+        {'model': MODELS_PAYR.Payrollearningassign, 'fields': [{'field': 'payrollearning', 'relation': 'foreignkey', 'records': []}]}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        classOBJ=MODELS_PAYR.Payrollearning,
+        id=payrollearningid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+    )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
@@ -152,6 +166,21 @@ def updatepayrolldeduction(request, payrolldeductionid=None):
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletepayrolldeduction(request, payrolldeductionid=None):
+    classOBJpackage_tocheck_assciaativity = [
+        {'model': MODELS_PAYR.Payrolldeductionassign, 'fields': [{'field': 'payrolldeduction', 'relation': 'foreignkey', 'records': []}]}
+    ]
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        classOBJ=MODELS_PAYR.Payrolldeduction,
+        id=payrolldeductionid,
+        classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
+    )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
@@ -210,4 +239,15 @@ def updatepayrolltax(request, payrolltaxid=None):
         extra_fields=extra_fields
     )
     response_data = response_data.data if response_successflag == 'success' else {}
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def deletepayrolltax(request, payrolltaxid=None):
+    response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
+        classOBJ=MODELS_PAYR.Payrolltax,
+        id=payrolltaxid
+    )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

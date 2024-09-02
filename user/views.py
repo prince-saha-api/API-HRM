@@ -7,8 +7,8 @@ from leave import models as MODELS_LEAV
 from department import models as MODELS_DEPA
 from hrm_settings import models as MODELS_SETT
 from user import models as MODELS_USER
-from company import models as MODELS_COMP
 from branch import models as MODELS_BRAN
+from device import models as MODELS_DEVI
 from jobrecord import models as MODELS_JOBR
 from jobrecord.serializer.POST import serializers as PSRLZER_JOBR
 from user.serializer.CUSTOM import serializers as CSRLZER_USER
@@ -19,11 +19,13 @@ from hrm_settings.serializer.POST import serializers as PSRLZER_SETT
 from leave.serializer.POST import serializers as PSRLZER_LEAV
 from rest_framework.response import Response
 from rest_framework import status
+from datetime import datetime, timedelta
 from helps.common.generic import Generichelps as ghelp
+from helps.device.a_device import A_device as DEVICE
 from helps.choice import common as CHOICE
-# from django.core.paginator import Paginator
 from drf_nested_forms.utils import NestedForm
-from django.shortcuts import get_list_or_404
+from requests.auth import HTTPDigestAuth
+import requests
 import random
 
 @api_view(['GET'])
@@ -309,11 +311,11 @@ def addshift(request):
         {'field': 'out_time', 'type': 'time'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        classOBJ=MODELS_USER.Shift, 
-        Serializer=PSRLZER_USER.Shiftserializer, 
-        data=request.data, 
-        unique_fields=unique_fields, 
-        extra_fields=extra_fields, 
+        classOBJ=MODELS_USER.Shift,
+        Serializer=PSRLZER_USER.Shiftserializer,
+        data=request.data,
+        unique_fields=unique_fields,
+        extra_fields=extra_fields,
         required_fields=required_fields,
         fields_regex=fields_regex
     )
@@ -359,6 +361,28 @@ def deleteshift(request, shiftid=None):
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def assignshift(request):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
+    userlist = request.data.get('user')
+    classOBJpackage = {'User': MODELS_USER.User, 'Shift': MODELS_USER.Shift}
+    shiftid = request.data.get('shift')
+    response = ghelp().assignShiftToBulkUser(classOBJpackage, userlist, shiftid)
+    
+    if response['flag']:
+        response_successflag = 'success'
+        response_status = status.HTTP_202_ACCEPTED
+    response_message.extend(response['message'])
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -938,7 +962,6 @@ def getemployee(request):
         users = users[(page-1)*page_size:page*page_size]
 
     userserializers = SRLZER_USER.Userserializer(users, many=True)
-    # print(userserializers)
     chars = [['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']]
     for userserializer in userserializers.data:
         if userserializer['hr_password']:
@@ -988,6 +1011,7 @@ def addemployee(request):
     ghelp().preparesalaryAndLeaves(salaryAndLeaves)
 
     # uploadDocuments = form.data.get('uploadDocuments')
+
     
     fields_tobe_checked = [
         {
@@ -1056,8 +1080,33 @@ def addemployee(request):
         response_message.extend(response['message'])
         
         if response['flag']:
-            userinstance = response['userinstance'] 
+            userinstance = response['userinstance']
 
+            # name = userinstance.get_full_name()
+            # cardno = userinstance.uniqueid
+            # userid = userinstance.official_id
+            # password = ''
+            
+            # reg_date = userinstance.joining_date
+            # valid_date = reg_date + timedelta(days=3650)
+            # reg_date = f'{reg_date}'.replace('-', '')
+            # valid_date = f'{valid_date}'.replace('-', '')
+
+            # image_paths = [userinstance.photo.path]
+
+            # if 'group_of_device' in officialDetails:
+            #     group_list = officialDetails['group_of_device']
+            #     if group_list:
+            #         devicegroups = MODELS_DEVI.Devicegroup.objects.filter(group__in=group_list)
+            #         done_device = []
+            #         for devicegroup in devicegroups:
+            #             if devicegroup.device.id not in done_device:
+            #                 ip = devicegroup.device.deviceip
+            #                 uname = devicegroup.device.username
+            #                 pword = devicegroup.device.password
+            #                 DEVICE().createUserAndTrainImage(ip, name, cardno, userid, image_paths, password, reg_date,  valid_date, uname, pword)
+            #                 done_device.append(devicegroup.device.id)
+                            
             # Add Role-Permissions
             rolepermission_officialDetails = officialDetails.get('role_permission')
             if isinstance(rolepermission_officialDetails, list):
@@ -1065,6 +1114,7 @@ def addemployee(request):
                     for rolepermissionid in rolepermission_officialDetails:
                         rolepermission = ghelp().getobject(MODELS_USER.Rolepermission, {'id': rolepermissionid})
                         if rolepermission: userinstance.role_permission.add(rolepermission)
+                        else: response_message.append(f'rolepermission{rolepermissionid} doesn\'t exist!')
 
 
             # ইউজার ক্রিয়েটের পরে।
@@ -1073,13 +1123,16 @@ def addemployee(request):
                 if ethnicgroup_officialDetails:
                     for ethnicgroupid in ethnicgroup_officialDetails:
                         ethnicgroup = ghelp().getobject(MODELS_USER.Ethnicgroup, {'id': ethnicgroupid})
-                        if ethnicgroup:
-                            if ethnicgroup.name != 'all': ethnicgroup.user.add(userinstance)
+                        if ethnicgroup: ethnicgroup.user.add(userinstance)
+                        else: response_message.append(f'ethnic_group{ethnicgroupid} doesn\'t exist!')
             
             if salaryAndLeaves:
                 userlist=[userinstance.id]
                 manipulate_info = {'created_by': request.user.id, 'updated_by': request.user.id}
                 leavepolicy_response = ghelp().assignBulkUserToBulkLeavepolicy(classOBJpackage, salaryAndLeaves.get('leavepolicy'), userlist, manipulate_info)
+                if leavepolicy_response['backend_message']:
+                    response_message.append('inform backend, data is missing in backend!')
+                response_message.extend(leavepolicy_response['message'])
             
             if officialDetails:
                 if salaryAndLeaves:
@@ -1094,31 +1147,67 @@ def addemployee(request):
                         'employee_type': officialDetails['employee_type'],
                         'status_adjustment': [CHOICE.STATUS_ADJUSTMENT[0][1]],
                         'job_status': CHOICE.JOB_STATUS[0][1],
-                        # 'appraisal_by': created_by.id
                         'appraisal_by': request.user.id
                     }
                     required_fields = ['user', 'effective_from', 'salary', 'company', 'branch', 'department', 'designation', 'employee_type']
-                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                    _, responsemessage, responsesuccessflag, _ = ghelp().addtocolass(
                         classOBJ=MODELS_JOBR.Employeejobhistory,
                         Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
                         data=employeejobhistorydata,
                         required_fields=required_fields
                     )
+                    if responsesuccessflag == 'error':
+                        response_message.extend([f'{each}, therefore couldn\'t add Employeejobhistory!' for each in responsemessage])
 
-
-            emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, PSRLZER_USER.Employeecontactserializer, MODELS_CONT.Address, PSRLZER_CONT.Addressserializer, userinstance, emergencyContact)
-            academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, PSRLZER_USER.Employeeacademichistoryserializer, userinstance, academicRecord)
-            previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, PSRLZER_USER.Employeeexperiencehistoryserializer, userinstance, previousExperience)
-
-            faileddetails = []
-            faileddetails.extend(emergencycontact['failed'])
-            faileddetails.extend(academicrecord['failed'])
-            faileddetails.extend(previousexperience['failed'])
-
-            # message
-            emergencycontact['message']
-            academicrecord['message']
-            previousexperience['message']
+            user_records = {
+                'emergencycontact_details': {
+                    'outer_details': {
+                        'userid': userinstance.id,
+                        'classOBJ': MODELS_USER.Employeecontact,
+                        'Serializer': PSRLZER_USER.Employeecontactserializer,
+                        'data': emergencyContact,
+                        'allowed_fields': ['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation'],
+                        'required_fields': ['name', 'user'],
+                        'fields_regex': [
+                            {'field': 'phone_no', 'type': 'phonenumber'},
+                            {'field': 'email', 'type': 'email'}
+                        ]
+                    },
+                    'inner_details': {
+                        'classOBJ': MODELS_CONT.Address,
+                        'Serializer': PSRLZER_CONT.Addressserializer,
+                        'key': 'address',
+                        'allowed_fields': ['alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude'],
+                        'required_fields': ['address', 'city', 'state_division', 'country']
+                    }
+                },
+                'academicrecord_details': {
+                    'outer_details': {
+                        'userid': userinstance.id,
+                        'classOBJ': MODELS_USER.Employeeacademichistory,
+                        'Serializer': PSRLZER_USER.Employeeacademichistoryserializer,
+                        'data': academicRecord,
+                        'allowed_fields': ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing'],
+                        'required_fields': ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
+                    }
+                },
+                'previousexperience_details': {
+                    'outer_details': {
+                        'userid': userinstance.id,
+                        'classOBJ': MODELS_USER.Employeeexperiencehistory,
+                        'Serializer': PSRLZER_USER.Employeeexperiencehistoryserializer,
+                        'data': previousExperience,
+                        'allowed_fields': ['user', 'company_name', 'designation', 'address', 'from_date', 'to_date'],
+                        'required_fields': ['user', 'company_name', 'designation', 'address', 'from_date', 'to_date'],
+                        'fields_regex': [{'field': 'from_date', 'type': 'date'}, {'field': 'to_date', 'type': 'date'}]
+                    }
+                }
+            }
+            for key in  user_records.keys():
+                user_record_response = ghelp().addUserRecord(information=user_records[key])
+                if user_record_response['backend_message']:
+                    response_message.append('inform backend, data is missing in backend!')
+                response_message.extend(user_record_response['message'])
 
             # upload documents
             for index in documentsindex:
@@ -1130,15 +1219,11 @@ def addemployee(request):
                     employeedocsinstance.title=title
                     employeedocsinstance.attachment=attachment
                     employeedocsinstance.save()
-
-
-
+                else: response_message.append('either title or document or both are missing!')
+            
             department_officialDetails = ghelp().getobject(MODELS_DEPA.Department, {'id': officialDetails.get('department')})
             if department_officialDetails: department_officialDetails.user.add(userinstance)
-            # company_officialDetails = ghelp().getobject(MODELS_COM.Company, {'id': officialDetails.get('company')})
-            # branch_officialDetails = ghelp().getobject(MODELS_BR.Branch, {'id': officialDetails.get('branch')})
-            # department_officialDetails = ghelp().getobject('''MODELS_BR.Branch''', {'id': officialDetails.get('department')})
-            
+
             response_data = SRLZER_USER.Userserializer(userinstance, many=False).data
             response_successflag = 'success'
             response_status = status.HTTP_201_CREATED
@@ -1201,11 +1286,11 @@ def updateprofilepic(request, userid=None):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updateprofile(request, userid=None):
-    requesteddata = request.data.copy()
+    requestdata = request.data.copy()
 
     department = None
-    if 'department' in requesteddata:
-        department = requesteddata['department']
+    if 'department' in requestdata:
+        department = requestdata['department']
         if isinstance(department, str):
             if department.isnumeric(): department = int(department)
     if isinstance(department, int):
@@ -1214,7 +1299,7 @@ def updateprofile(request, userid=None):
         department = MODELS_DEPA.Department.objects.filter(id=department)
         if department.exists(): department.first().user.add(user)
 
-        del requesteddata['department']
+        del requestdata['department']
     allowed_fields = ['first_name', 'last_name', 'personal_phone', 'personal_email', 'dob', 'gender', 'blood_group', 'marital_status', 'spouse_name', 'supervisor']
     unique_fields = ['personal_phone', 'personal_email']
     choice_fields = [
@@ -1231,7 +1316,7 @@ def updateprofile(request, userid=None):
         classOBJ=MODELS_USER.User,
         Serializer=PSRLZER_USER.Userserializer,
         id=userid,
-        data=requesteddata,
+        data=requestdata,
         allowed_fields=allowed_fields,
         unique_fields=unique_fields,
         choice_fields=choice_fields,
@@ -1266,133 +1351,352 @@ def updatepersonaldetails(request, userid=None):
     present_address_flag = False
     user = MODELS_USER.User.objects.filter(id=userid)
     if user.exists():
-        requesteddata = request.data.copy()
-        
-        present_address_flag = False
-        if 'present_address' in requesteddata:
-            
-            if user.first().present_address:
-                
-                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                    classOBJ=MODELS_CONT.Address,
-                    Serializer=PSRLZER_CONT.Addressserializer,
-                    id=user.first().present_address.id,
-                    data=requesteddata['present_address']
-                )
-                if responsesuccessflag == 'success':
-                    del requesteddata['present_address']
-                    present_address_flag = True
-                elif responsesuccessflag == 'error': response_message.extend(responsemessage)
-            else:
-                if 'id' in requesteddata['present_address']: del requesteddata['present_address']['id']
-                required_fields = ['address', 'city', 'state_division', 'country']
-                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                    classOBJ=MODELS_CONT.Address,
-                    Serializer=PSRLZER_CONT.Addressserializer,
-                    data=requesteddata['present_address'],
-                    required_fields=required_fields
-                )
-                if responsesuccessflag == 'success': requesteddata.update({'present_address': responsedata.data['id']})
-                elif responsesuccessflag == 'error':
-                    response_message.extend(responsemessage)
-                    del requesteddata['present_address']
-        
-        # if 'present_address' in requesteddata:
-        same_as_present_address = False
-        if 'permanentAddressSameAsPresent' in requesteddata:
-            if requesteddata['permanentAddressSameAsPresent']: same_as_present_address = True
+        requestdata = request.data.copy()
 
+        if_any_opperation_occurred = False
+        same_as_present_address = requestdata.get('permanentAddressSameAsPresent', False)
         if same_as_present_address:
-            if user.first().permanent_address:
-                if user.first().present_address:
+            # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস সেইম করে দিতে হবে।
+            if user.first().present_address:
+                # ইউজারের প্রেজেন্ট এড্রেস আগে থেকেই আছে।
+                if user.first().permanent_address:
+                    # ইউজারের পার্মানেন্ট এড্রেস আগে থেকেই আছে।
                     if user.first().present_address.id == user.first().permanent_address.id:
-                        pass
-                    else:
-                        previous_permanent_address = user.first().permanent_address
-                        user.update(permanent_address=user.first().present_address)
-                        if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
-                        previous_permanent_address.delete()
-                # if user.first().present_address.id != user.first().permanent_address.id:
-                #     previous_permanent_address = user.first().permanent_address
-                #     user.update(permanent_address=user.first().present_address)
-                #     if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
-                #     previous_permanent_address.delete()
-            else:
-                user.update(permanent_address=user.first().present_address)
-                if 'permanent_address' in requesteddata: del requesteddata['permanent_address']
-        else:
-            if 'permanent_address' in requesteddata:
-                if user.first().present_address:
-                    if user.first().permanent_address:
-                        if user.first().present_address.id != user.first().permanent_address.id:
+                        # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস সেইম।
+                        # শুধুমাত্র প্রেজেন্ট এড্রেসকে আপডেট করে দিলেই হবে।
+                        present_address = requestdata.get('present_address', {})
+                        if present_address:
+                            # ডেটা নিয়ে প্রেজেন্ট এড্রেসকে আপডেট করে দিলেই হবে।
+                            # রিকোয়েস্টেড অব্জেক্ট থেকে প্রেজেন্ট এড্রেস কী ডিলিট করে দিতে হবে।
+                            # রিকোয়েস্টেড অব্জেক্ট থেকে পার্মানেন্ট এড্রেস কী ডিলিট করে দিতে হবে।
+                            allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
                             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                                 classOBJ=MODELS_CONT.Address,
                                 Serializer=PSRLZER_CONT.Addressserializer,
-                                id=user.first().permanent_address.id,
-                                data=requesteddata['permanent_address']
+                                id=user.first().present_address.id,
+                                data=present_address,
+                                allowed_fields=allowed_fields
                             )
-                            if responsesuccessflag == 'success': del requesteddata['permanent_address']
-                            elif responsesuccessflag == 'error': response_message.extend(responsemessage)
+                            if 'present_address' in requestdata: del requestdata['present_address']
+                            if 'permanent_address' in requestdata: del requestdata['permanent_address']
                         else:
-                            if 'id' in requesteddata['permanent_address']: del requesteddata['permanent_address']['id']
+                            # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেসকে নাল করে দিতে হবে।
+                            requestdata.update({'present_address': None, 'permanent_address': None})
+                        if_any_opperation_occurred = True
+                    else:
+                        # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস সেইম না।
+                        # পার্মানেন্ট এড্রেস ডিলিট করতে হবে।
+                        # প্রেজেন্ট এড্রেসকে আপডেট করে সেই আইডি পার্মানেন্ট এড্রেসে এসাইন করতে হবে।।
+                        
+                        user.first().permanent_address.delete()
+                        present_address = requestdata.get('present_address', {})
+                        if present_address:
+                            # প্রেজেন্ট এড্রেসকে আপডেট করে দিতে হবে।
+                            # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেসকে সেইম করে দিতে হবে।
+                            # রিকোয়েস্টেড অব্জেক্ট থেকে প্রেজেন্ট এড্রেস কী ডিলিট করে দিতে হবে।
+                            # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে প্রেজেন্ট এড্রেসের আইডি দিতে হবে।
+                            allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                                classOBJ=MODELS_CONT.Address,
+                                Serializer=PSRLZER_CONT.Addressserializer,
+                                id=user.first().present_address.id,
+                                data=present_address,
+                                allowed_fields=allowed_fields
+                            )
+                            if 'present_address' in requestdata: del requestdata['present_address']
+                            requestdata.update({'permanent_address': user.first().present_address.id})
+                        else:
+                            # প্রেজেন্ট এড্রেস ডিলিট করতে হবে।
+                            # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেসকে নাল করে দিতে হবে।
+                            # রিকোয়েস্টেড অব্জেক্টে প্রেজেন্ট এড্রেসের ফিল্ডে নান দিতে হবে।
+                            # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে নান দিতে হবে।
+                            user.first().present_address.delete()
+                            requestdata.update({'present_address': None, 'permanent_address': None})
+                        if_any_opperation_occurred = True
+                else:
+                    # ইউজারের পার্মানেন্ট এড্রেস নাই।
+                    present_address = requestdata.get('present_address', {})
+                    if present_address:
+                        # প্রেজেন্ট এড্রেসকে আপডেট করে দিতে হবে।
+                        # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস দুটোকেই আপডেট করে দিতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্ট থেকে প্রেজেন্ট এড্রেস কী ডিলিট করে দিতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে প্রেজেন্ট এড্রেসের আইডি দিতে হবে।
+
+                        allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                            classOBJ=MODELS_CONT.Address,
+                            Serializer=PSRLZER_CONT.Addressserializer,
+                            id=user.first().present_address.id,
+                            data=present_address,
+                            allowed_fields=allowed_fields
+                        )
+                        if 'present_address' in requestdata: del requestdata['present_address']
+                        requestdata.update({'permanent_address': user.first().present_address.id}) 
+                    else:
+                        # প্রেজেন্ট এড্রেসকে ডিলিট হবে।
+                        # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস দুটোকেই নান করতে হবে।
+
+                        # রিকোয়েস্টেড অব্জেক্টে প্রেজেন্ট এড্রেসের ফিল্ডে নান দিতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে নান দিতে হবে।
+                        user.first().present_address.delete()
+                        requestdata.update({'present_address': None, 'permanent_address': None})
+                    if_any_opperation_occurred = True
+            else:
+                # ইউজারের প্রেজেন্ট এড্রেস নাই।
+                # ইউজারের পার্মানেন্ট এড্রেস চেক করতে হবে থাকলে ডিলিট করে দিতে হবে।
+                
+                permanent_address = user.first().permanent_address
+                if permanent_address: permanent_address.delete()
+
+                present_address = requestdata.get('present_address', {})
+                if present_address:
+                    # প্রেজেন্ট এড্রেস ক্রিয়েট করতে হবে।
+                    # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস দুটোকেই সেইম করে দিতে হবে।
+
+                    # রিকোয়েস্টেড অব্জেক্টে প্রেজেন্ট এড্রেসের ফিল্ডে প্রেজেন্ট এড্রেসের আইডি দিতে হবে।
+                    # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে প্রেজেন্ট এড্রেসের আইডি দিতে হবে।
+                    
+                    allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                    required_fields = ['address', 'city', 'state_division', 'country']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_CONT.Address,
+                        Serializer=PSRLZER_CONT.Addressserializer,
+                        data=present_address,
+                        allowed_fields=allowed_fields,
+                        required_fields=required_fields
+                    )
+                    if responsesuccessflag == 'success': requestdata.update({'present_address': responsedata.instance.id, 'permanent_address': responsedata.instance.id})
+                else:
+                    # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস দুটোকেই নান করে দিতে হবে।
+                    # রিকোয়েস্টেড অব্জেক্টে প্রেজেন্ট এড্রেসের ফিল্ডে নান দিতে হবে।
+                    # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে নান দিতে হবে।
+                    requestdata.update({'present_address': None, 'permanent_address': None})
+                if_any_opperation_occurred = True
+        else:
+            # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস সেইম হতে পারবে না।
+            if user.first().present_address:
+                # ইউজারের প্রেজেন্ট এড্রেস আছে।
+                if user.first().permanent_address:
+                    # ইউজারের প্রেজেন্ট এড্রেস আছে।
+                    # ইউজারের পার্মানেন্ট এড্রেস আছে।
+                    if user.first().present_address.id == user.first().permanent_address.id:
+                        # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস সেইম।
+                        # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস সেইম হতে পারবে না.
+                        # প্রেজেন্ট এড্রেসকে আপডেট করতে হবে।
+                        # পার্মানেন্ট এড্রেস ক্রিয়েট করতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্টে থেকে প্রেজেন্ট এড্রেসের ফিল্ড মুছে ফেলতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে পার্মানেন্ট এড্রেসের আইডি দিতে হবে।
+                        present_address = requestdata.get('present_address', {})
+                        if present_address:
+                            # প্রেজেন্ট এড্রেসকে আপডেট করে দিতে হবে।
+                            allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                                classOBJ=MODELS_CONT.Address,
+                                Serializer=PSRLZER_CONT.Addressserializer,
+                                id=user.first().present_address.id,
+                                data=present_address,
+                                allowed_fields=allowed_fields
+                            )
+                            if 'present_address' in requestdata: del requestdata['present_address']
+                        else:
+                            # আগের প্রেজেন্ট এড্রেসকে ডিলিট করতে হবে।
+                            # প্রেজেন্ট এড্রেসকে নাল করে দিতে হবে।
+                            present_address = user.first().present_address
+                            present_address.delete()
+                            requestdata.update({'present_address': None})
+                            
+                        permanent_address = requestdata.get('permanent_address', {})
+                        if permanent_address:
+                            # ডাটা নিয়ে পার্মানেন্ট এড্রেসকে ক্রিয়েট করতে হবে।
+
+                            allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
                             required_fields = ['address', 'city', 'state_division', 'country']
                             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                                 classOBJ=MODELS_CONT.Address,
                                 Serializer=PSRLZER_CONT.Addressserializer,
-                                data=requesteddata['permanent_address'],
+                                data=present_address,
+                                allowed_fields=allowed_fields,
                                 required_fields=required_fields
                             )
-                            if responsesuccessflag == 'success': requesteddata.update({'permanent_address': responsedata.data['id']})
-                            elif responsesuccessflag == 'error':
-                                response_message.extend(responsemessage)
-                                del requesteddata['permanent_address']
+                            if responsesuccessflag == 'success': requestdata.update({'permanent_address': responsedata.instance.id})
+                        else:
+                            # পার্মানেন্ট এড্রেসকে নাল করে দিতে হবে।
+                            requestdata.update({'permanent_address': None})
+                        if_any_opperation_occurred = True
                     else:
-                        if 'id' in requesteddata['permanent_address']: del requesteddata['permanent_address']['id']
+                        # প্রেজেন্ট এড্রেস এবং পার্মানেন্ট এড্রেস সেইম না।
+                        present_address = requestdata.get('present_address', {})
+                        if present_address:
+                            # প্রেজেন্ট এড্রেসকে আপডেট করতে হবে।
+                            # রিকোয়েস্টেড অব্জেক্টে থেকে প্রেজেন্ট এড্রেসের ফিল্ড মুছে ফেলতে হবে।
+                            allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                                classOBJ=MODELS_CONT.Address,
+                                Serializer=PSRLZER_CONT.Addressserializer,
+                                id=user.first().present_address.id,
+                                data=present_address,
+                                allowed_fields=allowed_fields
+                            )
+                            if 'present_address' in requestdata: del requestdata['present_address']
+                        else:
+                            # প্রেজেন্ট এড্রেসকে নাল করে দিতে হবে।
+                            # প্রেজেন্ট এড্রেসকে ডিলিট করতে হবে।
+                            # রিকোয়েস্টেড অব্জেক্টে প্রেজেন্ট এড্রেসের ফিল্ডে নান দিতে হবে।
+                            present_address = user.first().present_address
+                            present_address.delete()
+                            requestdata.update({'present_address': None})
+                            
+                        permanent_address = requestdata.get('permanent_address', {})
+                        if permanent_address:
+                            # পার্মানেন্ট এড্রেসকে আপডেট করতে হবে।
+                            # রিকোয়েস্টেড অব্জেক্টে থেকে পার্মানেন্ট এড্রেসের ফিল্ড মুছে ফেলতে হবে।
+                            allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                                classOBJ=MODELS_CONT.Address,
+                                Serializer=PSRLZER_CONT.Addressserializer,
+                                id=user.first().permanent_address.id,
+                                data=permanent_address,
+                                allowed_fields=allowed_fields
+                            )
+                            if 'permanent_address' in requestdata: del requestdata['permanent_address']
+                        else:
+                            # পার্মানেন্ট এড্রেসকে নাল করে দিতে হবে।
+                            # পার্মানেন্ট এড্রেসকে ডিলিট করতে হবে।
+                            # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে নান দিতে হবে।
+                            permanent_address = user.first().permanent_address
+                            permanent_address.delete()
+                            requestdata.update({'permanent_address': None})
+                        if_any_opperation_occurred = True
+                else:
+                    # ইউজারের প্রেজেন্ট এড্রেস আছে।
+                    # ইউজারের পার্মানেন্ট এড্রেস নাই।
+                    present_address = requestdata.get('present_address', {})
+                    if present_address:
+                        # প্রেজেন্ট এড্রেসকে আপডেট করতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্ট থেকে প্রেজেন্ট এড্রেসের ফিল্ড মুছে ফেলতে হবে।
+                        allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                            classOBJ=MODELS_CONT.Address,
+                            Serializer=PSRLZER_CONT.Addressserializer,
+                            id=user.first().present_address.id,
+                            data=present_address,
+                            allowed_fields=allowed_fields
+                        )
+                        if 'present_address' in requestdata: del requestdata['present_address']
+                    else:
+                        # প্রেজেন্ট এড্রেসকে নাল করতে হবে।
+                        # প্রেজেন্ট এড্রেসকে ডিলিট করতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্টে প্রেজেন্ট এড্রেসের ফিল্ডে নান দিতে হবে।
+                        present_address = user.first().present_address
+                        present_address.delete()
+                        requestdata.update({'present_address': None})
+                    
+                    permanent_address = requestdata.get('permanent_address', {})
+                    if permanent_address:
+                        # পার্মানেন্ট এড্রেসকে ক্রিয়েট করতে হবে।
+                        allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
                         required_fields = ['address', 'city', 'state_division', 'country']
                         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                             classOBJ=MODELS_CONT.Address,
                             Serializer=PSRLZER_CONT.Addressserializer,
-                            data=requesteddata['permanent_address'],
+                            data=permanent_address,
+                            allowed_fields=allowed_fields,
                             required_fields=required_fields
                         )
-                        if responsesuccessflag == 'success': requesteddata.update({'permanent_address': responsedata.data['id']})
-                        elif responsesuccessflag == 'error':
-                            response_message.extend(responsemessage)
-                            del requesteddata['permanent_address']
-                else:
-                    if user.first().permanent_address:
+                        if responsesuccessflag == 'success': requestdata.update({'permanent_address': responsedata.instance.id})
+                    if_any_opperation_occurred = True
+            else:
+                # ইউজারের প্রেজেন্ট এড্রেস নাই।
+                if user.first().permanent_address:
+                    # ইউজারের প্রেজেন্ট এড্রেস নাই।
+                    # ইউজারের পার্মানেন্ট এড্রেস আছে।
+                    present_address = requestdata.get('present_address', {})
+                    if present_address:
+                        # প্রেজেন্ট এড্রেসকে ক্রিয়েট করতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্টে প্রেজেন্ট এড্রেসের ফিল্ডে প্রেজেন্ট এড্রেসের আইডি দিতে হবে।
+
+                        allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                        required_fields = ['address', 'city', 'state_division', 'country']
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                            classOBJ=MODELS_CONT.Address,
+                            Serializer=PSRLZER_CONT.Addressserializer,
+                            data=present_address,
+                            allowed_fields=allowed_fields,
+                            required_fields=required_fields
+                        )
+                        if responsesuccessflag == 'success': requestdata.update({'present_address': responsedata.instance.id})
+                        
+                    permanent_address = requestdata.get('permanent_address', {})
+                    if permanent_address:
+                        # পার্মানেন্ট এড্রেসকে আপডেট করতে হবে।
+                        allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
                         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                             classOBJ=MODELS_CONT.Address,
                             Serializer=PSRLZER_CONT.Addressserializer,
                             id=user.first().permanent_address.id,
-                            data=requesteddata['permanent_address']
+                            data=permanent_address,
+                            allowed_fields=allowed_fields
                         )
-                        if responsesuccessflag == 'success': del requesteddata['permanent_address']
-                        elif responsesuccessflag == 'error': response_message.extend(responsemessage)
+                        if 'permanent_address' in requestdata: del requestdata['permanent_address']
                     else:
-                        if 'id' in requesteddata['permanent_address']: del requesteddata['permanent_address']['id']
+                        # পার্মানেন্ট এড্রেসকে নাল করতে হবে।
+                        # পার্মানেন্ট এড্রেসকে ডিলিট করতে হবে।
+                        permanent_address = user.first().permanent_address
+                        permanent_address.delete()
+                        requestdata.update({'permanent_address': None})
+                    if_any_opperation_occurred = True
+                else:
+                    # ইউজারের প্রেজেন্ট এড্রেস নাই।
+                    # ইউজারের পার্মানেন্ট এড্রেস নাই।
+                    # প্রেজেন্ট এড্রেস ক্রিয়েট করতে হবে।
+                    # পার্মানেন্ট এড্রেস ক্রিয়েট করতে হবে।
+                    # রিকোয়েস্টেড অব্জেক্টে প্রেজেন্ট এড্রেসের ফিল্ডে প্রেজেন্ট এড্রেসের আইডি দিতে হবে।
+                    # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে পার্মানেন্ট এড্রেসের আইডি দিতে হবে।
+                    
+                    present_address = requestdata.get('present_address', {})
+                    if present_address:
+                        # প্রেজেন্ট এড্রেসকে ক্রিয়েট করতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্টে প্রেজেন্ট এড্রেসের ফিল্ডে প্রেজেন্ট এড্রেসের আইডি দিতে হবে।
+
+                        allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
                         required_fields = ['address', 'city', 'state_division', 'country']
                         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                             classOBJ=MODELS_CONT.Address,
                             Serializer=PSRLZER_CONT.Addressserializer,
-                            data=requesteddata['permanent_address'],
+                            data=present_address,
+                            allowed_fields=allowed_fields,
                             required_fields=required_fields
                         )
-                        if responsesuccessflag == 'success': requesteddata.update({'permanent_address': responsedata.data['id']})
-                        elif responsesuccessflag == 'error':
-                            response_message.extend(responsemessage)
-                            del requesteddata['permanent_address']
+                        if responsesuccessflag == 'success':
+                            requestdata.update({'present_address': responsedata.instance.id})
+                            if_any_opperation_occurred = True
+                        
+                    permanent_address = requestdata.get('permanent_address', {})
+                    if permanent_address:
+                        # পার্মানেন্ট এড্রেসকে ক্রিয়েট করতে হবে।
+                        # রিকোয়েস্টেড অব্জেক্টে পার্মানেন্ট এড্রেসের ফিল্ডে পার্মানেন্ট এড্রেসের আইডি দিতে হবে।
 
-        # print(requesteddata)
-        # input()
-        if requesteddata:
-            allowed_fields = ['fathers_name', 'mothers_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no', 'permanent_address', 'permanent_address']
+                        allowed_fields=['name', 'alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
+                        required_fields = ['address', 'city', 'state_division', 'country']
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                            classOBJ=MODELS_CONT.Address,
+                            Serializer=PSRLZER_CONT.Addressserializer,
+                            data=permanent_address,
+                            allowed_fields=allowed_fields,
+                            required_fields=required_fields
+                        )
+                        if responsesuccessflag == 'success':
+                            requestdata.update({'permanent_address': responsedata.instance.id})
+                            if_any_opperation_occurred = True
+        
+        if requestdata:
+            allowed_fields = ['fathers_name', 'mothers_name', 'nationality', 'religion', 'nid_passport_no', 'tin_no', 'present_address', 'permanent_address']
             unique_fields = ['nid_passport_no', 'tin_no']
             responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                 classOBJ=MODELS_USER.User,
                 Serializer=PSRLZER_USER.Userserializer,
                 id=userid,
-                data=requesteddata,
+                data=requestdata,
                 allowed_fields=allowed_fields,
                 unique_fields=unique_fields
             )
@@ -1403,7 +1707,7 @@ def updatepersonaldetails(request, userid=None):
             response_successflag = responsesuccessflag
             response_status = responsestatus
         else:
-            if present_address_flag:
+            if if_any_opperation_occurred:
                 response_successflag = 'success'
                 response_status = status.HTTP_200_OK
 
@@ -1544,151 +1848,134 @@ def updatesalaryleaves(request, userid=None):
 
     user = MODELS_USER.User.objects.filter(id=userid)
     if user.exists():
-        requesteddata = request.data.copy()
+        requestdata = request.data.copy()
 
-        gross_salary = None
-        if 'gross_salary' in requesteddata:
-            try:
-                gross_salary = float(requesteddata['gross_salary'])
-                basicSalary = ghelp().getBasicSalary(MODELS_SETT.Generalsettings, gross_salary)
-                if basicSalary['flag']: requesteddata.update({'basic_salary': basicSalary['basic_salary']})
-                else: response_message.extend(basicSalary['message'])
-            except: pass
-        if not response_message:
-            if 'bankaccount' in requesteddata:
-                if user.first().bank_account:
-                    bankaccount = requesteddata['bankaccount']
+        if 'bankaccount' in requestdata:
+            if user.first().bank_account:
+                bankaccount = requestdata['bankaccount']
 
-                    if user.first().bank_account.address:
-                        if 'address' in bankaccount:
-                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                                classOBJ=MODELS_CONT.Address,
-                                Serializer=PSRLZER_CONT.Addressserializer,
-                                id=user.first().bank_account.address.id,
-                                data=bankaccount['address']
-                            )
-                            if responsesuccessflag == 'error':
-                                response_message.extend([f'bank account address\'s {each}' for each in responsemessage])
-                                del bankaccount['address']
-                            elif responsesuccessflag == 'success': del bankaccount['address']
-                    else:
-                        if 'id' in bankaccount['address']: del bankaccount['address']['id']
-                        required_fields = ['address', 'city', 'state_division', 'country']
-                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                if user.first().bank_account.address:
+                    if 'address' in bankaccount:
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                             classOBJ=MODELS_CONT.Address,
                             Serializer=PSRLZER_CONT.Addressserializer,
-                            data=bankaccount['address'],
-                            required_fields=required_fields
+                            id=user.first().bank_account.address.id,
+                            data=bankaccount['address']
                         )
-                        if responsesuccessflag == 'success': bankaccount.update({'address': responsedata.data['id']})
-                        elif responsesuccessflag == 'error':
-                            response_message.extend(responsemessage)
+                        if responsesuccessflag == 'error':
+                            response_message.extend([f'bank account address\'s {each}' for each in responsemessage])
                             del bankaccount['address']
-
-                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                        classOBJ=MODELS_CONT.Bankaccount,
-                        Serializer=PSRLZER_CONT.Bankaccountserializer,
-                        id=user.first().bank_account.id,
-                        data=bankaccount
-                    )
-                    if responsesuccessflag == 'success': bankaccount.update({'bankaccount': responsedata.data['id']})
-                    elif responsesuccessflag == 'error':
-                        del bankaccount['bankaccount']
-                        response_message.extend([f'Bank Account\'s {each}' for each in responsemessage])
+                        elif responsesuccessflag == 'success': del bankaccount['address']
                 else:
-                    classOBJpackage = {'Address': MODELS_CONT.Address, 'Bankaccount': MODELS_CONT.Bankaccount}
-                    serializerOBJpackage = {'Address': PSRLZER_CONT.Addressserializer, 'Bankaccount': PSRLZER_CONT.Bankaccountserializer}
+                    if 'id' in bankaccount['address']: del bankaccount['address']['id']
+                    required_fields = ['address', 'city', 'state_division', 'country']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_CONT.Address,
+                        Serializer=PSRLZER_CONT.Addressserializer,
+                        data=bankaccount['address'],
+                        required_fields=required_fields
+                    )
+                    if responsesuccessflag == 'success': bankaccount.update({'address': responsedata.data['id']})
+                    elif responsesuccessflag == 'error':
+                        response_message.extend(responsemessage)
+                        del bankaccount['address']
 
-                    addbankaccountdetails=ghelp().addbankaccount(classOBJpackage, serializerOBJpackage, requesteddata['bankaccount'])
-                    if addbankaccountdetails['flag']: requesteddata.update({'bankaccount': addbankaccountdetails['instance'].id})
-                    else:
-                        response_message.extend(addbankaccountdetails['message'])
-                        del requesteddata['bankaccount']
-            # leavepolicy
-            if 'leavepolicy' in requesteddata:
-                new_leavepolicyids = requesteddata['leavepolicy']
-                if isinstance(new_leavepolicyids, list):
-                    fiscalyear_response = ghelp().findFiscalyear(MODELS_SETT.Generalsettings)
-                    if fiscalyear_response['fiscalyear']:
-                        add_leavepolicys = []
-                        remove_leavepolicys = []
+                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                    classOBJ=MODELS_CONT.Bankaccount,
+                    Serializer=PSRLZER_CONT.Bankaccountserializer,
+                    id=user.first().bank_account.id,
+                    data=bankaccount
+                )
+                if responsesuccessflag == 'success': bankaccount.update({'bankaccount': responsedata.data['id']})
+                elif responsesuccessflag == 'error':
+                    del bankaccount['bankaccount']
+                    response_message.extend([f'Bank Account\'s {each}' for each in responsemessage])
+            else:
+                classOBJpackage = {'Address': MODELS_CONT.Address, 'Bankaccount': MODELS_CONT.Bankaccount}
+                serializerOBJpackage = {'Address': PSRLZER_CONT.Addressserializer, 'Bankaccount': PSRLZER_CONT.Bankaccountserializer}
 
-                        previous_leavepolicys = {f'{each.id}': each for each in MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first().id)}
-                        new_leavepolicyids = [str(leavepolicyid) for leavepolicyid in new_leavepolicyids]
-                        for new_leavepolicyid in new_leavepolicyids:
-                            if new_leavepolicyid not in previous_leavepolicys:
-                                leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=new_leavepolicyid)
-                                if leavepolicy.exists(): add_leavepolicys.append(leavepolicy.first())
-                        for id in previous_leavepolicys.keys():
-                            if id not in new_leavepolicyids:
-                                leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=id)
-                                if leavepolicy.exists(): remove_leavepolicys.append(leavepolicy.first())
+                addbankaccountdetails=ghelp().addbankaccount(classOBJpackage, serializerOBJpackage, requestdata['bankaccount'])
+                if addbankaccountdetails['flag']: requestdata.update({'bankaccount': addbankaccountdetails['instance'].id})
+                else:
+                    response_message.extend(addbankaccountdetails['message'])
+                    del requestdata['bankaccount']
+        
+        # leavepolicy
+        if 'leavepolicy' in requestdata:
+            new_leavepolicyids = requestdata['leavepolicy']
+            if isinstance(new_leavepolicyids, list):
+                fiscalyear_response = ghelp().findFiscalyear(MODELS_SETT.Generalsettings)
+                if fiscalyear_response['fiscalyear']:
+                    add_leavepolicys = []
+                    remove_leavepolicys = []
 
-                        for remove_leavepolicy in remove_leavepolicys:
-                            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
-                            if leavesummary.exists():
-                                if leavesummary.first().total_consumed == 0:
-                                    leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
-                                    if leaverequests.exists(): leaverequests.delete()
-                                    leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
-                                    if leavepolicyassign.exists(): leavepolicyassign.delete()
-                                    leavesummary.delete()
-                                else:
-                                    response_message.append(f'couldn\'t remove {remove_leavepolicy.name} leavepolicy({remove_leavepolicy.id}), because you have already consumed!')
-                            else:
+                    previous_leavepolicys = {f'{each.id}': each for each in MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first().id)}
+                    new_leavepolicyids = [str(leavepolicyid) for leavepolicyid in new_leavepolicyids]
+                    for new_leavepolicyid in new_leavepolicyids:
+                        if new_leavepolicyid not in previous_leavepolicys:
+                            leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=new_leavepolicyid)
+                            if leavepolicy.exists(): add_leavepolicys.append(leavepolicy.first())
+                    for id in previous_leavepolicys.keys():
+                        if id not in new_leavepolicyids:
+                            leavepolicy = MODELS_LEAV.Leavepolicy.objects.filter(id=id)
+                            if leavepolicy.exists(): remove_leavepolicys.append(leavepolicy.first())
+
+                    for remove_leavepolicy in remove_leavepolicys:
+                        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                        if leavesummary.exists():
+                            if leavesummary.first().total_consumed == 0:
                                 leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
                                 if leaverequests.exists(): leaverequests.delete()
                                 leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
                                 if leavepolicyassign.exists(): leavepolicyassign.delete()
+                                leavesummary.delete()
+                            else:
+                                response_message.append(f'couldn\'t remove {remove_leavepolicy.name} leavepolicy({remove_leavepolicy.id}), because you have already consumed!')
+                        else:
+                            leaverequests = MODELS_LEAV.Leaverequest.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                            if leaverequests.exists(): leaverequests.delete()
+                            leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=remove_leavepolicy)
+                            if leavepolicyassign.exists(): leavepolicyassign.delete()
+                    
+                    for add_leavepolicy in add_leavepolicys:
+                        # create leavepolicyassign 
+                        leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
+                        if not leavepolicyassign.exists():
+                            MODELS_LEAV.Leavepolicyassign.objects.create(user=user.first(), leavepolicy=add_leavepolicy)
                         
-                        for add_leavepolicy in add_leavepolicys:
-                            # create leavepolicyassign 
-                            leavepolicyassign = MODELS_LEAV.Leavepolicyassign.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
-                            if not leavepolicyassign.exists():
-                                MODELS_LEAV.Leavepolicyassign.objects.create(user=user.first(), leavepolicy=add_leavepolicy)
-                            
-                            leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
-                            if not leavesummary.exists():
-                                MODELS_LEAV.Leavesummary.objects.create(
-                                    user=user.first(),
-                                    leavepolicy=add_leavepolicy,
-                                    fiscal_year=fiscalyear_response['fiscalyear'],
-                                    total_allocation=add_leavepolicy.allocation_days,
-                                    total_consumed=0,
-                                    total_left=add_leavepolicy.allocation_days
-                                )
+                        leavesummary = MODELS_LEAV.Leavesummary.objects.filter(user=user.first(), leavepolicy=add_leavepolicy)
+                        if not leavesummary.exists():
+                            MODELS_LEAV.Leavesummary.objects.create(
+                                user=user.first(),
+                                leavepolicy=add_leavepolicy,
+                                fiscal_year=fiscalyear_response['fiscalyear'],
+                                total_allocation=add_leavepolicy.allocation_days,
+                                total_consumed=0,
+                                total_left=add_leavepolicy.allocation_days
+                            )
 
-                    else: response_message.extend(fiscalyear_response['message'])
-                else: response_message.append('please provide leavepolicy as list!')
-                del requesteddata['leavepolicy']
+                else: response_message.extend(fiscalyear_response['message'])
+            else: response_message.append('please provide leavepolicy as list!')
+            del requestdata['leavepolicy']
 
-            allowed_fields = ['payment_in', 'bankaccount']
-            choice_fields = [{'name': 'payment_in', 'type': 'single-string', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}]
-            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                classOBJ=MODELS_USER.User,
-                Serializer=PSRLZER_USER.Userserializer,
-                id=userid,
-                data=requesteddata,
-                allowed_fields=allowed_fields,
-                choice_fields=choice_fields
-            )
-            if responsesuccessflag == 'success':
-
-                # employeejobhistory = MODELS_JOBR.Employeejobhistory.objects.filter(user=user.first().id).order_by('id').last()
-                # while employeejobhistory:
-                #     if employeejobhistory.salary:
-                #         if employeejobhistory.salary != responsedata.instance.gross_salary:
-                #             MODELS_JOBR.Employeejobhistory.objects.filter(id=employeejobhistory.id).update(salary=responsedata.instance.gross_salary)
-                #         break
-                #     else: employeejobhistory = employeejobhistory.previous_id
-                
-                response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
-                response_successflag=responsesuccessflag
-                response_status=responsestatus
-            elif responsesuccessflag == 'error':
-                response_successflag=responsesuccessflag
-                response_message.extend(responsemessage)
-                response_status=responsestatus
+        allowed_fields = ['payment_in', 'bankaccount']
+        choice_fields = [{'name': 'payment_in', 'type': 'single-string', 'values': [item[1] for item in CHOICE.PAYMENT_IN]}]
+        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+            classOBJ=MODELS_USER.User,
+            Serializer=PSRLZER_USER.Userserializer,
+            id=userid,
+            data=requestdata,
+            allowed_fields=allowed_fields,
+            choice_fields=choice_fields
+        )
+        if responsesuccessflag == 'success':
+            response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
+            response_successflag=responsesuccessflag
+            response_status=responsestatus
+        elif responsesuccessflag == 'error':
+            response_successflag=responsesuccessflag
+            response_message.extend(responsemessage)
+            response_status=responsestatus
     else: response_message.append('user doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
@@ -1703,200 +1990,253 @@ def updateemergencycontact(request, userid=None):
     response_status = status.HTTP_400_BAD_REQUEST
 
     user = MODELS_USER.User.objects.filter(id=userid)
-
     if user.exists():
-        requesteddata = request.data.copy()
-        if 'delete' in requesteddata:
-            deleteemergencycontacts = requesteddata['delete']
+        requestdata = request.data.copy()
+        successfully_deleted = 0
+        successfully_updated = 0
+        successfully_addeded = 0
+
+        if 'delete' in requestdata:
+            deleteemergencycontacts = requestdata['delete']
             if isinstance(deleteemergencycontacts, list):
-                for deleteemergencycontactid in deleteemergencycontacts:
+                for index, deleteemergencycontactid in enumerate(deleteemergencycontacts):
                     employeecontact = MODELS_USER.Employeecontact.objects.filter(id=deleteemergencycontactid)
                     if employeecontact.exists():
-                        if employeecontact.first().user.id == userid: employeecontact.delete()
+                        if employeecontact.first().user.id == userid:
+                            employeecontact.delete()
+                            successfully_deleted += 1
+                        else: response_message.append(f'{user.first().get_full_name()}({userid}) has no Employeecontact having {deleteemergencycontactid} id(index {index})!')
                     else: response_message.append(f'couldn\'t found any employeecontact with this id {deleteemergencycontactid}!')
             else: response_message.append('delete must be array(list)!')
 
-        if 'update' in requesteddata:
-            updateemergencycontacts = requesteddata['update']
+        if 'update' in requestdata:
+            updateemergencycontacts = requestdata['update']
             if isinstance(updateemergencycontacts, list):
-                for updateemergencycontact in updateemergencycontacts:
+                for index, updateemergencycontact in enumerate(updateemergencycontacts):
                     if 'id' in updateemergencycontact:
                         updateemergencycontactid = updateemergencycontact['id']
                         del updateemergencycontact['id']
-
                         employeecontact = MODELS_USER.Employeecontact.objects.filter(id=updateemergencycontactid)
                         if employeecontact.exists():
                             if userid == employeecontact.first().user.id:
-                                unique_fields = ['phone_no']
-                                fields_regex = [
-                                    {'field': 'phone_no', 'type': 'phonenumber'},
-                                    {'field': 'email', 'type': 'email'}
-                                ]
+                                allowed_fields=['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation']
+                                fields_regex = [{'field': 'phone_no', 'type': 'phonenumber'}, {'field': 'email', 'type': 'email'}]
                                 responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
                                     classOBJ=MODELS_USER.Employeecontact,
                                     Serializer=PSRLZER_USER.Employeecontactserializer,
                                     id=updateemergencycontactid,
                                     data=updateemergencycontact,
-                                    unique_fields=unique_fields,
+                                    allowed_fields=allowed_fields,
                                     fields_regex=fields_regex
                                 )
                                 if responsesuccessflag == 'error':
-                                    response_message.extend([f'update({updateemergencycontactid}) {message}' for message in responsemessage])
-                                elif responsesuccessflag == 'success':
-                                    response_successflag = 'success'
-                                    response_status = status.HTTP_200_OK
-                            else: response_message.append(f'This User({userid}) has no Employeecontact having {updateemergencycontactid} id!')
-                    else:
-                        if 'user' not in updateemergencycontact: updateemergencycontact.update({'user': userid})
-                        required_fields = ['name', 'user']
-                        unique_fields = ['phone_no']
-                        fields_regex = [
-                            {'field': 'phone_no', 'type': 'phonenumber'},
-                            {'field': 'email', 'type': 'email'}
-                        ]
-                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                            classOBJ=MODELS_USER.Employeecontact, 
-                            Serializer=PSRLZER_USER.Employeecontactserializer, 
-                            data=updateemergencycontact,
-                            required_fields=required_fields, 
-                            unique_fields=unique_fields
-                        )
-                        if responsesuccessflag == 'error':
-                            response_message.extend([f'add {message}' for message in responsemessage])
-                        elif responsesuccessflag == 'success':
-                            response_successflag = 'success'
-                            response_status = status.HTTP_200_OK
+                                    response_message.extend([f'{index}\'th update({updateemergencycontactid}) - {message}' for message in responsemessage])
+                                elif responsesuccessflag == 'success': successfully_updated += 1
+                            else: response_message.append(f'{user.first().get_full_name()}({userid}) has no Employeecontact having {updateemergencycontactid} id(index {index})!')
+                        else: response_message.append(f'{index}\'th emergencycontact doesn\'t exist!')
+                    else: response_message.append(f'please provide emergencycontact\'s id to update, check {index}\'th data!')
             else: response_message.append('update must be array(list)!')
+        
+        if 'add' in requestdata:
+            addemergencycontacts = requestdata['add']
+            if isinstance(addemergencycontacts, list):
+                for index, addemergencycontact in enumerate(addemergencycontacts):
+                    if 'user' not in addemergencycontact: addemergencycontact.update({'user': userid})
+
+                    allowed_fields=['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation']
+                    required_fields = ['name', 'user']
+                    fields_regex = [{'field': 'phone_no', 'type': 'phonenumber'}, {'field': 'email', 'type': 'email'}]
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_USER.Employeecontact, 
+                        Serializer=PSRLZER_USER.Employeecontactserializer, 
+                        data=updateemergencycontact,
+                        allowed_fields=allowed_fields,
+                        required_fields=required_fields,
+                        fields_regex=fields_regex
+                    )
+                    if responsesuccessflag == 'error':
+                        response_message.extend([f'{index}\'th add - {message}' for message in responsemessage])
+                    elif responsesuccessflag == 'success': successfully_addeded += 1
+            else: response_message.append('add must be array(list)!')
+    
+    if successfully_deleted + successfully_updated + successfully_addeded > 0:
+        response_successflag = 'success'
+        response_status = status.HTTP_200_OK
+        response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
+
     else: response_message.append('user doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
-def updateeducationexperience(request, userid=None):
+def updateeducation(request, userid=None):
     response_data = {}
     response_message = []
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
 
     user = MODELS_USER.User.objects.filter(id=userid)
-
     if user.exists():
-        requesteddata = request.data.copy()
-        if 'education' in requesteddata:
-            educationOBJ = requesteddata['education']
-            if 'delete' in educationOBJ:
-                educationids = educationOBJ['delete']
-                if isinstance(educationids, list):
-                    for educationid in educationids:
-                        employeeacademichistory = MODELS_USER.Employeeacademichistory.objects.filter(id=educationid)
+        requestdata = request.data.copy()
+        successfully_deleted = 0
+        successfully_updated = 0
+        successfully_addeded = 0
+
+        if 'delete' in requestdata:
+            deleteeducations = requestdata['delete']
+            if isinstance(deleteeducations, list):
+                for index, deleteeducationid in enumerate(deleteeducations):
+                    employeeacademichistory = MODELS_USER.Employeeacademichistory.objects.filter(id=deleteeducationid)
+                    if employeeacademichistory.exists():
+                        if employeeacademichistory.first().user.id == userid:
+                            employeeacademichistory.delete()
+                            successfully_deleted += 1
+                        else: response_message.append(f'{user.first().get_full_name()}({userid}) has no Employeeacademichistory having {deleteeducationid} id(index {index})!')
+                    else: response_message.append(f'couldn\'t found any employeeacademichistory with this id {deleteeducationid}!')
+            else: response_message.append('delete must be array(list)!')
+
+        if 'update' in requestdata:
+            updateeducations = requestdata['update']
+            if isinstance(updateeducations, list):
+                for index, updateeducation in enumerate(updateeducations):
+                    if 'id' in updateeducation:
+                        updateeducationid = updateeducation['id']
+                        del updateeducation['id']
+                        employeeacademichistory = MODELS_USER.Employeeacademichistory.objects.filter(id=updateeducationid)
                         if employeeacademichistory.exists():
-                            if employeeacademichistory.first().user.id == userid: employeeacademichistory.delete()
-                        else: response_message.append(f'couldn\'t found any employeeacademichistory with this id {educationid}!')
-                else: response_message.append('delete must be array(list)!')
-
-            if 'update' in educationOBJ:
-                educations = educationOBJ['update']
-                if isinstance(educations, list):
-                    for education in educations:
-                        if 'id' in education:
-                            educationid = education['id']
-                            del education['id']
-
-                            employeeacademichistory = MODELS_USER.Employeeacademichistory.objects.filter(id=educationid)
-                            if employeeacademichistory.exists():
-                                if userid == employeeacademichistory.first().user.id:
-                                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                                        classOBJ=MODELS_USER.Employeeacademichistory,
-                                        Serializer=PSRLZER_USER.Employeeacademichistoryserializer,
-                                        id=educationid,
-                                        data=education
-                                    )
-                                    if responsesuccessflag == 'error':
-                                        response_message.extend([f'update(education{educationid}) {message}' for message in responsemessage])
-                                    elif responsesuccessflag == 'success':
-                                        response_successflag = 'success'
-                                        response_status = status.HTTP_200_OK
-                                else: response_message.append(f'This User({userid}) has no Employeeacademichistory having {educationid} id!')
-                        else:
-                            if 'user' not in education: education.update({'user': userid})
-                            required_fields = ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
-                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                                classOBJ=MODELS_USER.Employeeacademichistory, 
-                                Serializer=PSRLZER_USER.Employeeacademichistoryserializer, 
-                                data=education,
-                                required_fields=required_fields
-                            )
-                            if responsesuccessflag == 'error':
-                                response_message.extend([f'add(education) {message}' for message in responsemessage])
-                            elif responsesuccessflag == 'success':
-                                response_successflag = 'success'
-                                response_status = status.HTTP_200_OK
-                else: response_message.append('update must be array(list)!')
+                            if userid == employeeacademichistory.first().user.id:
+                                allowed_fields=['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
+                                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                                    classOBJ=MODELS_USER.Employeeacademichistory,
+                                    Serializer=PSRLZER_USER.Employeeacademichistoryserializer,
+                                    id=updateeducationid,
+                                    data=updateeducation,
+                                    allowed_fields=allowed_fields
+                                )
+                                if responsesuccessflag == 'error':
+                                    response_message.extend([f'{index}\'th update({updateeducationid}) - {message}' for message in responsemessage])
+                                elif responsesuccessflag == 'success': successfully_updated += 1
+                            else: response_message.append(f'{user.first().get_full_name()}({userid}) has no Employeeacademichistory having {updateeducationid} id(index {index})!')
+                        else: response_message.append(f'{index}\'th employeeacademichistory doesn\'t exist!')
+                    else: response_message.append(f'please provide employeeacademichistory\'s id to update, check {index}\'th data!')
+            else: response_message.append('update must be array(list)!')
         
+        if 'add' in requestdata:
+            addeducations = requestdata['add']
+            if isinstance(addeducations, list):
+                for index, addeducation in enumerate(addeducations):
+                    if 'user' not in addeducation: addeducation.update({'user': userid})
 
-        if 'experience' in requesteddata:
-            experienceOBJ = requesteddata['experience']
-            if 'delete' in experienceOBJ:
-                experienceids = experienceOBJ['delete']
-                if isinstance(experienceids, list):
-                    for experienceid in experienceids:
-                        employeeexperiencehistory = MODELS_USER.Employeeexperiencehistory.objects.filter(id=experienceid)
+                    allowed_fields=['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
+                    required_fields = ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_USER.Employeeacademichistory, 
+                        Serializer=PSRLZER_USER.Employeeacademichistoryserializer, 
+                        data=addeducation,
+                        allowed_fields=allowed_fields,
+                        required_fields=required_fields
+                    )
+                    if responsesuccessflag == 'error':
+                        response_message.extend([f'{index}\'th add - {message}' for message in responsemessage])
+                    elif responsesuccessflag == 'success': successfully_addeded += 1
+            else: response_message.append('add must be array(list)!')
+    
+    if successfully_deleted + successfully_updated + successfully_addeded > 0:
+        response_successflag = 'success'
+        response_status = status.HTTP_200_OK
+        response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
+
+    else: response_message.append('user doesn\'t exist!')
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def updateexperience(request, userid=None):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
+    user = MODELS_USER.User.objects.filter(id=userid)
+    if user.exists():
+        requestdata = request.data.copy()
+        successfully_deleted = 0
+        successfully_updated = 0
+        successfully_addeded = 0
+
+        if 'delete' in requestdata:
+            deleteexperiences = requestdata['delete']
+            if isinstance(deleteexperiences, list):
+                for index, deleteexperienceid in enumerate(deleteexperiences):
+                    employeeexperiencehistory = MODELS_USER.Employeeexperiencehistory.objects.filter(id=deleteexperienceid)
+                    if employeeexperiencehistory.exists():
+                        if employeeexperiencehistory.first().user.id == userid:
+                            employeeexperiencehistory.delete()
+                            successfully_deleted += 1
+                        else: response_message.append(f'{user.first().get_full_name()}({userid}) has no Employeeexperiencehistory having {deleteexperienceid} id(index {index})!')
+                    else: response_message.append(f'couldn\'t found any deleteexperience with this id {deleteexperienceid}!')
+            else: response_message.append('delete must be array(list)!')
+
+        if 'update' in requestdata:
+            updateexperiences = requestdata['update']
+            if isinstance(updateexperiences, list):
+                for index, updateexperience in enumerate(updateexperiences):
+                    if 'id' in updateexperience:
+                        updateexperienceid = updateexperience['id']
+                        del updateexperience['id']
+                        employeeexperiencehistory = MODELS_USER.Employeeexperiencehistory.objects.filter(id=updateexperienceid)
                         if employeeexperiencehistory.exists():
-                            if employeeexperiencehistory.first().user.id == userid: employeeexperiencehistory.delete()
-                        else: response_message.append(f'couldn\'t found any employeeexperiencehistory with this id {experienceid}!')
-                else: response_message.append('delete must be array(list)!')
+                            if userid == employeeexperiencehistory.first().user.id:
+                                allowed_fields=['user', 'company_name', 'designation', 'address', 'from_date', 'to_date']
+                                fields_regex = [{'field': 'from_date', 'type': 'date'}, {'field': 'to_date', 'type': 'date'}]
+                                responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                                    classOBJ=MODELS_USER.Employeeexperiencehistory,
+                                    Serializer=PSRLZER_USER.Employeeexperiencehistoryserializer,
+                                    id=updateexperienceid,
+                                    data=updateexperience,
+                                    allowed_fields=allowed_fields,
+                                    fields_regex=fields_regex
+                                )
+                                if responsesuccessflag == 'error':
+                                    response_message.extend([f'{index}\'th update({updateexperienceid}) - {message}' for message in responsemessage])
+                                elif responsesuccessflag == 'success': successfully_updated += 1
+                            else: response_message.append(f'{user.first().get_full_name()}({userid}) has no Employeeexperiencehistory having {updateexperienceid} id(index {index})!')
+                        else: response_message.append(f'{index}\'th employeeexperiencehistory doesn\'t exist!')
+                    else: response_message.append(f'please provide employeeexperiencehistory\'s id to update, check {index}\'th data!')
+            else: response_message.append('update must be array(list)!')
+        
+        if 'add' in requestdata:
+            addexperiences = requestdata['add']
+            if isinstance(addexperiences, list):
+                for index, addexperience in enumerate(addexperiences):
+                    if 'user' not in addexperience: addexperience.update({'user': userid})
 
-            if 'update' in experienceOBJ:
-                experiences = experienceOBJ['update']
-                if isinstance(experiences, list):
-                    for experience in experiences:
-                        if 'id' in experience:
-                            experienceid = experience['id']
-                            del experience['id']
-
-                            employeeexperiencehistory = MODELS_USER.Employeeexperiencehistory.objects.filter(id=experienceid)
-                            if employeeexperiencehistory.exists():
-                                if userid == employeeexperiencehistory.first().user.id:
-                                    fields_regex = [
-                                        {'field': 'from_date', 'type': 'date'},
-                                        {'field': 'to_date', 'type': 'date'}
-                                    ]
-                                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
-                                        classOBJ=MODELS_USER.Employeeexperiencehistory,
-                                        Serializer=PSRLZER_USER.Employeeexperiencehistoryserializer,
-                                        id=experienceid,
-                                        data=experience,
-                                        fields_regex=fields_regex
-                                    )
-                                    if responsesuccessflag == 'error':
-                                        response_message.extend([f'update(experience {experienceid}) {message}' for message in responsemessage])
-                                    elif responsesuccessflag == 'success':
-                                        response_successflag = 'success'
-                                        response_status = status.HTTP_200_OK
-                                else: response_message.append(f'This User({userid}) has no Employeeexperiencehistory having {experienceid} id!')
-                        else:
-                            if 'user' not in experience: experience.update({'user': userid})
-                            required_fields = ['user', 'company_name', 'designation', 'from_date', 'to_date']
-                            fields_regex = [
-                                {'field': 'from_date', 'type': 'date'},
-                                {'field': 'to_date', 'type': 'date'}
-                            ]
-                            responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
-                                classOBJ=MODELS_USER.Employeeexperiencehistory, 
-                                Serializer=PSRLZER_USER.Employeeexperiencehistoryserializer, 
-                                data=experience,
-                                required_fields=required_fields,
-                                fields_regex=fields_regex
-                            )
-                            if responsesuccessflag == 'error':
-                                response_message.extend([f'add(experience) {message}' for message in responsemessage])
-                            elif responsesuccessflag == 'success':
-                                response_successflag = 'success'
-                                response_status = status.HTTP_200_OK
-                else: response_message.append('update must be array(list)!')
-
+                    allowed_fields=['user', 'company_name', 'designation', 'address', 'from_date', 'to_date']
+                    fields_regex = [{'field': 'from_date', 'type': 'date'}, {'field': 'to_date', 'type': 'date'}]
+                    required_fields = ['user', 'company_name', 'designation', 'from_date', 'to_date']
+                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                        classOBJ=MODELS_USER.Employeeexperiencehistory, 
+                        Serializer=PSRLZER_USER.Employeeexperiencehistoryserializer, 
+                        data=addexperience,
+                        allowed_fields=allowed_fields,
+                        required_fields=required_fields,
+                        fields_regex=fields_regex
+                    )
+                    if responsesuccessflag == 'error':
+                        response_message.extend([f'{index}\'th add - {message}' for message in responsemessage])
+                    elif responsesuccessflag == 'success': successfully_addeded += 1
+            else: response_message.append('add must be array(list)!')
+    
+    if successfully_deleted + successfully_updated + successfully_addeded > 0:
+        response_successflag = 'success'
+        response_status = status.HTTP_200_OK
+        response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
 
     else: response_message.append('user doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -1966,6 +2306,7 @@ def updatedocuments(request, userid=None):
                     elif responsesuccessflag == 'success':
                         response_successflag = 'success'
                         response_status = status.HTTP_200_OK
+            response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
         else: response_message.append('no documents provided!')
     else: response_message.append('user doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -2050,4 +2391,35 @@ def deletenote(request, noteid=None):
         classOBJ=MODELS_USER.Note,
         id=noteid,
         )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def assignusergroup(request):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
+    userlist = request.data.get('user')
+    
+    classOBJpackage = {
+        'Devicegroup': MODELS_DEVI.Devicegroup,
+        'Group': MODELS_DEVI.Group,
+        'Userdevicegroup': MODELS_USER.Userdevicegroup,
+        'User': MODELS_USER.User
+    }
+    grouplist = request.data.get('group')
+    group_response = ghelp().assignBulkUserToBulkGroup(classOBJpackage, grouplist, userlist)
+    
+    if group_response['backend_message']:
+        response_message.append('inform backend, data is missing in backend!')
+    
+    if group_response['flag']:
+        response_message.extend(group_response['message'])
+        response_successflag = 'success'
+        response_status = status.HTTP_202_ACCEPTED
+    else: response_message.extend(group_response['message'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

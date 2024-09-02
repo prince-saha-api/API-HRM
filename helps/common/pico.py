@@ -1,7 +1,5 @@
 from django.contrib.auth.hashers import make_password
 from datetime import datetime, date, timedelta
-from PIL import Image
-import numpy as np
 import random
 import pytz
 import os
@@ -53,18 +51,6 @@ class Picohelps:
       strdatetime = datetime.utcfromtimestamp(int(strdatetime))
       strdatetime = pytz.timezone('UTC').localize(strdatetime)
       return strdatetime.astimezone(pytz.timezone('Asia/Dhaka'))
-   
-
-   def convert_bytesio_ndarray(self, bytesio_image):
-      response = {'flag': False, 'message': [], 'image': None}
-      try:
-         image = Image.open(bytesio_image)
-         try:
-            response['image'] = np.asarray(image)
-            response['flag'] = True
-         except: response['message'].append('couldn\'t convert image from bytesio to ndarray!')
-      except: response['message'].append('image type should be bytesio!')
-      return response
     
    def getToday(self):
       return date.today()
@@ -181,7 +167,7 @@ class Picohelps:
          'email': {'regex': '^[a-z._0-9]*@[a-z]*\.[a-z]*$', 'format': 'demo@demo.com (allowed chars a-z, 0-9, ., _)'},
          'phonenumber': {'regex': '^01[3456789][0-9]{8}$|^8801[3456789][0-9]{8}$|^\+8801[3456789][0-9]{8}$', 'format': '01700000000, 8801700000000, +8801700000000'},
          'username': {'regex': '^[a-z._]*[0-9]*$', 'format': 'alex (allowed chars a-z, 0-9, ., _)'},
-         'employeeid': {'regex': '^[A-Z0-9]*$', 'format': 'A-Z and 0-9 chars are allowed!'},
+         'employeeid': {'regex': '^[A-Z]{3}[0-9]{7}$', 'format': 'A-Z and 0-9 chars are allowed!'},
          'date': {'regex': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'format': '2024-01-01'},
          'time': {'regex': '^[0-9]{2}:[0-9]{2}:[0-9]{2}$', 'format': '15:12:13'},
          'datetime': {'regex': '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$', 'format': '2024-01-01 15:12:13'},
@@ -270,6 +256,7 @@ class Picohelps:
                   {'field': 'role_permission', 'type': 'list-int'},
                   {'field': 'official_note', 'type': 'str'},
                   {'field': 'ethnic_group', 'type': 'list-int'},
+                  # {'field': 'group_of_device', 'type': 'list-int'},
                   {'field': 'joining_date', 'type': 'str'},
                   {'field': 'job_status', 'type': 'str'},
                   {'field': 'rfid', 'type': 'str'},
@@ -386,9 +373,73 @@ class Picohelps:
                ]
             }
    
+   def getNoticeBoardData(self):
+      return {
+               'fieldlist': [
+                  {'field': 'title', 'type': 'str'},
+                  {'field': 'description', 'type': 'str'},
+                  {'field': 'attachment', 'type': 'str'},
+                  {'field': 'expiry_date', 'type': 'str'},
+                  {'field': 'company', 'type': 'list-int'},
+                  {'field': 'branch', 'type': 'list-int'},
+                  {'field': 'department', 'type': 'list-int'},
+                  {'field': 'user', 'type': 'list-int'}
+               ]
+            }
+   
    def removeFile(self, OBJ, key):
       photo = getattr(OBJ, key, None)
       if photo:
          if photo.path:
                if os.path.exists(photo.path):
                   os.remove(photo.path)
+
+   def removeFile(self, OBJ, key):
+      photo = getattr(OBJ, key, None)
+      if photo:
+         if photo.path:
+               if os.path.exists(photo.path):
+                  os.remove(photo.path)
+
+   def getUserInfoToRegisterIntoDevice(self, User, user, device): # New
+      response = {'flag': False, 'data': {}, 'message': []}
+
+      userid = user.official_id
+      if not userid: response['message'].append('official_id is missing, this user can\'t register to device without official_id!')
+      reg_date = user.joining_date
+      if not reg_date: response['message'].append('joining_date is missing, this user can\'t register to device without joining_date!')
+      name = user.get_full_name()
+      if not name: response['message'].append('either first_name or last_name is required!')
+
+      if not response['message']:
+            valid_date = reg_date + timedelta(days=3650)
+            reg_date = f'{reg_date}'.replace('-', '')
+            valid_date = f'{valid_date}'.replace('-', '')
+
+            cardno = user.uniqueid
+            if cardno == None:
+               uniqueid_flag = False
+               while not uniqueid_flag:
+                  try:
+                        cardno = self.generateUniqueCode()
+                        User.objects.filter(id=user.id).update(uniqueid=cardno)
+                        uniqueid_flag = True
+                  except: pass
+
+            response['data'].update({
+               'ip': device.deviceip,
+               'uname': device.username,
+               'pword': device.password,
+               'userid': userid,
+               'name': name,
+               'cardno': cardno,
+               'password': userid,
+               'reg_date': reg_date,
+               'valid_date': valid_date,
+            })
+            if user.photo:
+               if user.photo.path:
+                  if os.path.exists(user.photo.path):
+                        response['data'].update({'image_paths': [user.photo.path]})
+            response['flag'] = True
+      return response

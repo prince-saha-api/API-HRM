@@ -1,10 +1,7 @@
 from helps.common.pico import Picohelps
 from datetime import datetime, timedelta
-from hrm.settings import BASE_DIR
-# import cv2
-import ast
-import os
 import re
+import os
 
 class Nanohelps(Picohelps):
     def is_date_in_range(self, date, start_date, end_date):
@@ -201,20 +198,6 @@ class Nanohelps(Picohelps):
             to_date = from_date + timedelta(days=364)
             return from_date, to_date
         else: return None, None
-
-    # def countPersonInImage(self, bytesio_image): # New
-    #     response = {'person_count': 0, 'message': []}
-    #     face_detector_path = BASE_DIR / 'static/face_detector_file/haarcascade_frontalface_default.xml'
-    #     if os.path.exists(face_detector_path):
-    #         image_response = self.convert_bytesio_ndarray(bytesio_image)
-    #         if image_response['flag']:
-    #             facedetect = cv2.CascadeClassifier(face_detector_path)
-    #             faces = facedetect.detectMultiScale(image_response['image'], 1.3, 5)
-    #             response['person_count'] = len(faces)
-    #         else:
-    #             response['message'].extend(image_response['message'])
-    #     else: response['message'].append('face_detector_file\'s path doesn\'t exist!')
-    #     return response
     
     def getBasicSalary(self, Generalsettings, salary): # New
         response = {'flag': False, 'basic_salary': 0, 'message': []}
@@ -231,4 +214,14 @@ class Nanohelps(Picohelps):
                     else: response['message'].append('basic_salary_percentage is missing in generalsettings!')
                 else: response['message'].append('generalsettings is missing!')
             except: response['message'].append('salary is missing!')
+        return response
+    
+
+    def getUsersInfoToRegisterIntoDevice(self, User, Userdevicegroup, device, groupid): # New
+        response = {'data': [], 'user_count': 0,'message': []}
+        for user in [each.user for each in Userdevicegroup.objects.filter(group=groupid)]:
+            user_register_info = self.getUserInfoToRegisterIntoDevice(User, user, device)
+            if user_register_info['flag']: response['data'].append(user_register_info['data'])
+            else: response['message'].extend(user_register_info['message'])
+            response['user_count'] += 1
         return response

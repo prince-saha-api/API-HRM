@@ -12,8 +12,8 @@ from department import models as MODELS_DEPA
 def generate_unique_code():
     return ghelp().getUniqueCodePattern()
 
-def uploadjobhistory(instance, filename):
-    return "user/{unique}/job_history/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
+def upload_jobhistory_files(instance, filename):
+    return "files/user/{unique}/job_history/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
 
 class Employeejobhistory(Basic):
     user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='employeejobhistory_user')
@@ -36,7 +36,7 @@ class Employeejobhistory(Basic):
     status_adjustment = ArrayField(models.CharField(max_length=50, choices=CHOICE.STATUS_ADJUSTMENT), null=True, blank=True)
     appraisal_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='employeejobhistory_appraisal_by')
     comment = models.TextField(blank=True, null=True)
-    doc = models.FileField(upload_to=uploadjobhistory, blank=True, null=True)
+    doc = models.FileField(upload_to=upload_jobhistory_files, blank=True, null=True)
     next_id = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='employeejobhistory_next')
     previous_id = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='employeejobhistory_previous')
 

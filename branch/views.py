@@ -6,6 +6,8 @@ from helps.common.generic import Generichelps as ghelp
 from rest_framework.permissions import IsAuthenticated
 from contribution import models as MODELS_CONT
 from department import models as MODELS_DEPA
+from jobrecord import models as MODELS_JOBR
+from notice import models as MODELS_NOTI
 from rest_framework.response import Response
 from branch import models as MODELS_BRAN
 from rest_framework import status
@@ -214,9 +216,9 @@ def updatebranch(request, branchid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletebranch(request, branchid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_BRAN.Branchphonenumber, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_BRAN.Branchemail, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_BRAN.Contactperson, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_DEPA.Department, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_JOBR.Employeejobhistory, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_NOTI.Noticeboardbranch, 'fields': [{'field': 'branch', 'relation': 'foreignkey', 'records': []}]},
     ]
     delete_associate_records = [['address']]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(

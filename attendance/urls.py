@@ -4,7 +4,6 @@ from attendance import views
 urlpatterns = [
     path('get-manual-attendence/', views.getmanualattendence, name='get-manual-attendence'),
     path('add-manual-attendence/', views.addmanualattendence, name='add-manual-attendence'),
-    path('get-loggedin-users-manual-attendence/', views.getloggedinusersmanualattendence, name='get-loggedin-users-manual-attendence'),
     path('update-manual-attendence/<int:manualattendenceid>', views.updatemanualattendence, name='update-manual-attendence'),
     path('approve-manual-attendence/<int:manualattendenceid>', views.approvemanualattendence, name='approve-manual-attendence'),
     path('reject-manual-attendence/<int:manualattendenceid>', views.rejectmanualattendence, name='reject-manual-attendence'),
@@ -22,5 +21,5 @@ urlpatterns = [
     path('approve-remote-attendence/<int:remoteattendenceid>', views.approveremoteattendence, name='approve-remote-attendence'),
     path('reject-remote-attendence/<int:remoteattendenceid>', views.rejectremoteattendence, name='reject-remote-attendence'),
 
-    path('add-attendance-from-logs-all-devices/<int:minutes>', views.addattendancefromlogsalldevices, name='add-attendance-from-logs-all-devices'),
+    path('attendance-from-logs/<int:minutes>', views.attendancefromlogs, name='attendance-from-logs'),
 ]

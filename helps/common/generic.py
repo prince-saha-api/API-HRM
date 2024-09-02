@@ -57,6 +57,7 @@ class Generichelps(Minihelps):
         elif fieldsname == 'previousexperience': fields = self.getPreviousExperienceData()
         elif fieldsname == 'basicinfo': fields = self.getBasicInfoData()
         elif fieldsname == 'userdocument': fields = self.getUserDocumentData()
+        elif fieldsname == 'noticeboard': fields = self.getNoticeBoardData()
 
         if isinstance(objects, dict):
             preparedData.append(self.getOBJDetails(objects, fields))
@@ -116,7 +117,7 @@ class Generichelps(Minihelps):
                 {'name': 'job_status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.JOB_STATUS]}
             ]
             fields_regex = [
-                # {'field': 'dob', 'type': 'date'},
+                {'field': 'dob', 'type': 'date'},
                 {'field': 'personal_email', 'type': 'email'},
                 {'field': 'personal_phone', 'type': 'phonenumber'},
                 {'field': 'official_id', 'type': 'employeeid'},
@@ -171,7 +172,7 @@ class Generichelps(Minihelps):
     
 
     def assignBulkUserToBulkLeavepolicy(self, classOBJpackage, leavepolicylist, userlist, manipulate_info): # New
-        response = {'flag': False, 'message': []}
+        response = {'flag': False, 'message': [], 'backend_message': []}
         
         if 'Generalsettings' in classOBJpackage:
             if 'Leavepolicy' in classOBJpackage:
@@ -192,9 +193,143 @@ class Generichelps(Minihelps):
                                     else: response['message'].append('leavepolicy type should be list!')
                                 else: response['message'].append('leavepolicy should not be empty!')
                             else: response['message'].extend(fiscalyear_response['message'])
-                        else: response['message'].append('User Model is missing!')
-                    else: response['message'].append('Leavesummary Model is missing!')
-                else: response['message'].append('Leavepolicyassign Model is missing!')
-            else: response['message'].append('Leavepolicy Model is missing!')
-        else: response['message'].append('Generalsettings Model is missing!')
+                        else: response['backend_message'].append('User Model is missing!')
+                    else: response['backend_message'].append('Leavesummary Model is missing!')
+                else: response['backend_message'].append('Leavepolicyassign Model is missing!')
+            else: response['backend_message'].append('Leavepolicy Model is missing!')
+        else: response['backend_message'].append('Generalsettings Model is missing!')
+        return response
+    
+
+    def assignBulkUserToBulkGroup(self, classOBJpackage, grouplist, userlist): # New
+        response = {'flag': False, 'message': [], 'backend_message': []}
+
+        if 'User' in classOBJpackage:
+            if 'Group' in classOBJpackage:
+                if 'Userdevicegroup' in classOBJpackage:
+                    if 'Devicegroup' in classOBJpackage:
+
+                        if grouplist:
+                            if isinstance(grouplist, list):
+                                for groupid in grouplist:
+                                    assign_leavepolicy_response = self.assignGroupToBulkUser(classOBJpackage, userlist, groupid)
+                                    if assign_leavepolicy_response['flag']: response['flag'] = True
+                                    response['message'].extend(assign_leavepolicy_response['message'])
+                            else: response['message'].append('leavepolicy type should be list!')
+                        else: response['message'].append('group should not be empty!')
+
+                    else: response['backend_message'].append('Devicegroup Model is missing!')
+                else: response['backend_message'].append('Userdevicegroup Model is missing!')
+            else: response['backend_message'].append('Group Model is missing!')
+        else: response['backend_message'].append('User Model is missing!')
+        return response
+
+    
+    def addGenarelSettings(self, classOBJ, Serializer, requestdata=None):
+        response = {'flag': False, 'data': None, 'message': [], 'backend_message': []}
+        
+        if 'Weekdays' in classOBJ:
+            if 'Weeklyholiday' in classOBJ:
+                if 'Fiscalyear' in classOBJ:
+                    if 'Generalsettings' in classOBJ:
+                        if 'Fiscalyear' in Serializer:
+                            if 'Generalsettings' in Serializer:
+                                generalsettings = classOBJ['Generalsettings'].objects.all()
+                                if not generalsettings.exists():
+                                    if requestdata == None: requestdata = {}
+                                    
+                                    day_list = [each[1] for each in CHOICE.DAYS]
+                                    for day in day_list:
+                                        if not classOBJ['Weekdays'].objects.filter(day=day).exists():
+                                            is_created = False
+                                            while not is_created:
+                                                try:
+                                                    classOBJ['Weekdays'].objects.create(day=day)
+                                                    is_created = True
+                                                except: pass
+                                    weekly_holiday = requestdata['weekly_holiday'] if isinstance(requestdata.get('weekly_holiday', False), list) else ['Friday', 'Saturday']
+                                    weekly_holiday_id = []
+                                    weekly_holiday_day = []
+                                    for value in weekly_holiday:
+                                        if value:
+                                            if isinstance(value, str):
+                                                if value.isnumeric(): weekly_holiday_id.append(int(value))
+                                                else:
+                                                    capitalize_day = value.capitalize()
+                                                    if capitalize_day in day_list: weekly_holiday_day.append(capitalize_day)    
+                                            elif isinstance(value, int): weekly_holiday_id.append(value)
+                                    weekdaysinstance = classOBJ['Weekdays'].objects.filter(id__in=weekly_holiday_id) if classOBJ['Weekdays'].objects.filter(id__in=weekly_holiday_id) else classOBJ['Weekdays'].objects.filter(day__in=weekly_holiday_day)
+
+                                    delete_instances = []
+                                    weeklyholiday = classOBJ['Weeklyholiday'].objects.create()
+                                    weeklyholiday.day.set(weekdaysinstance)
+                                    requestdata.update({'weekly_holiday': weeklyholiday.id})
+                                    delete_instances.append(weeklyholiday)
+
+                                    fiscalyear_month = requestdata['fiscalyear_month'] if isinstance(requestdata.get('fiscalyear_month', False), str) else "January"
+                                    requestdata.update({'fiscalyear_month': fiscalyear_month})
+                                    from_date, to_date = self.getFiscalyearBoundary(fiscalyear_month, CHOICE.MONTHS_D)
+                                    if from_date:
+                                        required_fields = ['from_month', 'from_year', 'to_month', 'to_year', 'from_date', 'to_date']
+                                        fields_regex = [{'field': 'from_date', 'type': 'date'}, {'field': 'to_date', 'type': 'date'}]
+                                        choice_fields = [
+                                            {'name': 'from_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
+                                            {'name': 'to_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
+                                        ]
+                                        from_datesplit = [int(each) for each in f'{from_date}'.split('-')]
+                                        to_datesplit = [int(each) for each in f'{to_date}'.split('-')]
+                                        fiscalyeardata = {
+                                            'from_month': CHOICE.MONTHS_DR[f'{from_datesplit[1]}'],
+                                            'from_year': from_datesplit[0],
+                                            'to_month': CHOICE.MONTHS_DR[f'{to_datesplit[1]}'],
+                                            'to_year': to_datesplit[0],
+                                            'from_date': f'{from_date}',
+                                            'to_date': f'{to_date}'
+                                        } 
+                                        responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                                            classOBJ=classOBJ['Fiscalyear'], 
+                                            Serializer=Serializer['Fiscalyear'], 
+                                            data=fiscalyeardata, 
+                                            required_fields=required_fields,
+                                            fields_regex=fields_regex,
+                                            choice_fields=choice_fields
+                                        )
+                                        if responsesuccessflag == 'success':
+                                            requestdata.update({'fiscalyear': responsedata.data['id']})
+                                            delete_instances.append(responsedata.instance)
+
+
+                                    None if requestdata.get('workingday_starts_at') else requestdata.update({'workingday_starts_at': '09:00:00'})
+                                    None if requestdata.get('consider_attendance_on_holidays') else requestdata.update({'consider_attendance_on_holidays': CHOICE.ATTENDANCE_OVERTIME[1][1]})
+
+                                    
+                                    required_fields = ['fiscalyear_month', 'fiscalyear', 'weekly_holiday', 'workingday_starts_at', 'consider_attendance_on_holidays']
+                                    fields_regex = [{'field': 'workingday_starts_at', 'type': 'time'}]
+                                    choice_fields = [
+                                        {'name': 'fiscalyear_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
+                                        {'name': 'consider_attendance_on_holidays', 'type': 'single-string', 'values': [item[1] for item in CHOICE.ATTENDANCE_OVERTIME]},
+                                    ]
+                                    responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
+                                        classOBJ=classOBJ['Generalsettings'],
+                                        Serializer=Serializer['Generalsettings'],
+                                        data=requestdata,
+                                        required_fields=required_fields,
+                                        fields_regex=fields_regex,
+                                        choice_fields=choice_fields
+                                    )
+                                    if responsesuccessflag == 'success':
+                                        response['data']=responsedata
+                                        response['flag'] = True
+                                        classOBJ['Generalsettings'].objects.exclude(id=responsedata.data['id']).delete()
+                                    elif responsesuccessflag == 'error':
+                                        response['message'].extend(responsemessage)
+                                        for delete_instance in delete_instances:
+                                            delete_instance.delete()
+                                else: response['message'].append('Generalsettings is already exist!')
+                            else: response['backend_message'].append('Generalsettings model is missing in Serializer!')
+                        else: response['backend_message'].append('Fiscalyear model is missing in Serializer!')
+                    else: response['backend_message'].append('Generalsettings model is missing in classOBJ!')
+                else: response['backend_message'].append('Fiscalyear model is missing in classOBJ!')
+            else: response['backend_message'].append('Weeklyholiday model is missing in classOBJ!')
+        else: response['backend_message'].append('Weekdays model is missing in classOBJ!')
         return response

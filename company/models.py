@@ -1,18 +1,15 @@
 from django.db import models
 from django.db.models import JSONField
 from user import models as MODELS_USER
-from helps.validators.company.validator import *
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Basic
-from helps.validators.common import validate_phone_number
-from django.core.validators import MinValueValidator, MaxValueValidator
 from contribution import models as MODELS_CONT
 
 def generate_unique_code():
     return ghelp().getUniqueCodePattern()
 
 def uploadcompanylogo(instance, filename):
-    return "company/{name}/logo/{uniquecode}uniquevalue{filename}".format(name=instance.name, uniquecode=generate_unique_code(), filename=filename)
+    return "files/company/{name}/logo/{uniquecode}uniquevalue{filename}".format(name=instance.name, uniquecode=generate_unique_code(), filename=filename)
 
 class Basicinformation(Basic):
     name = models.CharField(max_length=100, unique=True)
@@ -25,7 +22,7 @@ class Basicinformation(Basic):
     description = models.TextField(blank=True, null=True)
     website_url = models.URLField(max_length=200, unique=True, blank=True, null=True)
     primary_email = models.EmailField(unique=True, blank=True, null=True)
-    primary_phone_number = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
+    primary_phone_number = models.CharField(max_length=14, unique=True, blank=True, null=True)
     fax = models.CharField(max_length=100, unique=True, blank=True, null=True)
     logo = models.ImageField(upload_to=uploadcompanylogo, blank=True, null=True)
     address = models.OneToOneField(MODELS_CONT.Address, on_delete=models.SET_NULL, blank=True, null=True)
@@ -37,7 +34,7 @@ class Basicinformation(Basic):
         return f'{self.name}'
 
 class Companymobilenumber(Basic):
-    phone_number = models.CharField(max_length=14, validators=[validate_phone_number], unique=True, blank=True, null=True)
+    phone_number = models.CharField(max_length=14, unique=True, blank=True, null=True)
     company = models.ForeignKey(Basicinformation, on_delete=models.SET_NULL, blank=True, null=True)
 
     def __str__(self):

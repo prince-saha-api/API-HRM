@@ -6,31 +6,13 @@ from helps.abstract.abstractclass import Basic
 from django.core.exceptions import ValidationError
 from helps.choice import common as CHOICE
 from django.core.validators import MinValueValidator, MaxValueValidator
-from helps.choice.common import LEAVE_TYPE, STATUS
 from hrm_settings import models as MODELS_SETT
 
 def generate_unique_code():
     return ghelp().getUniqueCodePattern()
 
-def uploadfile(instance, filename):
-    if '.pdf' in filename:
-        return "files/{user}/leaveattachment/pdf/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
-    elif '.csv' in filename:
-        return "files/{user}/leaveattachment/csv/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
-    elif '.zip' in filename:
-        return "files/{user}/leaveattachment/zip/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
-    elif '.jpg' in filename or '.jpeg' in filename or '.png' in filename or '.PNG' in filename or '.gif':
-        return "files/{user}/leaveattachment/image/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
-    else:
-        return "files/{user}/leaveattachment/others/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
-    
-def uploadfileallocationrequest(instance, filename):
-    if '.pdf' in filename:
-        return "files/{user}/leallocationrequest/pdf/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
-    elif '.jpg' in filename or '.jpeg' in filename or '.png' in filename or '.PNG' in filename or '.gif':
-        return "files/{user}/leallocationrequest/image/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
-    else:
-        return "files/{user}/leallocationrequest/others/{uniquecode}uniquevalue{filename}".format(user=instance.user.username, uniquecode=generate_unique_code(), filename=filename)
+def upload_leaverequest_file(instance, filename):
+    return "files/user/{unique}/leaverequest/{uniquecode}uniquevalue{filename}".format(unique=instance.user.uniqueid, uniquecode=generate_unique_code(), filename=filename)
 
 
 class Holiday(Basic):
@@ -53,7 +35,7 @@ class Leavepolicy(Basic):
     name = models.CharField(max_length=100, unique=True)
     description = models.CharField(max_length=200, blank=True, null=True)
     allocation_days = models.IntegerField(validators=[MinValueValidator(1)], default=1)
-    leave_type = models.CharField(max_length=20, choices=LEAVE_TYPE)
+    leave_type = models.CharField(max_length=20, choices=CHOICE.LEAVE_TYPE)
 
     max_consecutive_days = models.IntegerField(validators=[MinValueValidator(0)], default=1) # done
     
@@ -110,15 +92,14 @@ class Leaverequest(Basic):
     user = models.ForeignKey(MODELS_USER.User, on_delete=models.CASCADE, related_name='leaverequestone')
     leavepolicy = models.ForeignKey(Leavepolicy, on_delete=models.CASCADE, related_name='leavepolicy_leaverequest')
     request_type = models.CharField(max_length=20, choices=CHOICE.LEAVEREQUEST_TYPE)
-    # extended_days = models.IntegerField(blank=True, null=True)
     exchange_with = models.ForeignKey(Leavepolicy, on_delete=models.SET_NULL, blank=True, null=True, related_name='exchange_with_leaverequest')
     from_date = models.DateField(blank=True, null=True)
     to_date = models.DateField(blank=True, null=True)
     total_leave = models.IntegerField(validators=[MinValueValidator(1)], blank=True, null=True)
     valid_leave_dates = ArrayField(models.DateField(blank=True, null=True), null=True, blank=True)
-    attachment = models.FileField(upload_to=uploadfile, blank=True, null=True)
+    attachment = models.FileField(upload_to=upload_leaverequest_file, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS, default=STATUS[0][1])
+    status = models.CharField(max_length=20, choices=CHOICE.STATUS, default=CHOICE.STATUS[0][1])
     reason = models.TextField(blank=True, null=True)
     approved_by = models.ForeignKey(MODELS_USER.User, on_delete=models.SET_NULL, blank=True, null=True, related_name='leaverequesttwo')
 

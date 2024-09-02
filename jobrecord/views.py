@@ -7,7 +7,6 @@ from company import models as MODELS_COMP
 from branch import models as MODELS_BRAN
 from department import models as MODELS_DEPA
 from hrm_settings import models as MODELS_SETT
-from jobrecord.serializer import serializers as SRLZER_JOBR
 from jobrecord.serializer.CUSTOM import serializers as CSRLZER_JOBR
 from jobrecord.serializer.POST import serializers as PSRLZER_JOBR
 from user.serializer.POST import serializers as PSRLZER_USER
@@ -15,7 +14,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from helps.common.generic import Generichelps as ghelp
 from helps.choice import common as CHOICE
-import re
 
 
 @api_view(['GET'])
@@ -300,7 +298,7 @@ def addjobhistory(request):
                         else: response_message.append('no valid status_adjustment provided!')
                     else: response_message.append('please select status_adjustment!')
                 else: response_message.append('last employeejobhistory doesn\'t exist!')
-            else: response_message.append(f'user is already {user.first().job_status}!')
+            else: response_message.append(f'user\'s job_status is not {CHOICE.JOB_STATUS[0][1]}!')
         else: response_message.append('user doesn\'t exist!')
     else: response_message.append('user id is missing!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
