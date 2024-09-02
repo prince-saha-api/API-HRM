@@ -7,8 +7,8 @@ from leave import models as MODELS_LEAV
 from department import models as MODELS_DEPA
 from hrm_settings import models as MODELS_SETT
 from user import models as MODELS_USER
-from company import models as MODELS_COMP
 from branch import models as MODELS_BRAN
+from device import models as MODELS_DEVI
 from jobrecord import models as MODELS_JOBR
 from jobrecord.serializer.POST import serializers as PSRLZER_JOBR
 from user.serializer.CUSTOM import serializers as CSRLZER_USER
@@ -19,11 +19,13 @@ from hrm_settings.serializer.POST import serializers as PSRLZER_SETT
 from leave.serializer.POST import serializers as PSRLZER_LEAV
 from rest_framework.response import Response
 from rest_framework import status
+from datetime import datetime, timedelta
 from helps.common.generic import Generichelps as ghelp
+from helps.device.a_device import A_device as DEVICE
 from helps.choice import common as CHOICE
-# from django.core.paginator import Paginator
 from drf_nested_forms.utils import NestedForm
-from django.shortcuts import get_list_or_404
+from requests.auth import HTTPDigestAuth
+import requests
 import random
 
 @api_view(['GET'])
@@ -309,11 +311,11 @@ def addshift(request):
         {'field': 'out_time', 'type': 'time'}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
-        classOBJ=MODELS_USER.Shift, 
-        Serializer=PSRLZER_USER.Shiftserializer, 
-        data=request.data, 
-        unique_fields=unique_fields, 
-        extra_fields=extra_fields, 
+        classOBJ=MODELS_USER.Shift,
+        Serializer=PSRLZER_USER.Shiftserializer,
+        data=request.data,
+        unique_fields=unique_fields,
+        extra_fields=extra_fields,
         required_fields=required_fields,
         fields_regex=fields_regex
     )
@@ -359,6 +361,28 @@ def deleteshift(request, shiftid=None):
         classOBJpackage_tocheck_assciaativity=classOBJpackage_tocheck_assciaativity
         )
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['Get Permission list Details', 'all'])
+def assignshift(request):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
+    userlist = request.data.get('user')
+    classOBJpackage = {'User': MODELS_USER.User, 'Shift': MODELS_USER.Shift}
+    shiftid = request.data.get('shift')
+    response = ghelp().assignShiftToBulkUser(classOBJpackage, userlist, shiftid)
+    
+    if response['flag']:
+        response_successflag = 'success'
+        response_status = status.HTTP_202_ACCEPTED
+    response_message.extend(response['message'])
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -938,7 +962,6 @@ def getemployee(request):
         users = users[(page-1)*page_size:page*page_size]
 
     userserializers = SRLZER_USER.Userserializer(users, many=True)
-    # print(userserializers)
     chars = [['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']]
     for userserializer in userserializers.data:
         if userserializer['hr_password']:
@@ -988,6 +1011,7 @@ def addemployee(request):
     ghelp().preparesalaryAndLeaves(salaryAndLeaves)
 
     # uploadDocuments = form.data.get('uploadDocuments')
+
     
     fields_tobe_checked = [
         {
@@ -1056,8 +1080,33 @@ def addemployee(request):
         response_message.extend(response['message'])
         
         if response['flag']:
-            userinstance = response['userinstance'] 
+            userinstance = response['userinstance']
 
+            # name = userinstance.get_full_name()
+            # cardno = userinstance.uniqueid
+            # userid = userinstance.official_id
+            # password = ''
+            
+            # reg_date = userinstance.joining_date
+            # valid_date = reg_date + timedelta(days=3650)
+            # reg_date = f'{reg_date}'.replace('-', '')
+            # valid_date = f'{valid_date}'.replace('-', '')
+
+            # image_paths = [userinstance.photo.path]
+
+            # if 'group_of_device' in officialDetails:
+            #     group_list = officialDetails['group_of_device']
+            #     if group_list:
+            #         devicegroups = MODELS_DEVI.Devicegroup.objects.filter(group__in=group_list)
+            #         done_device = []
+            #         for devicegroup in devicegroups:
+            #             if devicegroup.device.id not in done_device:
+            #                 ip = devicegroup.device.deviceip
+            #                 uname = devicegroup.device.username
+            #                 pword = devicegroup.device.password
+            #                 DEVICE().createUserAndTrainImage(ip, name, cardno, userid, image_paths, password, reg_date,  valid_date, uname, pword)
+            #                 done_device.append(devicegroup.device.id)
+                            
             # Add Role-Permissions
             rolepermission_officialDetails = officialDetails.get('role_permission')
             if isinstance(rolepermission_officialDetails, list):
@@ -1065,6 +1114,7 @@ def addemployee(request):
                     for rolepermissionid in rolepermission_officialDetails:
                         rolepermission = ghelp().getobject(MODELS_USER.Rolepermission, {'id': rolepermissionid})
                         if rolepermission: userinstance.role_permission.add(rolepermission)
+                        else: response_message.append(f'rolepermission{rolepermissionid} doesn\'t exist!')
 
 
             # ইউজার ক্রিয়েটের পরে।
@@ -1073,13 +1123,16 @@ def addemployee(request):
                 if ethnicgroup_officialDetails:
                     for ethnicgroupid in ethnicgroup_officialDetails:
                         ethnicgroup = ghelp().getobject(MODELS_USER.Ethnicgroup, {'id': ethnicgroupid})
-                        if ethnicgroup:
-                            if ethnicgroup.name != 'all': ethnicgroup.user.add(userinstance)
+                        if ethnicgroup: ethnicgroup.user.add(userinstance)
+                        else: response_message.append(f'ethnic_group{ethnicgroupid} doesn\'t exist!')
             
             if salaryAndLeaves:
                 userlist=[userinstance.id]
                 manipulate_info = {'created_by': request.user.id, 'updated_by': request.user.id}
                 leavepolicy_response = ghelp().assignBulkUserToBulkLeavepolicy(classOBJpackage, salaryAndLeaves.get('leavepolicy'), userlist, manipulate_info)
+                if leavepolicy_response['backend_message']:
+                    response_message.append('inform backend, data is missing in backend!')
+                response_message.extend(leavepolicy_response['message'])
             
             if officialDetails:
                 if salaryAndLeaves:
@@ -1094,31 +1147,67 @@ def addemployee(request):
                         'employee_type': officialDetails['employee_type'],
                         'status_adjustment': [CHOICE.STATUS_ADJUSTMENT[0][1]],
                         'job_status': CHOICE.JOB_STATUS[0][1],
-                        # 'appraisal_by': created_by.id
                         'appraisal_by': request.user.id
                     }
                     required_fields = ['user', 'effective_from', 'salary', 'company', 'branch', 'department', 'designation', 'employee_type']
-                    responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                    _, responsemessage, responsesuccessflag, _ = ghelp().addtocolass(
                         classOBJ=MODELS_JOBR.Employeejobhistory,
                         Serializer=PSRLZER_JOBR.Employeejobhistoryserializer,
                         data=employeejobhistorydata,
                         required_fields=required_fields
                     )
+                    if responsesuccessflag == 'error':
+                        response_message.extend([f'{each}, therefore couldn\'t add Employeejobhistory!' for each in responsemessage])
 
-
-            emergencycontact = ghelp().addemergencycontact(MODELS_USER.Employeecontact, PSRLZER_USER.Employeecontactserializer, MODELS_CONT.Address, PSRLZER_CONT.Addressserializer, userinstance, emergencyContact)
-            academicrecord = ghelp().addacademicrecord(MODELS_USER.Employeeacademichistory, PSRLZER_USER.Employeeacademichistoryserializer, userinstance, academicRecord)
-            previousexperience = ghelp().addpreviousexperience(MODELS_USER.Employeeexperiencehistory, PSRLZER_USER.Employeeexperiencehistoryserializer, userinstance, previousExperience)
-
-            faileddetails = []
-            faileddetails.extend(emergencycontact['failed'])
-            faileddetails.extend(academicrecord['failed'])
-            faileddetails.extend(previousexperience['failed'])
-
-            # message
-            emergencycontact['message']
-            academicrecord['message']
-            previousexperience['message']
+            user_records = {
+                'emergencycontact_details': {
+                    'outer_details': {
+                        'userid': userinstance.id,
+                        'classOBJ': MODELS_USER.Employeecontact,
+                        'Serializer': PSRLZER_USER.Employeecontactserializer,
+                        'data': emergencyContact,
+                        'allowed_fields': ['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation'],
+                        'required_fields': ['name', 'user'],
+                        'fields_regex': [
+                            {'field': 'phone_no', 'type': 'phonenumber'},
+                            {'field': 'email', 'type': 'email'}
+                        ]
+                    },
+                    'inner_details': {
+                        'classOBJ': MODELS_CONT.Address,
+                        'Serializer': PSRLZER_CONT.Addressserializer,
+                        'key': 'address',
+                        'allowed_fields': ['alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude'],
+                        'required_fields': ['address', 'city', 'state_division', 'country']
+                    }
+                },
+                'academicrecord_details': {
+                    'outer_details': {
+                        'userid': userinstance.id,
+                        'classOBJ': MODELS_USER.Employeeacademichistory,
+                        'Serializer': PSRLZER_USER.Employeeacademichistoryserializer,
+                        'data': academicRecord,
+                        'allowed_fields': ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing'],
+                        'required_fields': ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
+                    }
+                },
+                'previousexperience_details': {
+                    'outer_details': {
+                        'userid': userinstance.id,
+                        'classOBJ': MODELS_USER.Employeeexperiencehistory,
+                        'Serializer': PSRLZER_USER.Employeeexperiencehistoryserializer,
+                        'data': previousExperience,
+                        'allowed_fields': ['user', 'company_name', 'designation', 'address', 'from_date', 'to_date'],
+                        'required_fields': ['user', 'company_name', 'designation', 'address', 'from_date', 'to_date'],
+                        'fields_regex': [{'field': 'from_date', 'type': 'date'}, {'field': 'to_date', 'type': 'date'}]
+                    }
+                }
+            }
+            for key in  user_records.keys():
+                user_record_response = ghelp().addUserRecord(information=user_records[key])
+                if user_record_response['backend_message']:
+                    response_message.append('inform backend, data is missing in backend!')
+                response_message.extend(user_record_response['message'])
 
             # upload documents
             for index in documentsindex:
@@ -1130,15 +1219,11 @@ def addemployee(request):
                     employeedocsinstance.title=title
                     employeedocsinstance.attachment=attachment
                     employeedocsinstance.save()
-
-
-
+                else: response_message.append('either title or document or both are missing!')
+            
             department_officialDetails = ghelp().getobject(MODELS_DEPA.Department, {'id': officialDetails.get('department')})
             if department_officialDetails: department_officialDetails.user.add(userinstance)
-            # company_officialDetails = ghelp().getobject(MODELS_COM.Company, {'id': officialDetails.get('company')})
-            # branch_officialDetails = ghelp().getobject(MODELS_BR.Branch, {'id': officialDetails.get('branch')})
-            # department_officialDetails = ghelp().getobject('''MODELS_BR.Branch''', {'id': officialDetails.get('department')})
-            
+
             response_data = SRLZER_USER.Userserializer(userinstance, many=False).data
             response_successflag = 'success'
             response_status = status.HTTP_201_CREATED
@@ -2221,6 +2306,7 @@ def updatedocuments(request, userid=None):
                     elif responsesuccessflag == 'success':
                         response_successflag = 'success'
                         response_status = status.HTTP_200_OK
+            response_data = CSRLZER_USER.Userserializer(MODELS_USER.User.objects.get(id=userid), many=False).data
         else: response_message.append('no documents provided!')
     else: response_message.append('user doesn\'t exist!')
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -2305,4 +2391,35 @@ def deletenote(request, noteid=None):
         classOBJ=MODELS_USER.Note,
         id=noteid,
         )
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def assignusergroup(request):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+
+    userlist = request.data.get('user')
+    
+    classOBJpackage = {
+        'Devicegroup': MODELS_DEVI.Devicegroup,
+        'Group': MODELS_DEVI.Group,
+        'Userdevicegroup': MODELS_USER.Userdevicegroup,
+        'User': MODELS_USER.User
+    }
+    grouplist = request.data.get('group')
+    group_response = ghelp().assignBulkUserToBulkGroup(classOBJpackage, grouplist, userlist)
+    
+    if group_response['backend_message']:
+        response_message.append('inform backend, data is missing in backend!')
+    
+    if group_response['flag']:
+        response_message.extend(group_response['message'])
+        response_successflag = 'success'
+        response_status = status.HTTP_202_ACCEPTED
+    else: response_message.extend(group_response['message'])
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)

@@ -3,6 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from department import models as MODELS_DEPA
 from contribution import models as MODELS_CONT
+from notice import models as MODELS_NOTI
+from jobrecord import models as MODELS_JOBR
 from contribution.serializer.POST import serializers as PSRLZER_CONT
 from department.serializer.POST import serializers as PSRLZER_DEPA
 from department.serializer import serializers as SRLZER_DEPA
@@ -126,9 +128,8 @@ def updatedepartment(request, departmentid=None):
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def deletedepartment(request, departmentid=None):
     classOBJpackage_tocheck_assciaativity = [
-        {'model': MODELS_DEPA.Departmentmobilenumber, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_DEPA.Departmentemail, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
-        {'model': MODELS_DEPA.Departmentimage, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]}
+        {'model': MODELS_JOBR.Employeejobhistory, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]},
+        {'model': MODELS_NOTI.Noticeboarddepartment, 'fields': [{'field': 'department', 'relation': 'foreignkey', 'records': []}]}
     ]
     response_data, response_message, response_successflag, response_status = ghelp().deleterecord(
         classOBJ=MODELS_DEPA.Department,

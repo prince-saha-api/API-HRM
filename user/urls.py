@@ -20,6 +20,7 @@ urlpatterns = [
     path('add-shift/', views.addshift, name='add-shift'),
     path('update-shift/<int:shiftid>', views.updateshift, name='update-shift'),
     path('delete-shift/<int:shiftid>', views.deleteshift, name='delete-shift'),
+    path('assign-shift/', views.assignshift, name='assign-shift'),
 
     path('get-shiftchangerequest/', views.getshiftchangerequest, name='get-shiftchangerequest'),
     path('add-shiftchangerequest/', views.addshiftchangerequest, name='add-shiftchangerequest'),
@@ -67,4 +68,5 @@ urlpatterns = [
     path('update-note/<int:noteid>', views.updatenote, name='update-note'),
     path('delete-note/<int:noteid>', views.deletenote, name='delete-note'),
     
+    path('assign-user-group/', views.assignusergroup, name='assign-user-group'),
 ]

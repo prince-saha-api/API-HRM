@@ -1,5 +1,4 @@
 from contribution.serializer import serializers as SRLZER_CONT
-from company.serializer import serializers as SRLZER_COMP
 from branch.serializer import serializers as SRLZER_BRAN
 from rest_framework import serializers
 from department import models

@@ -2,8 +2,6 @@ from rest_framework import serializers
 from branch import models
 from contribution.serializer import serializers as SRLZER_CONT
 from company.serializer import serializers as SRLZER_COMP
-from facility.serializer import serializers as SRLZER_FACI
-
 
 class Operatinghourserializer(serializers.ModelSerializer):
     class Meta:

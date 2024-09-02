@@ -1,6 +1,7 @@
 import random
-from django.contrib.auth.hashers import make_password
+from helps.device.a_device import A_device as DEVICE
 from helps.common.micro import Microhelps
+import os
 
 class Minihelps(Microhelps):
 
@@ -28,7 +29,7 @@ class Minihelps(Microhelps):
     
     def getuserdetails(self, classOBJpackage, serializerOBJpackage, createdInstance,  personalDetails, officialDetails, salaryAndLeaves, photo, created_by): # New
         response = {'flag': True, 'message': [], 'data': {}}
-
+        
         addbankaccountdetails = None
         if salaryAndLeaves:
             if 'bank_account' in salaryAndLeaves:
@@ -227,12 +228,17 @@ class Minihelps(Microhelps):
         for field in fields['fieldlist']:
             if field['field'] in object:
                 if object[field['field']]:
+                    
                     if field['type'] == 'str':
                         if field['field'] in object:
                             if isinstance(object[field['field']], list):
                                 if object[field['field']][0]:
-                                    mainObj.update({field['field']: object[field['field']][0]})
-                            else: mainObj.update({field['field']: object[field['field']]})
+                                    if object[field['field']][0] != 'null':
+                                        mainObj.update({field['field']: object[field['field']][0]})
+                            else:
+                                if object[field['field']]:
+                                    if object[field['field']] != 'null':
+                                        mainObj.update({field['field']: object[field['field']]})
                         
                     elif field['type'] == 'int':
                         if field['field'] in object:
@@ -270,7 +276,8 @@ class Minihelps(Microhelps):
                                 subList = []
                                 for each in object[field['field']]:
                                     if each:
-                                        if each not in subList: subList.append(each)
+                                        if each != 'null':
+                                            if each not in subList: subList.append(each)
                                 if subList: mainObj.update({field['field']: subList})
         if 'nestedfields' in fields:
             for nestedfield in fields['nestedfields']:
@@ -280,11 +287,17 @@ class Minihelps(Microhelps):
                         for field in nestedfield['fieldlist']:
                             if field['field'] in object[nestedfield['field']]:
                                 if object[nestedfield['field']][field['field']]:
+                                    
                                     if field['type'] == 'str':
                                         if isinstance(object[nestedfield['field']][field['field']], list):
                                             if object[nestedfield['field']][field['field']][0]:
-                                                subObj.update({field['field']: object[nestedfield['field']][field['field']][0]})
-                                        else: subObj.update({field['field']: object[nestedfield['field']][field['field']]})
+                                                if object[nestedfield['field']][field['field']][0] != 'null':
+                                                    subObj.update({field['field']: object[nestedfield['field']][field['field']][0]})
+                                        else:
+                                            if object[nestedfield['field']][field['field']]:
+                                                if object[nestedfield['field']][field['field']] != 'null':
+                                                    subObj.update({field['field']: object[nestedfield['field']][field['field']]})
+                                    
                                     elif field['type'] == 'int':
                                         if isinstance(object[nestedfield['field']][field['field']], list):
                                             if object[nestedfield['field']][field['field']][0]:
@@ -316,218 +329,102 @@ class Minihelps(Microhelps):
                                             subList = []
                                             for each in object[nestedfield['field']][field['field']]:
                                                 if each:
-                                                    if each not in subList: subList.append(each)
+                                                    if each != 'null':
+                                                        if each not in subList: subList.append(each)
                                             if subList: subObj.update({field['field']: subList})
                     if subObj: mainObj.update({nestedfield['field']: subObj})
         return mainObj if mainObj else None
 
-    # def getOBJDetails(self, object, fields): # New
-    #     print(object)
-    #     input()
-    #     mainObj = {}
-    #     for field in fields['fieldlist']:
-    #         if field['field'] in object:
-    #             if isinstance(object[field['field']], list):
-    #                 if len(object[field['field']])>=1:
-    #                     if object[field['field']][0]:
-    #                         if field['type'] == 'str':
-    #                             # print('str')
-    #                             # print(field['field'])
-    #                             # print(object[field['field']])
-    #                             # print(object[field['field']][0])
-    #                             mainObj.update({field['field']: object[field['field']][0]})
-    #                         elif field['type'] == 'int':
-    #                             print('int')
-    #                             print(field['field'])
-    #                             print(object[field['field']])
-    #                             print(object[field['field']][0])
-    #                             mainObj.update({field['field']: int(object[field['field']][0])})
-    #                         elif field['type'] == 'bool':
-    #                             print('bool')
-    #                             print(field['field'])
-    #                             print(object[field['field']])
-    #                             print(object[field['field']][0])
-    #                             value = True if object[field['field']][0].lower() == 'true' else False if object[field['field']][0].lower() == 'false' else None
-    #                             if value != None: mainObj.update({field['field']: value})
-    #                         elif field['type'] == 'list-int':
-    #                             print('list-int')
-    #                             print(field['field'])
-    #                             print(object[field['field']])
-    #                             print(object[field['field']][0])
-    #                             subList = []
-    #                             for each in object[field['field']]:
-    #                                 if each.isnumeric():
-    #                                     if each not in subList: subList.append(int(each))
-    #                             if subList: mainObj.update({field['field']: subList})
-    #                         elif field['type'] == 'list-str':
-    #                             print('list-str')
-    #                             print(field['field'])
-    #                             print(object[field['field']])
-    #                             print(object[field['field']][0])
-    #                             subList = []
-    #                             for each in object[field['field']]:
-    #                                 if each:
-    #                                     if each not in subList: subList.append(each)
-    #                             if subList: mainObj.update({field['field']: subList})
-    #     if 'nestedfields' in fields:
-    #         for nestedfield in fields['nestedfields']:
-    #             if nestedfield['field'] in object:
-    #                 subObj = {}
-    #                 if nestedfield['fieldlist']:
-    #                     for field in nestedfield['fieldlist']:
-    #                         if field['field'] in object[nestedfield['field']]:
-    #                             if isinstance(object[nestedfield['field']][field['field']], list):
-    #                                 if len(object[nestedfield['field']][field['field']])>=1:
-    #                                     if object[nestedfield['field']][field['field']][0]:
-    #                                         if field['type'] == 'str':
-    #                                             print('str')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             subObj.update({field['field']: object[nestedfield['field']][field['field']][0]})
-    #                                         elif field['type'] == 'int':
-    #                                             print('int')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             subObj.update({field['field']: int(object[nestedfield['field']][field['field']][0])})
-    #                                         elif field['type'] == 'bool':
-    #                                             print('bool')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             value = True if object[nestedfield['field']][field['field']][0].lower() == 'true' else False if object[nestedfield['field']][field['field']][0].lower() == 'false' else None
-    #                                             if value != None: mainObj.update({field['field']: value})
-    #                                         elif field['type'] == 'list-int':
-    #                                             print('list-int')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             subList = []
-    #                                             for each in object[nestedfield['field']][field['field']]:
-    #                                                 if each.isnumeric():
-    #                                                     if each not in subList: subList.append(int(each))
-    #                                             if subList: mainObj.update({field['field']: subList})
-    #                                         elif field['type'] == 'list-str':
-    #                                             print('list-str')
-    #                                             print(field['field'])
-    #                                             print(object[field['field']])
-    #                                             print(object[field['field']][0])
-    #                                             subList = []
-    #                                             for each in object[nestedfield['field']][field['field']]:
-    #                                                 if each:
-    #                                                     if each not in subList: subList.append(each)
-    #                                             if subList: mainObj.update({field['field']: subList})
-    #                 if subObj: mainObj.update({nestedfield['field']: subObj})
-    #     return mainObj if mainObj else None
-    
-    def addemergencycontact(self, Employeecontact, Employeecontactserializer, Address, Addressserializer, userinstance, emergencyContact): # New
-        response = {'success': [], 'failed': [], 'message': []}
-        if isinstance(emergencyContact, list):
-            for index, details in enumerate(emergencyContact):
-                details_copy = details.copy()
-                details.update({'user': userinstance.id})
-                
-                address_flag = True
-                address_responsemessage = []
+    def addUserRecord(self, information={}): # New
+        response = {'failed': [], 'message': [], 'backend_message': []}
+        if information:
+            if isinstance(information, dict):
+                outer_details = information['outer_details'] if 'outer_details' in information else {}
+                inner_details = information['inner_details'] if 'inner_details' in information else {}
+                if outer_details:
+                    if 'userid' in outer_details:
+                        if 'classOBJ' in outer_details:
+                            if 'Serializer' in outer_details:
+                                if 'data' in outer_details:
+                                    if isinstance(outer_details['data'], list):
+                                        for index, details in enumerate(outer_details['data']):
 
-                allowed_fields = ['alias', 'address', 'city', 'state_division', 'post_zip_code', 'country', 'latitude', 'longitude']
-                required_fields = ['address', 'city', 'state_division', 'country']
-                responsedata, responsemessage, responsesuccessflag, responsestatus = self.addtocolass(
-                    classOBJ=Address,
-                    Serializer=Addressserializer,
-                    data=details,
-                    allowed_fields=allowed_fields,
-                    required_fields=required_fields
-                )
+                                            details_copy = details.copy()
+                                            details.update({'user': outer_details['userid']})
+                                            
+                                            inner_instance = None
+                                            inner_responsemessage = []
+                                            if inner_details:
+                                                if 'classOBJ' in inner_details:
+                                                    if 'Serializer' in inner_details:
+                                                        if 'key' in inner_details:
+                                                            if inner_details['key'] in details:
+                                                                if details[inner_details['key']]:
 
-                if responsesuccessflag == 'success': details.update({'address': responsedata.instance.id})
-                elif responsesuccessflag == 'error':
-                    address_responsemessage.extend(responsemessage)
-                    address_flag = False
-                    del details['address']
+                                                                    allowed_fields = inner_details['allowed_fields'] if 'allowed_fields' in inner_details else []
+                                                                    unique_fields = inner_details['unique_fields'] if 'unique_fields' in inner_details else []
+                                                                    required_fields = inner_details['required_fields'] if 'required_fields' in inner_details else []
+                                                                    extra_fields = inner_details['extra_fields'] if 'extra_fields' in inner_details else {}
+                                                                    choice_fields = inner_details['choice_fields'] if 'choice_fields' in inner_details else []
+                                                                    fields_regex = inner_details['fields_regex'] if 'fields_regex' in inner_details else []
 
-                allowed_fields = ['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation']
-                required_fields = ['name', 'user']
-                unique_fields = ['phone_no']
-                fields_regex = [
-                    {'field': 'phone_no', 'type': 'phonenumber'},
-                    {'field': 'email', 'type': 'email'}
-                ]
-                response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    classOBJ=Employeecontact,
-                    Serializer=Employeecontactserializer,
-                    data=details,
-                    allowed_fields=allowed_fields,
-                    required_fields=required_fields,
-                    unique_fields=unique_fields,
-                    fields_regex=fields_regex
-                )
-                if response_successflag == 'success':
-                    objects = {'details': details_copy, 'message': []}
-                    if not address_flag: objects['message'].extend([f'{index+1} user\'s emergency contact address {each}' for each in address_responsemessage])
-                    response['success'].append(objects)
-                elif response_successflag == 'error':
-                    objects = {'details': details_copy, 'message': []}
-                    objects['message'].extend([f'{index+1} user\'s emergency contact {each}' for each in response_message])
-                    if not address_flag: objects['message'].extend([f'{index+1} user\'s emergency contact address {each}' for each in address_responsemessage])
-                    response['failed'].append(objects)
-        else: response['message'].append('emergencycontact is not list type!')
+                                                                    responsedata, responsemessage, responsesuccessflag, _ = self.addtocolass(
+                                                                        classOBJ=inner_details['classOBJ'],
+                                                                        Serializer=inner_details['Serializer'],
+                                                                        data=details[inner_details['key']],
+                                                                        allowed_fields=allowed_fields,
+                                                                        unique_fields=unique_fields,
+                                                                        required_fields=required_fields,
+                                                                        extra_fields=extra_fields,
+                                                                        choice_fields=choice_fields,
+                                                                        fields_regex=fields_regex
+                                                                    )
+                                                                    if responsesuccessflag == 'success':
+                                                                        inner_instance = responsedata.instance
+                                                                        details.update({inner_details['key']: responsedata.instance.id})
+                                                                    elif responsesuccessflag == 'error':
+                                                                        inner_responsemessage.extend([f'Warning: {outer_details["classOBJ"].__name__}(index: {index})\'s address {each}, therefore couldn\'t add {inner_details["classOBJ"].__name__}, please update later!' for each in responsemessage])
+                                                                        del details[inner_details['key']]
+                                                                else: del details[inner_details['key']]
+                                                            else: response['backend_message'].append(f'{inner_details["key"]} key doesn\'t exist in provided object!')
+                                                        else: response['backend_message'].append('inner_details object key is missing!')    
+                                                    else: response['backend_message'].append('Serializer is missing in inner_details!')
+                                                else: response['backend_message'].append('classOBJ is missing in inner_details!')
+                                            
+
+                                            allowed_fields = outer_details['allowed_fields'] if 'allowed_fields' in outer_details else []
+                                            unique_fields = outer_details['unique_fields'] if 'unique_fields' in outer_details else []
+                                            required_fields = outer_details['required_fields'] if 'required_fields' in outer_details else []
+                                            extra_fields = outer_details['extra_fields'] if 'extra_fields' in outer_details else {}
+                                            choice_fields = outer_details['choice_fields'] if 'choice_fields' in outer_details else []
+                                            fields_regex = outer_details['fields_regex'] if 'fields_regex' in outer_details else []
+                                            
+                                            _, response_message, response_successflag, _ = self.addtocolass(
+                                                classOBJ=outer_details['classOBJ'],
+                                                Serializer=outer_details['Serializer'],
+                                                data=details,
+                                                allowed_fields=allowed_fields,
+                                                unique_fields=unique_fields,
+                                                required_fields=required_fields,
+                                                extra_fields=extra_fields,
+                                                choice_fields=choice_fields,
+                                                fields_regex=fields_regex
+                                            )
+                                            if response_successflag == 'success': response['message'].extend(inner_responsemessage)
+                                            elif response_successflag == 'error':
+                                                failed_messages = [f'{outer_details["classOBJ"].__name__} {each}, therefore couldn\'t add this(index: {index}) record!' for each in response_message]
+                                                objects = {'details': details_copy, 'message': failed_messages}
+                                                response['failed'].append(objects)
+                                                response['message'].extend(failed_messages)
+                                                if inner_instance: inner_instance.delete()
+                                    else: response['message'].append(f'{outer_details["classOBJ"].__name__}\'s data should be type of list!')
+                                else: response['backend_message'].append('data is missing in outer_details!')
+                            else: response['backend_message'].append('Serializer is missing in outer_details!')
+                        else: response['backend_message'].append('classOBJ is missing in outer_details!')
+                    else: response['backend_message'].append('user id is missing in outer_details!')
+                else: response['backend_message'].append('provide outer_details!')
+            else: response['backend_message'].append('type of information should be dict!')
         return response
-    
-    def addacademicrecord(self, Employeeacademichistory, Employeeacademichistoryserializer, userinstance, academicRecord): # New
-        response = {'success': [], 'failed': [], 'message': []}
-        if isinstance(academicRecord, list):
-            for index, details in enumerate(academicRecord):
-                details_copy = details.copy()
-                details.update({'user': userinstance.id})
-
-                required_fields = ['user', 'board_institute_name', 'certification', 'level', 'score_grade', 'year_of_passing']
-                response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    classOBJ=Employeeacademichistory,
-                    Serializer=Employeeacademichistoryserializer,
-                    data=details,
-                    required_fields=required_fields
-                )
-                if response_successflag == 'success':
-                    objects = {'details': details_copy, 'message': []}
-                    response['success'].append(objects)
-                elif response_successflag == 'error':
-                    objects = {'details': details_copy, 'message': []}
-                    objects['message'].extend([f'{index+1} user\'s academic record {each}' for each in response_message])
-                    response['failed'].append(objects)
-        else: response['message'].append('academicrecord is not list type!')
-        return response
-    
-    def addpreviousexperience(self, Employeeexperiencehistory, Employeeexperiencehistoryserializer, userinstance, previousExperience): # New 
-        response = {'success': [], 'failed': [], 'message': []}
-        if isinstance(previousExperience, list):
-            for index, details in enumerate(previousExperience):
-                details_copy = details.copy()
-                details.update({'user': userinstance.id})
-
-                required_fields = ['user', 'company_name', 'designation', 'address', 'from_date', 'to_date']
-                fields_regex = [
-                    {'field': 'from_date', 'type': 'date'},
-                    {'field': 'to_date', 'type': 'date'}
-                ]
-                response_data, response_message, response_successflag, response_status = self.addtocolass(
-                    classOBJ=Employeeexperiencehistory,
-                    Serializer=Employeeexperiencehistoryserializer,
-                    data=details,
-                    required_fields=required_fields,
-                    fields_regex=fields_regex
-                )
-                if response_successflag == 'success':
-                    objects = {'details': details_copy, 'message': []}
-                    response['success'].append(objects)
-                elif response_successflag == 'error':
-                    objects = {'details': details_copy, 'message': []}
-                    objects['message'].extend([f'{index+1} user\'s previous experience {each}' for each in response_message])
-                    response['failed'].append(objects)
-        else: response['message'].append('previousexperience is not list type!')
-        return response
-    
     
     def assignLeavepolicyToBulkUser(self, classOBJpackage, userlist, leavepolicyid, fiscalyear, manipulate_info): # New
         response = {'flag': False, 'message': []}
@@ -562,9 +459,74 @@ class Minihelps(Microhelps):
                             else:
                                 response['flag'] = True
                                 response['message'].append(f'successfully assigned {leavepolicy.name}({leavepolicyid}) to {user.get_full_name()}({userid})')
-                        else: response['message'].append(f'user{userid} doesn\'t exist therefor couldn\'t assign leavepolicy!')
-                else: response['message'].append(f'leavepolicy{leavepolicyid} doesn\'t exist therefor couldn\'t assign to given users!')
+                        else: response['message'].append(f'user{userid} doesn\'t exist therefore couldn\'t assign leavepolicy!')
+                else: response['message'].append(f'leavepolicy{leavepolicyid} doesn\'t exist therefore couldn\'t assign to given users!')
             else: response['message'].append('userid will be placed in list!')
         else: response['message'].append('user list is blank!')
         return response
     
+
+    def assignGroupToBulkUser(self, classOBJpackage, userlist, groupid): # New
+        response = {'flag': False, 'message': []}
+        if userlist:
+            if isinstance(userlist, list):
+
+                group = self.getobject(classOBJpackage['Group'], {'id': groupid})
+                if group:
+                    for userid in userlist:
+                        # user = self.getobject(classOBJpackage['User'], {'id': userid})
+                        user = classOBJpackage['User'].objects.filter(id=userid)
+                        if user.exists():
+                            userdevicegroup = classOBJpackage['Userdevicegroup'].objects.filter(user=user.first(), group=group)
+                            instance = userdevicegroup if userdevicegroup.exists() else classOBJpackage['Userdevicegroup'].objects.create(user=user.first(), group=group)
+                            devicegroup = classOBJpackage['Devicegroup'].objects.filter(group=groupid)
+                            for device in [each.device for each in devicegroup]:
+
+
+                                user_register_info = self.getUserInfoToRegisterIntoDevice(classOBJpackage['User'], user.first(), device)
+                                if user_register_info['flag']:
+                                    user_register_response = self.registerUserToDevice([user_register_info['data']])
+                                    if user_register_response['flag']: response['flag'] = True
+                                    else: instance.delete()
+                                    response['message'].extend(user_register_response['message'])
+                                else:
+                                    instance.delete()
+                                    response['message'].extend(user_register_info['message'])
+                                    
+                                # user_to_device = self.addUserToDevice(user, device) 
+                                # if user_to_device['flag']: response['flag'] = True
+                                # else: instance.delete()
+                                # response['message'].extend(user_to_device['message'])
+                        else: response['message'].append(f'user{userid} doesn\'t exist therefore couldn\'t assign to group!')
+                else: response['message'].append(f'group{groupid} doesn\'t exist therefore couldn\'t assign to given users!')
+            else: response['message'].append('userid will be placed in list!')
+        else: response['message'].append('user list is blank!')
+        return response
+
+    
+    def assignShiftToBulkUser(self, classOBJpackage, userlist, shiftid): # New
+        response = {'flag': False, 'message': []}
+        if userlist:
+            if isinstance(userlist, list):
+                if shiftid:
+                    shift = self.getobject(classOBJpackage['Shift'], {'id': shiftid})
+                    if shift:
+                        for userid in userlist:
+                            user = classOBJpackage['User'].objects.filter(id=userid)
+                            if user.exists():
+                                if user.first().shift:
+                                    if user.first().shift.id == shift.id:
+                                        response['flag'] = True
+                                        response['message'].append(f'{shift.name}({shiftid}) is already assigned to {user.first().get_full_name()}({userid})')
+                                        continue
+                                try:
+                                    user.update(shift=shift)
+                                    response['flag'] = True
+                                    response['message'].append(f'successfully assigned {shift.name}({shiftid}) to {user.first().get_full_name()}({userid})')
+                                except: response['message'].append(f'couldn\'t assign {shift.name}({shiftid}) to {user.first().get_full_name()}({userid})')
+                            else: response['message'].append(f'user{userid} doesn\'t exist therefore couldn\'t assign shift!')
+                    else: response['message'].append(f'shift{shiftid} doesn\'t exist therefore couldn\'t assign to given users!')
+                else: response['message'].append('shift id is blank!')
+            else: response['message'].append('userid will be placed in list!')
+        else: response['message'].append('user list is blank!')
+        return response
