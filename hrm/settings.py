@@ -1,10 +1,11 @@
 import environ
+# from dotenv import load_dotenv
 from pathlib import Path
 from datetime import timedelta
 from rest_framework.settings import api_settings
-
-env = environ.Env()
-environ.Env.read_env()
+# load_dotenv()
+# env = environ.Env()
+# environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -148,10 +149,14 @@ CORS_ALLOWED_ORIGINS = [
     'http://113.212.109.147:49012',
     'http://10.10.23.89:49012',
     'http://10.10.23.16:49012',
+    'http://10.10.23.16:49012',
     'http://10.10.21.17:49012',
     'http://10.10.21.17:49012',
     'http://10.10.20.20:49015',
     'http://10.10.20.20:49016',
+    'http://*',
+]
+
     'http://*',
 ]
  
