@@ -2,6 +2,20 @@ from helps.device.b_device import B_device
 
 class A_device(B_device):
 
+    def getAllLogs(self, device, starttime, endtime, count, officialids, logs = {}):
+        raw_logs = []
+        first = True
+        previousstarttime = -1
+        while previousstarttime != starttime:
+            previousstarttime = starttime
+            new_logs, starttime = self.getLogsValueAndEndtime(device, starttime, endtime, count)
+            if first:
+                raw_logs.extend(new_logs)
+                count += 1
+                first = False
+            else: raw_logs.extend(new_logs[1:])
+        self.filterLogs(raw_logs, officialids, logs)
+
     def createUserAndTrainImage(self, ip, name, cardno, userid, image_paths, password, reg_date,  valid_date, uname, pword):
         response = {'flag': False, 'message': []}
         withoutimg_response = self.insertusrwithoutimg(ip, name, cardno, userid, password, reg_date,  valid_date, uname, pword)

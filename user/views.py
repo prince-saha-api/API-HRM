@@ -1168,7 +1168,6 @@ def addemployee(request):
                         'data': emergencyContact,
                         'allowed_fields': ['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation'],
                         'required_fields': ['name', 'user'],
-                        'unique_fields': ['phone_no'],
                         'fields_regex': [
                             {'field': 'phone_no', 'type': 'phonenumber'},
                             {'field': 'email', 'type': 'email'}

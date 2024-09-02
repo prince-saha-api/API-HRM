@@ -1,3 +1,4 @@
+from helps.device.e_device import E_device
 from requests.auth import HTTPDigestAuth
 from django.conf import settings
 from pythonping import ping
@@ -8,7 +9,7 @@ import base64
 import os
 import re
 
-class D_device:
+class D_device(E_device):
 
     # def getDeviceIpUsernamePassword(self, Classobject, deviceid):
     #     device_id = ''
@@ -100,35 +101,40 @@ class D_device:
     #     img_path = img_path.replace('/media','')
     #     return base_path+img_path
     
-    def getLogsValue(self, ip, starttime, endtime, count, uname, pword):
-        url=f"http://{ip}/cgi-bin/recordFinder.cgi?action=find&name=AccessControlCardRec&StartTime={starttime}&EndTime={endtime}&count={count}"
-        response=requests.get(url,auth=HTTPDigestAuth(uname, pword))
-        records = []
-        lines = [line for line in response.text.split('\n') if line.strip()]
-
-        current_index = None
-        current_record = {}
-
-        for line in lines:
-            match = re.match(r'records\[(\d+)\]\.(.*?)=(.*)', line)
-            if match:
-                index = int(match.group(1))
-                field_name = match.group(2)
-                value = match.group(3)
-
-                if index != current_index:
-                    if current_record: records.append(current_record)
-                    current_index = index
-                    current_record = {}
-                current_record[field_name] = value
-
-        if current_record: records.append(current_record)
-            
-        modifiedrecords = []
-        for record in records:
-            modifiedrecord = {}
-            for key in record.keys():
-                if '\r' in record[key]: modifiedrecord.update({key: record[key].split('\r')[0]})
-            modifiedrecords.append(modifiedrecord)
+    def getLogsValue(self, device, starttime, endtime, count):
+        response = { 'flag': False, 'message': 'Couldn\'t get logs!(getLogsValue)', 'data': [] }
+        url = f"http://{device.deviceip}/cgi-bin/recordFinder.cgi?action=find&name=AccessControlCardRec&StartTime={starttime}&EndTime={endtime}&count={count}"
         
-        return modifiedrecords
+        try:
+            requests_response=requests.get(url,auth=HTTPDigestAuth(device.username, device.password))
+            records = []
+            lines = [line for line in requests_response.text.split('\n') if line.strip()]
+
+            current_index = None
+            current_record = {}
+
+            for line in lines:
+                match = re.match(r'records\[(\d+)\]\.(.*?)=(.*)', line)
+                if match:
+                    index = int(match.group(1))
+                    field_name = match.group(2)
+                    value = match.group(3)
+
+                    if index != current_index:
+                        if current_record: records.append(current_record)
+                        current_index = index
+                        current_record = {}
+                    current_record[field_name] = value
+
+            if current_record: records.append(current_record)
+                
+            for record in records:
+                modifiedrecord = {}
+                for key in record.keys():
+                    if '\r' in record[key]: modifiedrecord.update({key: record[key].split('\r')[0]})
+                response['data'].append(modifiedrecord)
+            response['flag'] = True
+            response['message'] = 'logs found'
+        except: pass
+        
+        return response

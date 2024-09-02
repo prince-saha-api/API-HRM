@@ -36,46 +36,46 @@ class Attendance(Timedetails):
     def __str__(self):
         return f'{self.date} - {self.employee.username} - {self.in_time} - {self.out_time} - {self.total_minutes} - {self.late_in_based_on_buffertime} - {self.early_leave_based_on_buffertime}'
 
-    def save(self, *args, **kwargs):
-        self.date = f'{self.date}'
+    # def save(self, *args, **kwargs):
+    #     self.date = f'{self.date}'
 
-        if self.in_out_times == None:
-            in_out_times = []
-            if self.in_time: in_out_times.append(self.in_time)
-            if self.out_time: in_out_times.append(self.out_time)
-            self.in_out_times = in_out_times
+    #     if self.in_out_times == None:
+    #         in_out_times = []
+    #         if self.in_time: in_out_times.append(self.in_time)
+    #         if self.out_time: in_out_times.append(self.out_time)
+    #         self.in_out_times = in_out_times
 
-        if len(self.in_out_times) == 0:
-            if self.in_time: self.in_out_times.append(self.in_time)
-            if self.out_time: self.in_out_times.append(self.out_time)
+    #     if len(self.in_out_times) == 0:
+    #         if self.in_time: self.in_out_times.append(self.in_time)
+    #         if self.out_time: self.in_out_times.append(self.out_time)
 
-        shiftchangelog = MODELS_USER.Shiftchangelog.objects.filter(date=self.date, user=self.employee)
+    #     shiftchangelog = MODELS_USER.Shiftchangelog.objects.filter(date=self.date, user=self.employee)
 
-        if shiftchangelog.exists():
-            shiftchangelog = shiftchangelog.first()
-            shift = shiftchangelog.newshift
+    #     if shiftchangelog.exists():
+    #         shiftchangelog = shiftchangelog.first()
+    #         shift = shiftchangelog.newshift
 
-            details = ghelp().getattendancedetails(MODELS_SETT.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
-            self.in_negative_minutes = details['in_negative_minutes']
-            self.in_positive_minutes = details['in_positive_minutes']
-            self.out_negative_minutes = details['out_negative_minutes']
-            self.out_positive_minutes = details['out_positive_minutes']
+    #         details = ghelp().getattendancedetails(MODELS_SETT.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
+    #         self.in_negative_minutes = details['in_negative_minutes']
+    #         self.in_positive_minutes = details['in_positive_minutes']
+    #         self.out_negative_minutes = details['out_negative_minutes']
+    #         self.out_positive_minutes = details['out_positive_minutes']
 
-            self.total_minutes = details['total_minutes']
-            # if details['office_off_day']: self.office_off_day = details['office_off_day']
-        else:
-            shift = self.employee.shift
+    #         self.total_minutes = details['total_minutes']
+    #         # if details['office_off_day']: self.office_off_day = details['office_off_day']
+    #     else:
+    #         shift = self.employee.shift
 
-            details = ghelp().getattendancedetails(MODELS_SETT.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
-            self.in_negative_minutes = details['in_negative_minutes']
-            self.in_positive_minutes = details['in_positive_minutes']
-            self.out_negative_minutes = details['out_negative_minutes']
-            self.out_positive_minutes = details['out_positive_minutes']
+    #         details = ghelp().getattendancedetails(MODELS_SETT.Weeklyholiday, shift, self.date, self.in_time, self.out_time)
+    #         self.in_negative_minutes = details['in_negative_minutes']
+    #         self.in_positive_minutes = details['in_positive_minutes']
+    #         self.out_negative_minutes = details['out_negative_minutes']
+    #         self.out_positive_minutes = details['out_positive_minutes']
 
-            self.total_minutes = details['total_minutes']
-            # if details['office_off_day']: self.office_off_day = details['office_off_day']
+    #         self.total_minutes = details['total_minutes']
+    #         # if details['office_off_day']: self.office_off_day = details['office_off_day']
 
-        super().save(*args, **kwargs)
+    #     super().save(*args, **kwargs)
 
 class Devicelogs(Timedetails):
     date = models.DateField()

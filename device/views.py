@@ -228,7 +228,6 @@ def adddevicegroup(request):
     if not response_message:
         user_info = ghelp().getUsersInfoToRegisterIntoDevice(MODELS_USER.User, MODELS_USER.Userdevicegroup, device.first(), groupid)
         response_message.extend(user_info['message'])
-
         allowed_fields = ['title', 'group', 'device']
         required_fields = ['group', 'device']
         responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
@@ -239,13 +238,18 @@ def adddevicegroup(request):
             required_fields=required_fields
         )
         if responsesuccessflag == 'success':
-            response = ghelp().registerUserToDevice(user_info['data'])
-            if response['flag']:
+            if user_info['user_count']:
+                response = ghelp().registerUserToDevice(user_info['data'])
+                if response['flag']:
+                    response_data = responsedata.data
+                    response_successflag = responsesuccessflag
+                    response_status = responsestatus
+                else: responsedata.instance.delete()
+                response_message.extend(response['message'])
+            else:
                 response_data = responsedata.data
                 response_successflag = responsesuccessflag
                 response_status = responsestatus
-            else: responsedata.instance.delete()
-            response_message.extend(response['message'])
         elif responsesuccessflag == 'error': response_message.extend(responsemessage)
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 

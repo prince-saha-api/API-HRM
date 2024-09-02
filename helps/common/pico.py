@@ -373,6 +373,20 @@ class Picohelps:
                ]
             }
    
+   def getNoticeBoardData(self):
+      return {
+               'fieldlist': [
+                  {'field': 'title', 'type': 'str'},
+                  {'field': 'description', 'type': 'str'},
+                  {'field': 'attachment', 'type': 'str'},
+                  {'field': 'expiry_date', 'type': 'str'},
+                  {'field': 'company', 'type': 'list-int'},
+                  {'field': 'branch', 'type': 'list-int'},
+                  {'field': 'department', 'type': 'list-int'},
+                  {'field': 'user', 'type': 'list-int'}
+               ]
+            }
+   
    def removeFile(self, OBJ, key):
       photo = getattr(OBJ, key, None)
       if photo:

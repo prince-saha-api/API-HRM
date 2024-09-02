@@ -228,12 +228,17 @@ class Minihelps(Microhelps):
         for field in fields['fieldlist']:
             if field['field'] in object:
                 if object[field['field']]:
+                    
                     if field['type'] == 'str':
                         if field['field'] in object:
                             if isinstance(object[field['field']], list):
                                 if object[field['field']][0]:
-                                    mainObj.update({field['field']: object[field['field']][0]})
-                            else: mainObj.update({field['field']: object[field['field']]})
+                                    if object[field['field']][0] != 'null':
+                                        mainObj.update({field['field']: object[field['field']][0]})
+                            else:
+                                if object[field['field']]:
+                                    if object[field['field']] != 'null':
+                                        mainObj.update({field['field']: object[field['field']]})
                         
                     elif field['type'] == 'int':
                         if field['field'] in object:
@@ -271,7 +276,8 @@ class Minihelps(Microhelps):
                                 subList = []
                                 for each in object[field['field']]:
                                     if each:
-                                        if each not in subList: subList.append(each)
+                                        if each != 'null':
+                                            if each not in subList: subList.append(each)
                                 if subList: mainObj.update({field['field']: subList})
         if 'nestedfields' in fields:
             for nestedfield in fields['nestedfields']:
@@ -281,11 +287,17 @@ class Minihelps(Microhelps):
                         for field in nestedfield['fieldlist']:
                             if field['field'] in object[nestedfield['field']]:
                                 if object[nestedfield['field']][field['field']]:
+                                    
                                     if field['type'] == 'str':
                                         if isinstance(object[nestedfield['field']][field['field']], list):
                                             if object[nestedfield['field']][field['field']][0]:
-                                                subObj.update({field['field']: object[nestedfield['field']][field['field']][0]})
-                                        else: subObj.update({field['field']: object[nestedfield['field']][field['field']]})
+                                                if object[nestedfield['field']][field['field']][0] != 'null':
+                                                    subObj.update({field['field']: object[nestedfield['field']][field['field']][0]})
+                                        else:
+                                            if object[nestedfield['field']][field['field']]:
+                                                if object[nestedfield['field']][field['field']] != 'null':
+                                                    subObj.update({field['field']: object[nestedfield['field']][field['field']]})
+                                    
                                     elif field['type'] == 'int':
                                         if isinstance(object[nestedfield['field']][field['field']], list):
                                             if object[nestedfield['field']][field['field']][0]:
@@ -317,12 +329,11 @@ class Minihelps(Microhelps):
                                             subList = []
                                             for each in object[nestedfield['field']][field['field']]:
                                                 if each:
-                                                    if each not in subList: subList.append(each)
+                                                    if each != 'null':
+                                                        if each not in subList: subList.append(each)
                                             if subList: subObj.update({field['field']: subList})
                     if subObj: mainObj.update({nestedfield['field']: subObj})
         return mainObj if mainObj else None
-    
-
 
     def addUserRecord(self, information={}): # New
         response = {'failed': [], 'message': [], 'backend_message': []}

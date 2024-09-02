@@ -218,9 +218,10 @@ class Nanohelps(Picohelps):
     
 
     def getUsersInfoToRegisterIntoDevice(self, User, Userdevicegroup, device, groupid): # New
-        response = {'data': [], 'message': []}
+        response = {'data': [], 'user_count': 0,'message': []}
         for user in [each.user for each in Userdevicegroup.objects.filter(group=groupid)]:
             user_register_info = self.getUserInfoToRegisterIntoDevice(User, user, device)
             if user_register_info['flag']: response['data'].append(user_register_info['data'])
             else: response['message'].extend(user_register_info['message'])
+            response['user_count'] += 1
         return response

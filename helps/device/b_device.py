@@ -3,6 +3,31 @@ from requests.auth import HTTPDigestAuth
 import requests
 
 class B_device(C_device):
+
+    def getLogsValueAndEndtime(self, device, starttime, endtime, count):
+        CreateTime = ''
+        log_response = self.getLogsValue(device, starttime, endtime, count)
+        if log_response['data']: CreateTime = log_response['data'][-1].get('CreateTime')
+        return log_response['data'], CreateTime
+    
+    def filterLogs(self, raw_logs, officialids, logs, officialidsonly=True):
+        for raw_log in raw_logs:
+            UserID = raw_log['UserID']
+            CreateTime = f"{self.convert_STR_int_datetime_y_m_d_h_m_s_six(raw_log['CreateTime'])}"
+            datetime = CreateTime.split(' ')
+            date = datetime[0]
+            time = datetime[1].split('+')[0]
+
+            if officialidsonly:
+                if UserID in officialids:
+                    if UserID not in logs: logs.update({UserID: {}})
+                    if date not in logs[UserID]: logs[UserID].update({date: []})
+                    if time not in logs[UserID][date]: logs[UserID][date].append(time)
+            else:
+                if UserID:
+                    if UserID not in logs: logs.update({UserID: {}})
+                    if date not in logs[UserID]: logs[UserID].update({date: []})
+                    if time not in logs[UserID][date]: logs[UserID][date].append(time) 
     
     def addphototouser(self, ip, name, userid, image_paths, uname, pword):
         flag = False

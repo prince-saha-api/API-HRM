@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from helps.choice import common as CHOICE
 from rest_framework.permissions import IsAuthenticated
 from helps.common.generic import Generichelps as ghelp
-from helps.accesscontroldevice.a_devicehelp import Decicehelps as dhelp
+from helps.device.a_device import A_device as DEVICE
 from attendance import models as MODELS_ATTE
 from attendance.serializer.POST import serializers as PSRLZER_ATTE
 from attendance.serializer import serializers as SRLZER_ATTE
@@ -26,7 +26,10 @@ def getmanualattendence(request):
         {'name': 'requested_by', 'convert': None, 'replace':'requested_by'},
         {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
     ]
-    requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**ghelp().KWARGS(request, filter_fields))
+    kwargs=ghelp().KWARGS(request, filter_fields)
+    if 'requested_by' not in kwargs: kwargs.update({'requested_by': request.user.id})
+
+    requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**kwargs)
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: requestmanualattendances = requestmanualattendances.order_by(column_accessor)
 
@@ -48,59 +51,44 @@ def getmanualattendence(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
 def addmanualattendence(request):
-    date = request.data.get('date')
+    requestdata = request.data.copy()
+    date = requestdata.get('date')
     if date == None: return Response({'status': 'error', 'message': 'date is required!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
-    
-    request.data.update({'requested_by': request.user.id})
-    requestmanualattendance = MODELS_ATTE.Requestmanualattendance.objects.filter(date=date, requested_by=request.user.id)
-    
-    if not requestmanualattendance.exists():
-        requestmanualattendanceserializers = PSRLZER_ATTE.Requestmanualattendanceserializer(data=request.data, many=False)
-        if requestmanualattendanceserializers.is_valid():
-            requestmanualattendanceserializers.save()
-            return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializers.data}, status=status.HTTP_201_CREATED)
-        else: return Response({'status': 'error', 'message': '', 'data': requestmanualattendanceserializers.errors}, status=status.HTTP_400_BAD_REQUEST)
-    else: return Response({'status': 'error', 'message': 'already exist!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
+    if 'requested_by' not in requestdata:  requestdata.update({'requested_by': request.user.id})
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-# @deco.get_permission(['get company info', 'all'])
-def getloggedinusersmanualattendence(request):
-    userid = request.user.id
-    if userid:
-        filter_fields = [
-                            {'name': 'date', 'convert': None, 'replace':'date'},
-                            {'name': 'in_time', 'convert': None, 'replace':'in_time'},
-                            {'name': 'out_time', 'convert': None, 'replace':'out_time'},
-                            {'name': 'status', 'convert': None, 'replace':'status__icontains'},
-                            {'name': 'decisioned_by', 'convert': None, 'replace':'decisioned_by'}
-                        ]
-        kwargs = ghelp().KWARGS(request, filter_fields)
-        kwargs.update({'requested_by': userid}) ,
-        requestmanualattendances = MODELS_ATTE.Requestmanualattendance.objects.filter(**kwargs)
-        column_accessor = request.GET.get('column_accessor')
-        if column_accessor: requestmanualattendances = requestmanualattendances.order_by(column_accessor)
-        requestmanualattendanceserializer = SRLZER_ATTE.Requestmanualattendanceserializer(requestmanualattendances, many=True)
-        return Response({'status': 'success', 'message': '', 'data': requestmanualattendanceserializer.data}, status=status.HTTP_200_OK)
-    else: return Response({'status': 'error', 'message': 'not loggedin!', 'data': {}}, status=status.HTTP_400_BAD_REQUEST)
+    allowed_fields = ['date', 'in_time', 'out_time', 'admin_note', 'requested_by']
+    required_fields = ['date', 'in_time', 'out_time']
+    fields_regex = [{'field': 'date', 'type': 'date'}, {'field': 'in_time', 'type': 'time'}, {'field': 'out_time', 'type': 'time'}]
+    
+    extra_fields = {'status': CHOICE.STATUS[0][1]}
+    if 'requested_by' not in requestdata: extra_fields.update({'requested_by': request.user.id})
+    response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+        classOBJ=MODELS_ATTE.Requestmanualattendance,
+        Serializer=PSRLZER_ATTE.Requestmanualattendanceserializer,
+        data=requestdata,
+        allowed_fields=allowed_fields,
+        required_fields=required_fields,
+        fields_regex=fields_regex,
+        extra_fields=extra_fields
+    )
+    if response_successflag == 'success': response_data = response_data.data
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
 def updatemanualattendence(request, manualattendenceid=None):
-    allowed_fields = ['date', 'in_time', 'out_time']
-    fields_regex = [
-        {'field': 'date', 'type': 'date'},
-        {'field': 'in_time', 'type': 'time'},
-        {'field': 'out_time', 'type': 'time'},
-    ]
+    # allowed_fields = ['date', 'in_time', 'out_time']
+    fields_regex = [{'field': 'date', 'type': 'date'}, {'field': 'in_time', 'type': 'time'}, {'field': 'out_time', 'type': 'time'}]
+    freez_update = [{'status': [CHOICE.STATUS[1][1], CHOICE.STATUS[2][1]]}]
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
-        classOBJ=MODELS_ATTE.Requestmanualattendance, 
-        Serializer=SRLZER_ATTE.Requestmanualattendanceserializer, 
-        id=manualattendenceid, 
-        data=request.data, 
-        allowed_fields=allowed_fields,
-        fields_regex=fields_regex
+        classOBJ=MODELS_ATTE.Requestmanualattendance,
+        Serializer=SRLZER_ATTE.Requestmanualattendanceserializer,
+        id=manualattendenceid,
+        data=request.data,
+        # allowed_fields=allowed_fields,
+        fields_regex=fields_regex,
+        freez_update=freez_update
     )
     response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
@@ -110,6 +98,22 @@ def updatemanualattendence(request, manualattendenceid=None):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
 def approvemanualattendence(request, manualattendenceid=None):
+    freez_update = [{'status': [CHOICE.STATUS[1][1], CHOICE.STATUS[2][1]]}]
+    response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
+        classOBJ=MODELS_ATTE.Requestmanualattendance,
+        Serializer=SRLZER_ATTE.Requestmanualattendanceserializer,
+        id=manualattendenceid,
+        data={'status': CHOICE.STATUS[1][1]},
+        freez_update=freez_update
+    )
+    if response_successflag == 'success':
+        response_data = response_data.data
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
+
+
+
+
+
     requestmanualattendance = MODELS_ATTE.Requestmanualattendance.objects.filter(id=manualattendenceid)
     if requestmanualattendance.exists():
         attendance = MODELS_ATTE.Attendance.objects.filter(date=requestmanualattendance.first().date, employee=requestmanualattendance.first().requested_by.id)
@@ -424,49 +428,41 @@ def rejectremoteattendence(request, remoteattendenceid=None):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['get company info', 'all'])
-def addattendancefromlogsalldevices(request, minutes=None):
+def attendancefromlogs(request, minutes=None):
 
-    devices = MODELS_DEVI.Device.objects.filter(is_active=True)
+    devices = [each for each in MODELS_DEVI.Device.objects.filter(is_active=True) if DEVICE().is_device_active(each.deviceip)]
     start, end = ghelp().getStarttimeEndtime(minutes)
 
-    usernames = [each.username for each in MODELS_USER.User.objects.filter(is_active=True)]
-    # usernames = ['rashed', 'shakil', 'tamim_pm', 'NAYEEM']
-
+    officialids = [each.official_id for each in MODELS_USER.User.objects.filter(is_active=True) if each.official_id]
     
     logs = {}
-    for device in devices: dhelp().getAllLogs(device, start, end, 100, usernames, logs)
+    for device in devices:
+        DEVICE().getAllLogs(device, start, end, 100, officialids, logs)
 
     # Saving To Logs
-    for username in logs.keys():
-        for date in logs[username].keys():
-            for inout_time in logs[username][date]:
-                employee=MODELS_USER.User.objects.get(username=username)
-                try: MODELS_ATTE.Devicelogs.objects.create(date=date, in_time=inout_time, employee=employee)
-                except: pass
-
-    for username in logs.keys():
-        for date in logs[username].keys():
-
-            employee = MODELS_USER.User.objects.get(username=username)
-            assending_logs = MODELS_ATTE.Devicelogs.objects.filter(date=date, employee=employee).order_by('in_time')
-            if assending_logs.count()>=1:
-                intime = assending_logs.first().in_time
-                outtime = assending_logs.last().in_time
+    for officialid in logs.keys():
+        for date in logs[officialid].keys():
+            if logs[officialid][date]:
+                
+                for time in logs[officialid][date]:
+                    employee=MODELS_USER.User.objects.get(official_id=officialid)
+                    try: MODELS_ATTE.Devicelogs.objects.create(date=date, in_time=time, employee=employee)
+                    except: pass
 
                 attendance = MODELS_ATTE.Attendance.objects.filter(date=date, employee=employee)
                 if attendance.exists():
-
-                    attendance.update(
-                        in_time=intime,
-                        out_time=outtime,
-                        in_out_times=[assending_log.in_time for assending_log in assending_logs]
-                    )
+                    pass
+                    # attendance.update(
+                    #     # in_time=logs[officialid][date][0],
+                    #     out_time=logs[officialid][date][-1],
+                    #     in_out_times=logs[officialid][date]
+                    # )
                 else:
                     MODELS_ATTE.Attendance.objects.create(
                         date=date,
-                        in_time=intime,
-                        out_time=outtime,
-                        in_out_times=[assending_log.in_time for assending_log in assending_logs],
+                        in_time=logs[officialid][date][0],
+                        out_time=logs[officialid][date][-1],
+                        in_out_times=logs[officialid][date],
                         employee=employee,
                         attendance_from=CHOICE.ATTENDANCE_FROM[0][1]
                     )
