@@ -1,5 +1,5 @@
 import random
-from helps.device.a_device import A_device as DEVICE
+from helps.choice import common as CHOICE
 from helps.common.micro import Microhelps
 import os
 
@@ -160,7 +160,7 @@ class Minihelps(Microhelps):
             shift_request_approver = self.getobject(classOBJpackage['User'], {'id': officialDetails.get('shift_request_approver')})
             if shift_request_approver: response['data'].update({'shift_request_approver': shift_request_approver.id})
             if addbankaccountdetails: response['data'].update({'bank_account': addbankaccountdetails['instance'].id})
-            response['data'].update({'created_by': created_by.id, 'updated_by': created_by.id})
+            response['data'].update({'job_status': CHOICE.JOB_STATUS[0][1],'created_by': created_by.id, 'updated_by': created_by.id})
             if photo:
                 photo_response = self.validateprofilepic(photo)
                 if photo_response['flag']: response['data'].update({'photo': photo})
