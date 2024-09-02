@@ -77,20 +77,6 @@ def addgeneralsettings(request):
     response_message = []
     response_successflag = 'error'
     response_status = status.HTTP_400_BAD_REQUEST
-    
-    # # Postman Payload
-    # {
-    #     "weekly_holiday": ["monday", "friday"],
-    #     "fiscalyear_month": "February",
-    #     "workingday_starts_at": "10:00:00",
-    #     "holiday_as_workingday": false,
-    #     "consecutive_days_late_attendance_to_fine": 3,
-    #     "consecutive_late_attendance_to_fine": 100,
-    #     "fraction_of_daily_salary_for_halfday": 50,
-    #     "max_working_hours_against_timesheet": 8,
-    #     "consider_attendance_on_holidays": "Disabled",
-    #     "allow_overtime": true
-    # }
 
     classOBJ = {
         'Weekdays': MODELS_SETT.Weekdays,
@@ -189,7 +175,7 @@ def updategeneralsettings(request, generalsettingsid=None):
             fields_regex=fields_regex
         )
         if responsesuccessflag == 'success':
-            response_data = responsedata.data
+            response_data = SRLZER_SETT.Generalsettingsserializer(MODELS_SETT.Generalsettings.objects.get(id=generalsettingsid), many=False).data
             response_successflag = responsesuccessflag
             response_status = responsestatus
         elif responsesuccessflag == 'error':
