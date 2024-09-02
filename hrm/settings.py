@@ -155,6 +155,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://10.10.20.20:49015',
     'http://10.10.20.20:49016',
     'http://*',
+]   
 
  
 CORS_ALLOW_HEADERS = ['*']
