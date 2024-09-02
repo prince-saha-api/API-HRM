@@ -98,10 +98,24 @@ def deleteaddress(request, addressid=None):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getbankaccounttypes(request):
+
+    # for each in ['Salary ']
+    # required_fields = ['name']
+    # unique_fields = ['name']
+    # response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+    #     classOBJ=MODELS_CONT.Bankaccounttype,
+    #     Serializer=PSRLZER_CONT.Bankaccounttypeserializer,
+    #     data=data,
+    #     unique_fields=unique_fields,
+    #     required_fields=required_fields
+    # )
+
+
+
     filter_fields = [
-                        {'name': 'id', 'convert': None, 'replace':'id'},
-                        {'name': 'name', 'convert': None, 'replace':'name__icontains'}
-                    ]
+        {'name': 'id', 'convert': None, 'replace':'id'},
+        {'name': 'name', 'convert': None, 'replace':'name__icontains'}
+    ]
     bankaccounttypes = MODELS_CONT.Bankaccounttype.objects.filter(**ghelp().KWARGS(request, filter_fields))
     column_accessor = request.GET.get('column_accessor')
     if column_accessor: bankaccounttypes = bankaccounttypes.order_by(column_accessor)
