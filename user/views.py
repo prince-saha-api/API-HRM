@@ -573,6 +573,17 @@ def getshiftchangelog(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def getreligions(request):
+
+    if MODELS_USER.Religion.objects.all().count() == 0:
+        for each in ['Islam', 'Hinduism', 'Buddhism', 'Christianity']:
+            if not MODELS_USER.Religion.objects.filter(name=each).exists():
+                flag = False
+                while not flag:
+                    try:
+                        MODELS_USER.Religion.objects.create(name=each)
+                        flag = True
+                    except: pass
+
     filter_fields = [
         {'name': 'id', 'convert': None, 'replace':'id'},
         {'name': 'name', 'convert': None, 'replace':'name__icontains'}
