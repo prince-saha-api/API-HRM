@@ -6,9 +6,9 @@ class B_device(C_device):
 
     def getLogsValueAndEndtime(self, device, starttime, endtime, count):
         CreateTime = ''
-        log_response = self.getLogsValue(device, starttime, endtime, count)
-        if log_response['data']: CreateTime = log_response['data'][-1].get('CreateTime')
-        return log_response['data'], CreateTime
+        DEVICE_RESPONSE = self.getLogsValue(device, starttime, endtime, count)
+        if DEVICE_RESPONSE['data']: CreateTime = DEVICE_RESPONSE['data'][-1].get('CreateTime')
+        return DEVICE_RESPONSE['data'], CreateTime
     
     def filterLogs(self, raw_logs, officialids, logs, officialidsonly=True):
         for raw_log in raw_logs:
@@ -30,7 +30,7 @@ class B_device(C_device):
                     if time not in logs[UserID][date]: logs[UserID][date].append(time) 
     
     def addphototouser(self, ip, name, userid, image_paths, uname, pword):
-        flag = False
+        response = {'flag': False, 'message': []}
         url=f"http://{ip}/cgi-bin/FaceInfoManager.cgi?action=add"
         data={
             "UserID": userid,
@@ -39,9 +39,11 @@ class B_device(C_device):
                 "PhotoData": self.getPhotoData(image_paths)
             }
         }
-        resp = requests.post(url, json=data, auth=HTTPDigestAuth(uname, pword), headers={"Content-Type":"application/json"})
-        if resp.status_code == 200: flag = True
-        return flag
+        try:
+            DEVICE_RAW_RESPONSE = requests.post(url, json=data, auth=HTTPDigestAuth(uname, pword), headers={"Content-Type":"application/json"})
+            if DEVICE_RAW_RESPONSE.status_code == 200: response['flag'] = True
+        except: response['message'].append(f'might be device({ip}) is switched off!')
+        return response
     
 #     def deleteusrcheckingexistance(self, GroupDevice, Devices, employee_id, group_id):
 #         flag = False

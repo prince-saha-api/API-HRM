@@ -5,6 +5,7 @@ MONTHS_D = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June
 MONTHS_DR = {'1': 'January', '2': 'February', '3': 'March', '4': 'April', '5': 'May', '6': 'June', '7': 'July', '8': 'August', '9': 'September', '10': 'October', '11': 'November', '12': 'December'}
 STATUS = (('Pending','Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected'))
 ATTENDANCE_FROM = (('Device','Device'), ('Manual', 'Manual'), ('Remote', 'Remote'))
+ATTENDANCE_STATUS = (('Present', 'Present'), ('Absent', 'Absent'), ('Leave', 'Leave'), ('Half Present', 'Half Present'), ('Late Attendance', 'Late Attendance'), ('Early Leave', 'Early Leave'), ('Overtime', 'Overtime'), ('Holiday', 'Holiday'), ('Incomplete', 'Incomplete'))
 LEAVE_TYPE = (('Paid', 'Paid'), ('Non Paid', 'Non Paid'))
 GENDER = (('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other'),)
 AMOUNT_TYPE = (('Fixed Amount', 'Fixed Amount'), ('Percentage', 'Percentage'),)
@@ -20,7 +21,8 @@ JOB_STATUS = (
     ('OnGoing', 'OnGoing'),
     ('Resigned', 'Resigned'),
     ('Terminated', 'Terminated'),
-    ('Retired', 'Retired')
+    ('Retired', 'Retired'),
+    ('Expired', 'Expired')
 )
 EMPLOYEE_TYPE = (
     ('Trainee', 'Trainee'),

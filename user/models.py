@@ -72,7 +72,8 @@ class Shift(Basic):
     name = models.CharField(max_length=50, unique=True)
     in_time = models.TimeField()
     out_time = models.TimeField()
-    late_tolerance_time = models.IntegerField(validators=[MinValueValidator(0)], default=0)
+    late_in_tolerance_time = models.IntegerField(validators=[MinValueValidator(0)], default=0)
+    early_leave_tolerance_time = models.IntegerField(validators=[MinValueValidator(0)], default=0)
 
     created_by = models.IntegerField(blank=True, null=True)
     updated_by = models.IntegerField(blank=True, null=True)

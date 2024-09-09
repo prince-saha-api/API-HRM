@@ -61,39 +61,48 @@ class D_device(E_device):
     #############
     def get_record_number(self, ip, userid, uname, pword):
         response = {'flag': False, 'message': [], 'value': None}
-        url=f"http://{ip}/cgi-bin/recordFinder.cgi?action=find&name=AccessControlCard&condition.UserID={userid}&count={8000}"
-        resp=requests.get(url, auth=HTTPDigestAuth(uname, pword))
-        
-        matched_list = re.findall('RecNo=[0-9][0-9]*', resp.text)
-        if matched_list:
-            response['value'] = int(matched_list[0].split('=')[1])
-            response['flag'] = True
-        else: response['message'].append(f'no record_no founded, userid({userid}), device({ip})')
+        url=f"http://{ip}/cgi-bin/recordFinder.cgi?action=find&name=AccessControlCard&condition.UserID={userid}"
+        try:
+            DEVICE_RAW_RESPONSE=requests.get(url, auth=HTTPDigestAuth(uname, pword))
+            matched_list = re.findall('RecNo=[0-9][0-9]*', DEVICE_RAW_RESPONSE.text)
+            if matched_list:
+                response['value'] = int(matched_list[0].split('=')[1])
+                response['flag'] = True
+            else: response['message'].append(f'no record_no founded, userid({userid}), device({ip})')
+        except: response['message'].append(f'might be device({ip}) is switched off!')
         return response
     
     #############
     def existanceofuser(self, ip, userid, uname, pword):
         response = {'flag': False, 'message': []}
-        url=f"http://{ip}/cgi-bin/recordFinder.cgi?action=find&name=AccessControlCard&condition.UserID={userid}&count={8000}"
-        resp=requests.get(url, auth=HTTPDigestAuth(uname, pword))
-
-        if True if re.search(f'UserID={userid}', resp.text) else False:
-            response['flag'] = True
-        else: response['message'].append(f'user({userid}) doesn\'t exist in this device({ip})!')
+        url=f"http://{ip}/cgi-bin/recordFinder.cgi?action=find&name=AccessControlCard&condition.UserID={userid}"
+        try:
+            DEVICE_RAW_RESPONSE=requests.get(url, auth=HTTPDigestAuth(uname, pword))
+            if True if re.search(f'UserID={userid}', DEVICE_RAW_RESPONSE.text) else False:
+                response['flag'] = True
+            else: response['message'].append(f'user({userid}) doesn\'t exist in this device({ip})!')
+        except: response['message'].append(f'might be device({ip}) is switched off!')
         return response
     
     #############
     def deleteusrallimg(self, ip, userid, uname, pword):
+        response = {'flag': False, 'message': []}
         url = f'http://{ip}/cgi-bin/FaceInfoManager.cgi?action=remove&UserID={userid}'
-        requests.get(url,auth=HTTPDigestAuth(uname, pword))
+        try:
+            requests.get(url,auth=HTTPDigestAuth(uname, pword))
+            response['flag'] = True
+        except: response['message'].append(f'might be device({ip}) is switched off!')
+        return response
     
     #############
     def insertusrwithoutimg(self, ip, name, cardno, userid, password, reg_date,  valid_date, uname, pword):
         response = {'flag': False, 'message': []}
         url = f'http://{ip}/cgi-bin/recordUpdater.cgi?action=insert&name=AccessControlCard&CardName={name}&CardNo={cardno}&UserID={userid}&CardStatus=0&CardType=0&Password={password}&Doors[{0}]=0&VTOPosition=01018001&ValidDateStart={reg_date}%20093811&ValidDateEnd={valid_date}%20093811'
-        STATUSCODE = requests.get(url, auth=HTTPDigestAuth(uname, pword)).status_code
-        if STATUSCODE == 200: response['flag'] = True
-        else: response['message'].append(f'couldn\'t create user({name}) to device({ip})!')
+        try:
+            DEVICE_RAW_RESPONSE = requests.get(url, auth=HTTPDigestAuth(uname, pword))
+            if DEVICE_RAW_RESPONSE.status_code == 200: response['flag'] = True
+            else: response['message'].append(f'couldn\'t create user({name}) to device({ip})!')
+        except: response['message'].append(f'might be device({ip}) is switched off!')
         return response
     
     # def getimagepath(self, img_path):
@@ -106,9 +115,9 @@ class D_device(E_device):
         url = f"http://{device.deviceip}/cgi-bin/recordFinder.cgi?action=find&name=AccessControlCardRec&StartTime={starttime}&EndTime={endtime}&count={count}"
         
         try:
-            requests_response=requests.get(url,auth=HTTPDigestAuth(device.username, device.password))
+            DEVICE_RAW_RESPONSE=requests.get(url,auth=HTTPDigestAuth(device.username, device.password))
             records = []
-            lines = [line for line in requests_response.text.split('\n') if line.strip()]
+            lines = [line for line in DEVICE_RAW_RESPONSE.text.split('\n') if line.strip()]
 
             current_index = None
             current_record = {}
@@ -135,6 +144,6 @@ class D_device(E_device):
                 response['data'].append(modifiedrecord)
             response['flag'] = True
             response['message'] = 'logs found'
-        except: pass
+        except: response['message'].append(f'might be device({device.deviceip}) is switched off!')
         
         return response

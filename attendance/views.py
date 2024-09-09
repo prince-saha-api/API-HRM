@@ -12,6 +12,88 @@ from device import models as MODELS_DEVI
 from rest_framework.response import Response
 from rest_framework import status
 from user import models as MODELS_USER
+from hrm_settings import models as MODELS_SETT
+from jobrecord import models as MODELS_JOBR
+from leave import models as MODELS_LEAV
+from datetime import timedelta
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+# @deco.get_permission(['get company info', 'all'])
+def calculateattendance(request):
+    response_data = {}
+    response_message = []
+    response_successflag = 'error'
+    response_status = status.HTTP_400_BAD_REQUEST
+    
+    requestdata = request.data.copy()
+    attendance_details = ghelp().calculateAttendance(
+        requestdata,
+        MODELS_USER.User,
+        MODELS_USER.Shiftchangelog,
+        MODELS_SETT.Generalsettings,
+        MODELS_JOBR.Employeejobhistory,
+        CHOICE.ATTENDANCE_FROM[1][1]
+    )
+    response_message.extend(attendance_details['message'])
+    if not response_message:
+        generalsettings = attendance_details['generalsettings']
+        employee = attendance_details['employee']
+        requestdata.update(attendance_details['data'])
+
+        allowed_fields = ['date', 'in_time', 'out_time', 'late_time', 'early_leave', 'over_time', 'working_minutes', 'total_minutes', 'employee', 'department', 'designation', 'shift', 'attendance_mode']
+        required_fields = ['date', 'employee']
+        fields_regex = [{'field': 'date', 'type': 'date'}, {'field': 'in_time', 'type': 'time'}, {'field': 'out_time', 'type': 'time'}]
+        response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
+            classOBJ=MODELS_ATTE.Attendance,
+            Serializer=PSRLZER_ATTE.Attendanceserializer,
+            data=requestdata,
+            allowed_fields=allowed_fields,
+            required_fields=required_fields,
+            fields_regex=fields_regex
+        )
+        if response_successflag == 'success':
+            ### 'Present'
+            ### 'Absent'
+            ### 'Leave'
+            ### 'Holiday'
+            ### 'Late Attendance'
+            ### 'Early Leave'
+            ### 'Overtime'
+            ### 'Half Present'
+            ### 'Incomplete'
+
+
+            if response_data.instance.working_minutes:
+                if generalsettings.hours_to_consider_absent>=response_data.instance.working_minutes:
+                    MODELS_ATTE.Attendancestatus.objects.create(attendance=response_data.instance, status='Absent')
+                else:
+                    MODELS_ATTE.Attendancestatus.objects.create(attendance=response_data.instance, status='Present')
+                    if response_data.instance.late_time:
+                        MODELS_ATTE.Attendancestatus.objects.create(attendance=response_data.instance, status='Late Attendance')
+                    if response_data.instance.early_leave:
+                        MODELS_ATTE.Attendancestatus.objects.create(attendance=response_data.instance, status='Early Leave')
+                    if response_data.instance.over_time:
+                        MODELS_ATTE.Attendancestatus.objects.create(attendance=response_data.instance, status='Overtime')
+                    if generalsettings.hours_to_consider_absent<response_data.instance.working_minutes<=generalsettings.hours_to_consider_half_Day:
+                        MODELS_ATTE.Attendancestatus.objects.create(attendance=response_data.instance, status='Half Present')
+            # else: MODELS_ATTE.Attendancestatus.objects.create(attendance=response_data.instance, status='Incomplete')
+
+            if ghelp().is_date_holiday_for_this_user(MODELS_LEAV.Holiday, employee, requestdata['date']):
+                MODELS_ATTE.Attendancestatus.objects.create(attendance=response_data.instance, status='Holiday')
+            if MODELS_LEAV.Approvedleave.objects.filter(user=employee, date=requestdata['date']).exists():
+                MODELS_ATTE.Attendancestatus.objects.create(attendance=response_data.instance, status='Leave')
+
+            # shift_beginning = ghelp().convert_STR_y_m_d_h_m_s_Dateformat(f'{requestdata["date"]} {shift.in_time}')
+            # previous_date = ghelp().convert_STR_datetime_date(requestdata['date']) - timedelta(days=1)
+
+            response_data = response_data.data
+            response_successflag = response_successflag
+            response_status = response_status
+
+        elif response_successflag == 'error':
+            response_message.extend(response_message)
+    return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

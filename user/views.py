@@ -278,7 +278,8 @@ def getshifts(request):
         {'name': 'name', 'convert': None, 'replace':'name__icontains'},
         {'name': 'in_time', 'convert': None, 'replace':'in_time'},
         {'name': 'out_time', 'convert': None, 'replace':'out_time'},
-        {'name': 'late_tolerance_time', 'convert': None, 'replace':'late_tolerance_time'}
+        {'name': 'late_in_tolerance_time', 'convert': None, 'replace':'late_in_tolerance_time'},
+        {'name': 'early_leave_tolerance_time', 'convert': None, 'replace':'early_leave_tolerance_time'},
     ]
 
     shifts = MODELS_USER.Shift.objects.filter(**ghelp().KWARGS(request, filter_fields))
@@ -301,44 +302,39 @@ def getshifts(request):
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Single Permission Details', 'all'])
 def addshift(request):
-    userid = request.user.id
-    extra_fields = {}
-    if userid: extra_fields.update({'created_by': userid, 'updated_by': userid})
+    allowed_fields = ['name', 'in_time', 'out_time', 'late_in_tolerance_time', 'early_leave_tolerance_time']
     required_fields = ['name', 'in_time', 'out_time']
     unique_fields=['name']
-    fields_regex = [
-        {'field': 'in_time', 'type': 'time'},
-        {'field': 'out_time', 'type': 'time'}
-    ]
+    fields_regex = [{'field': 'in_time', 'type': 'time'}, {'field': 'out_time', 'type': 'time'}]
+    extra_fields = {'created_by': request.user.id, 'updated_by': request.user.id}
+    
     response_data, response_message, response_successflag, response_status = ghelp().addtocolass(
         classOBJ=MODELS_USER.Shift,
         Serializer=PSRLZER_USER.Shiftserializer,
         data=request.data,
+        allowed_fields=allowed_fields,
         unique_fields=unique_fields,
         extra_fields=extra_fields,
         required_fields=required_fields,
         fields_regex=fields_regex
     )
-    if response_data: response_data = response_data.data
+    response_data = response_data.data if response_successflag == 'success' else {}
     return Response({'data': response_data, 'message': response_message, 'status': response_successflag}, status=response_status)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 # @deco.get_permission(['Get Permission list Details', 'all'])
 def updateshift(request, shiftid=None):
-    userid = request.user.id
-    extra_fields = {}
-    if userid: extra_fields.update({'updated_by': userid})
-    fields_regex = [
-        {'field': 'in_time', 'type': 'time'},
-        {'field': 'out_time', 'type': 'time'},
-    ]
+    allowed_fields = ['name', 'in_time', 'out_time', 'late_in_tolerance_time', 'early_leave_tolerance_time']
+    extra_fields= {'updated_by': request.user.id}
+    fields_regex = [{'field': 'in_time', 'type': 'time'}, {'field': 'out_time', 'type': 'time'},]
     unique_fields=['name']
     response_data, response_message, response_successflag, response_status = ghelp().updaterecord(
         classOBJ=MODELS_USER.Shift, 
         Serializer=PSRLZER_USER.Shiftserializer, 
         id=shiftid, 
         data=request.data,
+        allowed_fields=allowed_fields,
         unique_fields=unique_fields,
         extra_fields=extra_fields, 
         fields_regex=fields_regex
@@ -2060,7 +2056,7 @@ def updateemergencycontact(request, userid=None):
                     responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
                         classOBJ=MODELS_USER.Employeecontact, 
                         Serializer=PSRLZER_USER.Employeecontactserializer, 
-                        data=updateemergencycontact,
+                        data=addemergencycontact,
                         allowed_fields=allowed_fields,
                         required_fields=required_fields,
                         fields_regex=fields_regex

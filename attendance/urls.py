@@ -2,6 +2,9 @@ from django.urls import path
 from attendance import views
 
 urlpatterns = [
+    path('calculate-attendance/', views.calculateattendance, name='calculate-attendance'),
+
+
     path('get-manual-attendence/', views.getmanualattendence, name='get-manual-attendence'),
     path('add-manual-attendence/', views.addmanualattendence, name='add-manual-attendence'),
     path('update-manual-attendence/<int:manualattendenceid>', views.updatemanualattendence, name='update-manual-attendence'),

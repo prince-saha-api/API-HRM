@@ -317,6 +317,7 @@ def addleaverequest(request):
 
     user = ghelp().getobject(MODELS_USER.User, {'id': requestdata.get('user')}) if requestdata.get('user') else ghelp().getobject(MODELS_USER.User, {'id': request.user.id})
     if user == None: response_message.append('required valid user!')
+    else: requestdata.update({'user': user.id})
 
     leavepolicyid = requestdata.get('leavepolicy')
     leavepolicy = None
@@ -350,12 +351,13 @@ def addleaverequest(request):
                         if response['message']: response_message.extend(response['message'])
                         else:
                             dates.extend(response['dates'])
-                            if leavepolicy.max_consecutive_days == 0 or len(dates)<=leavepolicy.max_consecutive_days:
+                            requested_days = len(dates)
+                            if leavepolicy.max_consecutive_days == 0 or requested_days<=leavepolicy.max_consecutive_days:
                                 total_left = leavesummary.first().total_left
-                                if len(dates)<=total_left:
+                                if requested_days<=total_left:
                                     if leavepolicy.require_attachment: required_fields.append('attachment')
                                 else: response_message.append(f'{user.first_name} {user.last_name} has left {total_left} leave - {leavepolicy.name}!')
-                            else: response_message.append(f'max_consecutive_days {leavepolicy.max_consecutive_days} have been exceeded!')
+                            else: response_message.append(f'max_consecutive_days {leavepolicy.max_consecutive_days} have been exceeded, you have been requested for {requested_days} days!')
                 else: response_message.append(f'{leavepolicy.name} is not associated to {user.first_name} {user.last_name}!')
                 if not response_message:
                     allowed_fields=['user', 'leavepolicy', 'from_date', 'to_date', 'attachment', 'reason']

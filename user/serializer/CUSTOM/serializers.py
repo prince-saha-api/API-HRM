@@ -36,7 +36,7 @@ class Gradeserializer(serializers.ModelSerializer):
 class Shiftserializer(serializers.ModelSerializer):
     class Meta:
         model = MODELS_USER.Shift
-        fields = ['id', 'name', 'in_time', 'out_time', 'late_tolerance_time']
+        fields = ['id', 'name', 'in_time', 'out_time', 'late_in_tolerance_time', 'early_leave_tolerance_time']
 
 class Designationserializer(serializers.ModelSerializer):
     class Meta:

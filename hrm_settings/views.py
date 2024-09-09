@@ -159,9 +159,7 @@ def updategeneralsettings(request, generalsettingsid=None):
             generalsettings.first().weekly_holiday.day.set(weekdaysinstance)
             requestdata.update({'weekly_holiday': generalsettings.first().weekly_holiday.id})
             
-        fields_regex = [
-            {'field': 'workingday_starts_at', 'type': 'time'}
-        ]
+        fields_regex = [{'field': 'workingday_starts_at', 'type': 'time'}]
         choice_fields = [
             {'name': 'fiscalyear_month', 'type': 'single-string', 'values': [item[1] for item in CHOICE.MONTHS]},
             {'name': 'consider_attendance_on_holidays', 'type': 'single-string', 'values': [item[1] for item in CHOICE.ATTENDANCE_OVERTIME]},
