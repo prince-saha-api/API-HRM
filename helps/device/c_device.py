@@ -14,13 +14,15 @@ class C_device(D_device):
     
     def deleteusr(self, ip, userid, uname, pword):
         response = {'flag': False, 'message': []}
-        record_response=self.get_record_number(ip, userid, uname, pword)
-        if record_response['flag']:
-            record_number = record_response['value']
+        DEVICE_RESPONSE=self.get_record_number(ip, userid, uname, pword)
+        if DEVICE_RESPONSE['flag']:
+            record_number = DEVICE_RESPONSE['value']
             url=f"http://{ip}/cgi-bin/recordUpdater.cgi?action=remove&name=AccessControlCard&recno={record_number}"
-            resp = requests.get(url,auth=HTTPDigestAuth(uname, pword))
-            if resp.status_code==200: response['flag'] = True
-        else: response['message'].extend(record_response['message'])
+            try:
+                DEVICE_RAW_RESPONSE = requests.get(url,auth=HTTPDigestAuth(uname, pword))
+                if DEVICE_RAW_RESPONSE.status_code==200: response['flag'] = True
+            except: response['message'].append(f'might be device({ip}) is switched off!')
+        else: response['message'].extend(DEVICE_RESPONSE['message'])
         return response
 
     # def existanceofuserfromalldevices(self, GroupDevice, Devices, employee_id, groupid, devices = None):

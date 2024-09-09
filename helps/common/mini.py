@@ -1,5 +1,6 @@
 import random
 from helps.choice import common as CHOICE
+from helps.device.a_device import A_device as DEVICE
 from helps.common.micro import Microhelps
 import os
 
@@ -481,22 +482,24 @@ class Minihelps(Microhelps):
                             instance = userdevicegroup if userdevicegroup.exists() else classOBJpackage['Userdevicegroup'].objects.create(user=user.first(), group=group)
                             devicegroup = classOBJpackage['Devicegroup'].objects.filter(group=groupid)
                             for device in [each.device for each in devicegroup]:
-
-
-                                user_register_info = self.getUserInfoToRegisterIntoDevice(classOBJpackage['User'], user.first(), device)
-                                if user_register_info['flag']:
-                                    user_register_response = self.registerUserToDevice([user_register_info['data']])
-                                    if user_register_response['flag']: response['flag'] = True
-                                    else: instance.delete()
-                                    response['message'].extend(user_register_response['message'])
-                                else:
-                                    instance.delete()
-                                    response['message'].extend(user_register_info['message'])
-                                    
-                                # user_to_device = self.addUserToDevice(user, device) 
-                                # if user_to_device['flag']: response['flag'] = True
-                                # else: instance.delete()
-                                # response['message'].extend(user_to_device['message'])
+                                if device.is_active:
+                                    if DEVICE().is_device_active(device.deviceip):
+                                        user_register_info = self.getUserInfoToRegisterIntoDevice(classOBJpackage['User'], user.first(), device)
+                                        if user_register_info['flag']:
+                                            user_register_response = self.registerUserToDevice([user_register_info['data']])
+                                            if user_register_response['flag']: response['flag'] = True
+                                            else: instance.delete()
+                                            response['message'].extend(user_register_response['message'])
+                                        else:
+                                            instance.delete()
+                                            response['message'].extend(user_register_info['message'])
+                                            
+                                        # user_to_device = self.addUserToDevice(user, device) 
+                                        # if user_to_device['flag']: response['flag'] = True
+                                        # else: instance.delete()
+                                        # response['message'].extend(user_to_device['message'])
+                                    else: response['message'].append(f'either device({device.id})\'s ip({device.deviceip}) address is invalid or switched off!')
+                                else: response['message'].append(f'this device({device.id} - {device.deviceip}) is in inactive mode!')
                         else: response['message'].append(f'user{userid} doesn\'t exist therefore couldn\'t assign to group!')
                 else: response['message'].append(f'group{groupid} doesn\'t exist therefore couldn\'t assign to given users!')
             else: response['message'].append('userid will be placed in list!')
@@ -530,3 +533,35 @@ class Minihelps(Microhelps):
             else: response['message'].append('userid will be placed in list!')
         else: response['message'].append('user list is blank!')
         return response
+    
+    def getattendancedetails(self, generalsettings, shift, actual_in_time, actual_out_time): # New
+        shiftandactualinoutdetails = self.getshiftandactualinoutdetails(shift, actual_in_time, actual_out_time)
+        flag_details = self.claculateinoutflag(shiftandactualinoutdetails)
+        entranceexitdetails = self.claculateentranceexitdetails(flag_details)
+        
+        late_time = None
+        if entranceexitdetails['late_entrance'] != None:
+            late_time = entranceexitdetails['late_entrance']-shift.late_in_tolerance_time if entranceexitdetails['late_entrance']>shift.late_in_tolerance_time else 0
+        
+        early_leave = None
+        if entranceexitdetails['early_exit'] != None:
+            early_leave = entranceexitdetails['early_exit']-shift.early_leave_tolerance_time if entranceexitdetails['early_exit']>shift.early_leave_tolerance_time else 0
+        
+        over_time = None
+        if entranceexitdetails['late_exit'] != None:
+            over_time = entranceexitdetails['late_exit']-generalsettings.shift_exceeded_time_to_considered_overtime if entranceexitdetails['late_exit']>generalsettings.shift_exceeded_time_to_considered_overtime else 0
+        
+        working_minutes = self.claculateworkingminutes(shiftandactualinoutdetails, entranceexitdetails)
+        
+        total_minutes = None
+        if shiftandactualinoutdetails['actual_out_time'] != None and shiftandactualinoutdetails['actual_in_time'] != None:
+            total_minutes = ((shiftandactualinoutdetails['actual_out_time']-shiftandactualinoutdetails['actual_in_time']).total_seconds())/60
+        
+        return {
+            'shift': shift.id,
+            'late_time': late_time,
+            'early_leave': early_leave,
+            'over_time': over_time,
+            'working_minutes': working_minutes,
+            'total_minutes': total_minutes
+        }

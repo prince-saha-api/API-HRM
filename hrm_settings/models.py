@@ -34,6 +34,13 @@ class Generalsettings(Basic):
     weekly_holiday = models.ForeignKey(Weeklyholiday, on_delete=models.CASCADE)
     workingday_starts_at = models.TimeField()
     holiday_as_workingday = models.BooleanField(default=False)
+
+    hours_to_consider_half_Day = models.FloatField(validators=[MinValueValidator(0)], default=4)
+    hours_to_consider_absent = models.FloatField(validators=[MinValueValidator(0)], default=2)
+    shift_exceeded_time_to_considered_overtime = models.FloatField(validators=[MinValueValidator(0)], default=0)
+    overtime_salary_on_workingday = models.FloatField(validators=[MinValueValidator(0)], default=150)
+    overtime_salary_on_holiday = models.FloatField(validators=[MinValueValidator(0)], default=200)
+    
     consecutive_days_late_attendance_to_fine = models.IntegerField(default=3)
     consecutive_late_attendance_to_fine = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)], default=100)
     fraction_of_daily_salary_for_halfday = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(100)], default=50)

@@ -249,7 +249,7 @@ def addjobhistory(request):
                                         choice_fields.append({'name': 'job_status', 'type': 'single-string', 'values': [item[1] for item in CHOICE.JOB_STATUS]})
                                         employeejobhistorydata.update({'job_status': job_status})
                                         userdatatoupdate.update({'job_status': job_status})
-                                        if job_status in [CHOICE.JOB_STATUS[1][1], CHOICE.JOB_STATUS[2][1], CHOICE.JOB_STATUS[3][1]]:
+                                        if job_status in [CHOICE.JOB_STATUS[1][1], CHOICE.JOB_STATUS[2][1], CHOICE.JOB_STATUS[3][1], CHOICE.JOB_STATUS[4][1]]:
                                             userdatatoupdate.update({'is_active': False})
                                             employeejobhistorydata.update({'status_adjustment': [job_status]})
                             # else:

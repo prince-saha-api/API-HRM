@@ -6,11 +6,11 @@ from company.serializer import serializers as SRLZER_COMP
 class Operatinghourserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Operatinghour
-        fields = '__all__'
+        fields = ['id', 'operating_hour_from', 'operating_hour_to']
 
 class Branchserializer(serializers.ModelSerializer):
     company = SRLZER_COMP.Companyserializer(many=False)
     address = SRLZER_CONT.Addressserializer(many=False)
     class Meta:
         model = models.Branch
-        fields = '__all__'
+        exclude = ('is_active', 'code', 'created_at', 'updated_at')

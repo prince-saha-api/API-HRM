@@ -24,28 +24,6 @@ class Generichelps(Minihelps):
         objects = Object.objects.filter(**kwargs)
         return objects
     
-    def getattendancedetails(self, Offday, shift, date, actual_in_time, actual_out_time): # New
-
-        shiftandactualinoutdetails = self.getshiftandactualinoutdetails(shift, actual_in_time, actual_out_time)
-        flag_details = self.claculateinoutflag(shiftandactualinoutdetails)
-        entranceexitdetails = self.claculateentranceexitdetails(flag_details, shiftandactualinoutdetails)
-        ateattendancedetails = self.claculateattendancedetails(entranceexitdetails)
-
-        offday = self.getofficeoffday(Offday, date)
-        
-        total_minutes = ((shiftandactualinoutdetails['actual_out_time']-shiftandactualinoutdetails['actual_in_time']).total_seconds())/60
-        total_minutes -=ateattendancedetails['in_positive_minutes']
-        total_minutes -=ateattendancedetails['out_positive_minutes']
-
-        return {
-            'in_negative_minutes': ateattendancedetails['in_negative_minutes'],
-            'in_positive_minutes': ateattendancedetails['in_positive_minutes'],
-            'out_negative_minutes': ateattendancedetails['out_negative_minutes'],
-            'out_positive_minutes': ateattendancedetails['out_positive_minutes'],
-            'total_minutes': total_minutes,
-            'office_off_day': offday
-        }
-    
     def prepareData(self, objects, fieldsname): # New
         preparedData = []
 
@@ -332,4 +310,55 @@ class Generichelps(Minihelps):
                 else: response['backend_message'].append('Fiscalyear model is missing in classOBJ!')
             else: response['backend_message'].append('Weeklyholiday model is missing in classOBJ!')
         else: response['backend_message'].append('Weekdays model is missing in classOBJ!')
+        return response
+    
+    def calculateAttendance(self, data, User, Shiftchangelog, Generalsettings, Employeejobhistory, attendance_mode):
+        response = {'data': {}, 'employee': None, 'generalsettings': None, 'message': []}
+        
+        date = data.get('date')
+        if date:
+            _year, _month, _date = [int(each) for each in date.split('-')]
+            if not self.checkValidDate(_year, _month, _date): response['message'].append('date is not valid!')
+        else: response['message'].append('date field is required!')
+
+        employee = data.get('employee')
+        if employee:
+            employee = User.objects.filter(id=employee)
+            if employee.exists(): response['employee'] = employee.first()
+            else: response['message'].append('employee is not valid!')
+        else: response['message'].append('employee field is required!')
+
+        in_time = data.get('in_time')
+        if in_time:
+            hour, minute, second = [int(each) for each in in_time.split(':')]
+            if not self.checkValidTime(hour, minute, second): response['message'].append('in_time is not valid!')
+        # else: response_message.append('in_time field is required!')
+
+        out_time = data.get('out_time')
+        if out_time:
+            hour, minute, second = [int(each) for each in out_time.split(':')]
+            if not self.checkValidTime(hour, minute, second): response['message'].append('out_time is not valid!')
+        # else: response_message.append('out_time field is required!')
+
+        if not response['message']:
+            shiftchangelog = Shiftchangelog.objects.filter(date=date, user=employee.first())
+            shift = shiftchangelog.first().newshift if shiftchangelog.exists() else employee.first().shift
+            if shift:
+                generalsettings = self.findGeneralsettings(Generalsettings)
+                if generalsettings:
+                    response['generalsettings'] = generalsettings
+                    response['data'].update(self.getattendancedetails(generalsettings, shift, in_time, out_time))
+                    
+                    designation = employee.first().designation
+                    if designation: data.update({'designation': designation.id})
+
+                    employeejobhistory = Employeejobhistory.objects.filter(user=employee.first().id).order_by('id')
+                    if employeejobhistory.exists():
+                        employeejobhistory = employeejobhistory.last()
+                        while employeejobhistory != None:
+                            if employeejobhistory.department:
+                                response['data'].update({'department': employeejobhistory.department.id})
+                                break
+                            else: employeejobhistory = employeejobhistory.previous_id
+                    response['data'].update({'attendance_mode': attendance_mode})
         return response

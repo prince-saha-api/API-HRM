@@ -3,7 +3,6 @@ from user import models as MODELS_USER
 from django.contrib.postgres.fields import ArrayField
 from helps.common.generic import Generichelps as ghelp
 from helps.abstract.abstractclass import Basic
-from django.core.exceptions import ValidationError
 from helps.choice import common as CHOICE
 from django.core.validators import MinValueValidator, MaxValueValidator
 from hrm_settings import models as MODELS_SETT

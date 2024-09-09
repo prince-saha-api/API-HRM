@@ -8,4 +8,4 @@ class Departmentserializer(serializers.ModelSerializer):
     branch = SRLZER_BRAN.Branchserializer(many=False)
     class Meta:
         model = models.Department
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'email', 'phone', 'fax', 'address', 'user', 'branch']

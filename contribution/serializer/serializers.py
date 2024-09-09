@@ -9,9 +9,11 @@ class Addressserializer(serializers.ModelSerializer):
 class Bankaccounttypeserializer(serializers.ModelSerializer):
     class Meta:
         model = models.Bankaccounttype
-        fields = '__all__'
+        fields = ['id', 'name']
 
 class Bankaccountserializer(serializers.ModelSerializer):
+    account_type=Bankaccounttypeserializer(many=False)
+    address=Addressserializer(many=False)
     class Meta:
         model = models.Bankaccount
-        fields = '__all__'
+        exclude = ('is_active', 'code', 'created_at', 'updated_at')

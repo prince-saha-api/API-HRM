@@ -6,10 +6,10 @@ class Basicinformationserializer(serializers.ModelSerializer):
     address = SRLZER_CONT.Addressserializer(many=False)
     class Meta:
         model = models.Basicinformation
-        fields = '__all__'
+        exclude = ('is_active', 'code', 'created_at', 'updated_at')
 
 class Companyserializer(serializers.ModelSerializer):
     basic_information = Basicinformationserializer(many=False)
     class Meta:
         model = models.Company
-        fields = '__all__'
+        fields = ['id', 'basic_information']

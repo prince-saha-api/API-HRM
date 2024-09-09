@@ -22,10 +22,18 @@ class Nanohelps(Picohelps):
     def getshiftandactualinoutdetails(self, shift, actual_in_time, actual_out_time):
         shift_beginning = self.convert_STR_y_m_d_h_m_s_Dateformat(f'2010-1-1 {shift.in_time}')
         shift_ending = self.convert_STR_y_m_d_h_m_s_Dateformat(f'2010-1-1 {shift.out_time}')
+        if shift_beginning>shift_ending: shift_ending = shift_ending + timedelta(days=1)
 
-        actual_in_time = self.convert_STR_y_m_d_h_m_s_Dateformat(f'2010-1-1 {actual_in_time}')
-        actual_out_time = self.convert_STR_y_m_d_h_m_s_Dateformat(f'2010-1-1 {actual_out_time}')
-        
+        if actual_in_time:
+            actual_in_time = self.convert_STR_y_m_d_h_m_s_Dateformat(f'2010-1-1 {actual_in_time}')
+            if actual_out_time:
+                actual_out_time = self.convert_STR_y_m_d_h_m_s_Dateformat(f'2010-1-1 {actual_out_time}')
+                if actual_in_time>actual_out_time: actual_out_time = actual_out_time + timedelta(days=1)
+            else: actual_out_time = None
+        else:
+            actual_in_time = None
+            actual_out_time = None
+
         return {
             'shift_beginning': shift_beginning,
             'shift_ending': shift_ending,
@@ -33,7 +41,7 @@ class Nanohelps(Picohelps):
             'actual_out_time': actual_out_time
         }
     
-    def claculateentranceexitdetails(self, flag_details, shiftandactualinoutdetails):
+    def claculateentranceexitdetails(self, flag_details):
         early_entrance = 0
         late_entrance = 0
         early_exit = 0
@@ -44,13 +52,13 @@ class Nanohelps(Picohelps):
             late_exit = flag_details['out_diff']
         if flag_details['in_flag'] and not flag_details['out_flag']:
             early_entrance = flag_details['in_diff']
-            early_exit = (shiftandactualinoutdetails['shift_ending']-shiftandactualinoutdetails['actual_out_time']).total_seconds()
+            early_exit = flag_details['out_diff']*(-1) if flag_details['out_diff'] else None
         if not flag_details['in_flag'] and flag_details['out_flag']:
-            late_entrance = (shiftandactualinoutdetails['actual_in_time']-shiftandactualinoutdetails['shift_beginning']).total_seconds()
+            late_entrance = flag_details['in_diff']*(-1) if flag_details['in_diff'] else None
             late_exit = flag_details['out_diff']
         if not flag_details['in_flag'] and not flag_details['out_flag']:
-            late_entrance = (shiftandactualinoutdetails['actual_in_time']-shiftandactualinoutdetails['shift_beginning']).total_seconds()
-            early_exit = (shiftandactualinoutdetails['shift_ending']-shiftandactualinoutdetails['actual_out_time']).total_seconds()
+            late_entrance = flag_details['in_diff']*(-1) if flag_details['in_diff'] else None
+            early_exit = flag_details['out_diff']*(-1) if flag_details['out_diff'] else None
         
         return {
             'early_entrance': early_entrance,
@@ -59,37 +67,30 @@ class Nanohelps(Picohelps):
             'late_exit': late_exit
         }
     
-    def claculateattendancedetails(self, entranceexitdetails):
-        if entranceexitdetails['late_entrance']:
-            in_positive_minutes=0
-            in_negative_minutes=entranceexitdetails['late_entrance']/60
-        if entranceexitdetails['early_entrance']:
-            in_positive_minutes=entranceexitdetails['early_entrance']/60
-            in_negative_minutes=0
+    def claculateworkingminutes(self, shiftandactualinoutdetails, entranceexitdetails):
+        working_minutes = None
+        if entranceexitdetails['late_entrance'] != None and entranceexitdetails['early_exit'] != None:
+            shift_beginning = shiftandactualinoutdetails['shift_beginning']
+            shift_ending = shiftandactualinoutdetails['shift_ending']
 
-        if entranceexitdetails['early_exit']:
-            out_negative_minutes=entranceexitdetails['early_exit']/60
-            out_positive_minutes = 0
-        if entranceexitdetails['late_exit']:
-            out_negative_minutes=0
-            out_positive_minutes = entranceexitdetails['late_exit']/60
-        
-        return {
-            'in_positive_minutes': in_positive_minutes,
-            'in_negative_minutes': in_negative_minutes,
-            'out_positive_minutes': out_positive_minutes,
-            'out_negative_minutes': out_negative_minutes
-        }
+            working_minutes = ((shift_ending-shift_beginning).total_seconds())/60
+            working_minutes -= entranceexitdetails['late_entrance']
+            working_minutes -= entranceexitdetails['early_exit']
+        return working_minutes
     
     def claculateinoutflag(self, shiftandactualinoutdetails):
         in_flag = False
-        in_diff = (shiftandactualinoutdetails['shift_beginning']-shiftandactualinoutdetails['actual_in_time']).total_seconds()
-        in_flag = True if in_diff>=0 else False
+        in_diff = None
+        if shiftandactualinoutdetails['actual_in_time'] != None:
+            in_diff = ((shiftandactualinoutdetails['shift_beginning']-shiftandactualinoutdetails['actual_in_time']).total_seconds())/60
+            in_flag = True if in_diff>=0 else False
 
         out_flag = False
-        out_diff = (shiftandactualinoutdetails['actual_out_time']-shiftandactualinoutdetails['shift_ending']).total_seconds()
-        out_flag = True if out_diff>=0 else False
-        
+        out_diff = None
+        if shiftandactualinoutdetails['actual_out_time'] != None:
+            out_diff = ((shiftandactualinoutdetails['actual_out_time']-shiftandactualinoutdetails['shift_ending']).total_seconds())/60
+            out_flag = True if out_diff>=0 else False
+
         return {
             'in_flag': in_flag,
             'in_diff': in_diff,
@@ -97,11 +98,16 @@ class Nanohelps(Picohelps):
             'out_diff': out_diff
         }
     
-    def getofficeoffday(self, Offday, date):
-        date = self.convert_STR_datetime_date(date)
-        offday = Offday.objects.filter(day=self.convert_y_m_d_STR_day(date), is_active=True)
-
-        return offday.first() if offday.exists() else None
+    def is_date_holiday_for_this_user(self, Holiday, employee, date):
+        holiday = Holiday.objects.filter(date=date, is_active=True)
+        if holiday.exists():
+            if holiday.first().employee_grade:
+                if employee.grade:
+                    if holiday.first().employee_grade == employee.grade: return holiday.first()
+                    else: return None
+                else: return None
+            else: return holiday.first()
+        else: return None
     
     def filterAllowedFields(self, allowed_fields, data, preparedata): # New
         if isinstance(allowed_fields, str):
@@ -225,3 +231,61 @@ class Nanohelps(Picohelps):
             else: response['message'].extend(user_register_info['message'])
             response['user_count'] += 1
         return response
+    
+    def getUsersWhoWillGetNotice(self, Branch, Department, User, Noticeboardserializer, noticeboards, many=True): # New
+        noticeboardserializers = []
+        if many: noticeboardserializers = Noticeboardserializer(noticeboards, many=True).data
+        else: noticeboardserializers.append(Noticeboardserializer(noticeboards, many=False).data)
+        
+        for each in noticeboardserializers:
+            users_to_preview = {}
+
+            noticeboardcompanys = each['noticeboardcompany_noticeboard']
+            companyid_list = []
+            if noticeboardcompanys:
+                for noticeboardcompany in noticeboardcompanys:
+                    companyid_list.append(noticeboardcompany['company']['id'])
+            branchid_list = [each.id for each in Branch.objects.filter(company__in=companyid_list)]
+            departments = Department.objects.filter(branch__in=branchid_list).distinct('id')
+            for department in departments:
+                user_list = department.user.all()
+                for user in user_list:
+                    if user.id not in users_to_preview:
+                        users_to_preview.update({str(user.id): {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}})
+
+            noticeboardbranchs = each['noticeboardbranch_noticeboard']
+            branchid_list = []
+            if noticeboardbranchs:
+                for noticeboardbranch in noticeboardbranchs:
+                    branchid_list.append(noticeboardbranch['branch']['id'])
+            departments = Department.objects.filter(branch__in=branchid_list).distinct('id')
+            for department in departments:
+                user_list = department.user.all()
+                for user in user_list:
+                    if user.id not in users_to_preview:
+                        users_to_preview.update({str(user.id): {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}})
+
+            noticeboarddepartments = each['noticeboarddepartment_noticeboard']
+            departmentid_list = []
+            if noticeboarddepartments:
+                for noticeboarddepartment in noticeboarddepartments:
+                    departmentid_list.append(noticeboarddepartment['department']['id'])
+            departments = Department.objects.filter(id__in=departmentid_list).distinct('id')
+            for department in departments:
+                user_list = department.user.all()
+                for user in user_list:
+                    if user.id not in users_to_preview:
+                        users_to_preview.update({str(user.id): {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}})
+
+            noticeboardemployees = each['noticeboardemployee_noticeboard']
+            employeeid_list = []
+            if noticeboardemployees:
+                for noticeboardemployee in noticeboardemployees:
+                    employeeid_list.append(noticeboardemployee['user']['id'])
+            user_list = User.objects.filter(id__in=employeeid_list).distinct('id')
+            for user in user_list:
+                if user.id not in users_to_preview:
+                    users_to_preview.update({str(user.id): {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name}})
+
+            each.update({'users_to_preview': [users_to_preview[each] for each in users_to_preview.keys()]})
+        return noticeboardserializers if many else noticeboardserializers[0]
