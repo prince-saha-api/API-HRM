@@ -2026,6 +2026,27 @@ def updateemergencycontact(request, userid=None):
                         employeecontact = MODELS_USER.Employeecontact.objects.filter(id=updateemergencycontactid)
                         if employeecontact.exists():
                             if userid == employeecontact.first().user.id:
+
+                                if 'address' in updateemergencycontact:
+                                    if employeecontact.first().address:
+                                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
+                                            classOBJ=MODELS_CONT.Address, 
+                                            Serializer=PSRLZER_CONT.Addressserializer, 
+                                            id=employeecontact.first().address.id,
+                                            data=updateemergencycontact['address']
+                                        )
+                                        del updateemergencycontact['address']
+                                    else:
+                                        required_fields = ['address', 'city', 'state_division', 'country']
+                                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                                            classOBJ=MODELS_CONT.Address, 
+                                            Serializer=PSRLZER_CONT.Addressserializer, 
+                                            data=updateemergencycontact['address'],
+                                            required_fields=required_fields
+                                        )
+                                        if responsesuccessflag == 'success': updateemergencycontact.update({'address': responsedata.instance.id})
+                                        else: del updateemergencycontact['address']
+
                                 allowed_fields=['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation']
                                 fields_regex = [{'field': 'phone_no', 'type': 'phonenumber'}, {'field': 'email', 'type': 'email'}]
                                 responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().updaterecord(
@@ -2049,6 +2070,17 @@ def updateemergencycontact(request, userid=None):
             if isinstance(addemergencycontacts, list):
                 for index, addemergencycontact in enumerate(addemergencycontacts):
                     if 'user' not in addemergencycontact: addemergencycontact.update({'user': userid})
+
+                    if 'address' in addemergencycontact:
+                        required_fields = ['address', 'city', 'state_division', 'country']
+                        responsedata, responsemessage, responsesuccessflag, responsestatus = ghelp().addtocolass(
+                            classOBJ=MODELS_CONT.Address, 
+                            Serializer=PSRLZER_CONT.Addressserializer, 
+                            data=addemergencycontact['address'],
+                            required_fields=required_fields
+                        )
+                        if responsesuccessflag == 'success': addemergencycontact.update({'address': responsedata.instance.id})
+                        else: del addemergencycontact['address']
 
                     allowed_fields=['name', 'user', 'age', 'phone_no', 'email', 'address', 'relation']
                     required_fields = ['name', 'user']
